@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(brew install:*)",
+      "Bash(go version:*)",
+      "Bash(go mod download:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(docker compose up:*)",
+      "Bash(npm install)",
+      "Bash(npm run build)",
+      "Bash(brew services start:*)"
+    ]
+  }
+}

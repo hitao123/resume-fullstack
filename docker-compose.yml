@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: resume-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: resume_db
+      MYSQL_USER: resume_user
+      MYSQL_PASSWORD: resume_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - resume-network
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Uncomment when backend is ready
+  # backend:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   container_name: resume-backend
+  #   environment:
+  #     DB_HOST: mysql
+  #     DB_PORT: 3306
+  #     DB_USER: resume_user
+  #     DB_PASSWORD: resume_password
+  #     DB_NAME: resume_db
+  #     JWT_SECRET: your-secret-key-change-in-production
+  #     JWT_REFRESH_SECRET: your-refresh-secret-change-in-production
+  #     PORT: 8080
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     mysql:
+  #       condition: service_healthy
+  #   networks:
+  #     - resume-network
+
+volumes:
+  mysql_data:
+
+networks:
+  resume-network:
+    driver: bridge
