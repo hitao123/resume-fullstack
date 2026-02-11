@@ -9,26 +9,34 @@ import {
 } from '@react-pdf/renderer';
 import type { Resume } from '@/types/resume.types';
 
-// 注册本地中文字体
+// 注册中文字体
 Font.register({
-  family: 'SourceHanSans',
+  family: 'Noto Serif SC',
   fonts: [
     {
-      src: '/fonts/SourceHanSansCN-Regular.otf',
+      src: 'https://cdn.jsdelivr.net/fontsource/fonts/noto-serif-sc@latest/chinese-simplified-400-normal.ttf',
       fontWeight: 'normal',
     },
     {
-      src: '/fonts/SourceHanSansCN-Bold.otf',
+      src: 'https://cdn.jsdelivr.net/fontsource/fonts/noto-serif-sc@latest/chinese-simplified-700-normal.ttf',
       fontWeight: 'bold',
     },
   ],
+});
+
+// 注册自定义断字回调，支持中文字符逐字换行
+Font.registerHyphenationCallback((word) => {
+  if (/[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]/.test(word)) {
+    return word.split('');
+  }
+  return [word];
 });
 
 // 现代风格样式
 const styles = StyleSheet.create({
   page: {
     padding: 0,
-    fontFamily: 'SourceHanSans',
+    fontFamily: 'Noto Serif SC',
     fontSize: 10,
   },
   // 左侧边栏
@@ -62,6 +70,8 @@ const styles = StyleSheet.create({
     lineHeight: 1.8,
     marginBottom: 5,
     color: '#ecf0f1',
+    width: '100%',
+    maxWidth: '100%',
   },
   // 主内容区
   mainContent: {
@@ -85,6 +95,7 @@ const styles = StyleSheet.create({
   },
   item: {
     marginBottom: 16,
+    width: '100%',
   },
   itemHeader: {
     flexDirection: 'row',
@@ -113,6 +124,8 @@ const styles = StyleSheet.create({
     color: '#555',
     lineHeight: 1.8,
     marginTop: 4,
+    width: '100%',
+    maxWidth: '100%',
   },
   skillTag: {
     fontSize: 8,

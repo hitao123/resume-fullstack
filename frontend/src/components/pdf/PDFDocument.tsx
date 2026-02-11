@@ -9,26 +9,35 @@ import {
 } from '@react-pdf/renderer';
 import type { Resume } from '@/types/resume.types';
 
-// 注册本地中文字体
+// 注册中文字体
 Font.register({
-  family: 'SourceHanSans',
+  family: 'Noto Serif SC',
   fonts: [
     {
-      src: '/fonts/SourceHanSansCN-Regular.otf',
+      src: 'https://cdn.jsdelivr.net/fontsource/fonts/noto-serif-sc@latest/chinese-simplified-400-normal.ttf',
       fontWeight: 'normal',
     },
     {
-      src: '/fonts/SourceHanSansCN-Bold.otf',
+      src: 'https://cdn.jsdelivr.net/fontsource/fonts/noto-serif-sc@latest/chinese-simplified-700-normal.ttf',
       fontWeight: 'bold',
     },
   ],
+});
+
+// 注册自定义断字回调，支持中文字符逐字换行
+Font.registerHyphenationCallback((word) => {
+  // 如果单词中包含中文字符，则逐字符拆分以支持换行
+  if (/[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]/.test(word)) {
+    return word.split('');
+  }
+  return [word];
 });
 
 // 定义样式
 const styles = StyleSheet.create({
   page: {
     padding: 40,
-    fontFamily: 'SourceHanSans',
+    fontFamily: 'Noto Serif SC',
     fontSize: 10,
     lineHeight: 1.8,
   },
@@ -57,6 +66,8 @@ const styles = StyleSheet.create({
     lineHeight: 1.8,
     textAlign: 'left',
     paddingHorizontal: 40,
+    width: '100%',
+    maxWidth: '100%',
   },
   // 区块标题
   sectionTitle: {
@@ -72,6 +83,7 @@ const styles = StyleSheet.create({
   // 工作经历/教育背景
   item: {
     marginBottom: 16,
+    width: '100%',
   },
   itemHeader: {
     flexDirection: 'row',
@@ -100,6 +112,8 @@ const styles = StyleSheet.create({
     color: '#555',
     lineHeight: 1.8,
     marginTop: 4,
+    width: '100%',
+    maxWidth: '100%',
   },
   // 技能
   skillsContainer: {
