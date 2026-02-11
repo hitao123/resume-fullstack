@@ -1,17 +1,14 @@
 import { Form, Input, Button, Card, Typography } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { isValidEmail } from '@/utils/validation';
 import { useState } from 'react';
 
 const { Title, Text } = Typography;
 
 export const Login = () => {
-  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
 
-  const onFinish = async (values: { email: string; password: string }) => {
+  const onFinish = async () => {
     setLoading(true);
     try {
       // await login(values.email, values.password);
@@ -54,12 +51,7 @@ export const Login = () => {
             name="email"
             rules={[
               { required: true, message: 'Please input your email' },
-              {
-                validator: (_, value) =>
-                  value && !isValidEmail(value)
-                    ? Promise.reject('Please enter a valid email')
-                    : Promise.resolve(),
-              },
+              { type: 'email', message: 'Please enter a valid email' },
             ]}
           >
             <Input
