@@ -4,12 +4,15 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { isValidEmail, validatePassword } from '@/utils/validation';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 
 const { Title, Text } = Typography;
 
 export const Register = () => {
   const { register } = useAuth();
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
 
   const onFinish = async (values: {
     email: string;
@@ -19,7 +22,7 @@ export const Register = () => {
     setLoading(true);
     try {
       await register(values.email, values.password, values.name);
-    } catch (error) {
+    } catch {
       // Error is already handled in useAuth hook
     } finally {
       setLoading(false);
@@ -34,8 +37,12 @@ export const Register = () => {
         alignItems: 'center',
         minHeight: '100vh',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        position: 'relative',
       }}
     >
+      <div style={{ position: 'absolute', top: 16, right: 16 }}>
+        <LanguageSwitcher variant="default" />
+      </div>
       <Card
         style={{
           width: '100%',
@@ -44,8 +51,8 @@ export const Register = () => {
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Title level={2}>Create Account</Title>
-          <Text type="secondary">Sign up to get started</Text>
+          <Title level={2}>{t('auth.register.title')}</Title>
+          <Text type="secondary">{t('auth.register.subtitle')}</Text>
         </div>
 
         <Form
@@ -57,13 +64,13 @@ export const Register = () => {
           <Form.Item
             name="name"
             rules={[
-              { required: true, message: 'Please input your name' },
-              { min: 2, message: 'Name must be at least 2 characters' },
+              { required: true, message: t('auth.register.nameRequired') },
+              { min: 2, message: t('auth.register.nameMin') },
             ]}
           >
             <Input
               prefix={<UserOutlined />}
-              placeholder="Full Name"
+              placeholder={t('auth.register.fullName')}
               size="large"
             />
           </Form.Item>
@@ -71,18 +78,18 @@ export const Register = () => {
           <Form.Item
             name="email"
             rules={[
-              { required: true, message: 'Please input your email' },
+              { required: true, message: t('auth.register.emailRequired') },
               {
                 validator: (_, value) =>
                   value && !isValidEmail(value)
-                    ? Promise.reject('Please enter a valid email')
+                    ? Promise.reject(t('auth.register.emailInvalid'))
                     : Promise.resolve(),
               },
             ]}
           >
             <Input
               prefix={<MailOutlined />}
-              placeholder="Email"
+              placeholder={t('auth.register.email')}
               size="large"
               type="email"
             />
@@ -91,7 +98,7 @@ export const Register = () => {
           <Form.Item
             name="password"
             rules={[
-              { required: true, message: 'Please input your password' },
+              { required: true, message: t('auth.register.passwordRequired') },
               {
                 validator: (_, value) => {
                   if (!value) return Promise.resolve();
@@ -106,7 +113,7 @@ export const Register = () => {
           >
             <Input.Password
               prefix={<LockOutlined />}
-              placeholder="Password"
+              placeholder={t('auth.register.password')}
               size="large"
             />
           </Form.Item>
@@ -115,13 +122,13 @@ export const Register = () => {
             name="confirmPassword"
             dependencies={['password']}
             rules={[
-              { required: true, message: 'Please confirm your password' },
+              { required: true, message: t('auth.register.confirmRequired') },
               ({ getFieldValue }) => ({
                 validator(_, value) {
                   if (!value || getFieldValue('password') === value) {
                     return Promise.resolve();
                   }
-                  return Promise.reject('Passwords do not match');
+                  return Promise.reject(t('auth.register.passwordMismatch'));
                 },
               }),
             ]}
@@ -129,7 +136,7 @@ export const Register = () => {
           >
             <Input.Password
               prefix={<LockOutlined />}
-              placeholder="Confirm Password"
+              placeholder={t('auth.register.confirmPassword')}
               size="large"
             />
           </Form.Item>
@@ -142,13 +149,13 @@ export const Register = () => {
               block
               loading={loading}
             >
-              Sign Up
+              {t('auth.register.signUp')}
             </Button>
           </Form.Item>
 
           <div style={{ textAlign: 'center' }}>
             <Text type="secondary">
-              Already have an account? <Link to="/login">Sign in</Link>
+              {t('auth.register.hasAccount')} <Link to="/login">{t('auth.register.signIn')}</Link>
             </Text>
           </div>
         </Form>

@@ -8,9 +8,9 @@ import (
 // User represents a user account
 type User struct {
 	ID           uint           `gorm:"primarykey" json:"id"`
-	Email        string         `gorm:"uniqueIndex;not null" json:"email"`
-	PasswordHash string         `gorm:"not null" json:"-"`
-	Name         string         `json:"name"`
+	Email        string         `gorm:"type:varchar(255);uniqueIndex;not null" json:"email"`
+	PasswordHash string         `gorm:"type:varchar(255);not null" json:"-"`
+	Name         string         `gorm:"type:varchar(255)" json:"name"`
 	CreatedAt    time.Time      `json:"createdAt"`
 	UpdatedAt    time.Time      `json:"updatedAt"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
@@ -149,7 +149,7 @@ type Language struct {
 type RefreshToken struct {
 	ID        uint      `gorm:"primarykey" json:"id"`
 	UserID    uint      `gorm:"not null;index" json:"userId"`
-	Token     string    `gorm:"uniqueIndex;not null" json:"token"`
+	Token     string    `gorm:"type:varchar(500);uniqueIndex;not null" json:"token"`
 	ExpiresAt time.Time `gorm:"not null;index" json:"expiresAt"`
 	CreatedAt time.Time `json:"createdAt"`
 }

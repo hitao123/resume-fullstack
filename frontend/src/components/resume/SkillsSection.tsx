@@ -1,59 +1,109 @@
-import { useState } from 'react';
-import { Button, Tag, Input, Select, Space, Card, Empty, Row, Col } from 'antd';
+import { useState, useEffect, useMemo } from 'react';
+import { Button, Tag, Input, Select, Space, Card, Empty, Row, Col, message } from 'antd';
 import { PlusOutlined, CloseOutlined } from '@ant-design/icons';
+import { useParams } from 'react-router-dom';
 import type { Skill } from '@/types/resume.types';
+import resumeService from '@/services/resumeService';
+import { useTranslation } from 'react-i18next';
 
 interface SkillsSectionProps {
   data: Skill[];
   onChange: (data: Skill[]) => void;
 }
 
-const SKILL_CATEGORIES = [
-  '编程语言',
-  '前端框架',
-  '后端框架',
-  '数据库',
-  '工具',
-  '云服务',
-  '其他',
-];
-
 const PROFICIENCY_LEVELS = [
-  { value: '了解', color: 'default' },
-  { value: '熟悉', color: 'blue' },
-  { value: '熟练', color: 'green' },
-  { value: '精通', color: 'gold' },
+  { key: 'basic', color: 'default' },
+  { key: 'familiar', color: 'blue' },
+  { key: 'proficient', color: 'green' },
+  { key: 'expert', color: 'gold' },
 ];
 
 export const SkillsSection = ({ data, onChange }: SkillsSectionProps) => {
+  const { id } = useParams<{ id: string }>();
+  const { t } = useTranslation();
+
+  const categories = useMemo(
+    () => [
+      { key: 'language', label: t('resume.skills.categories.language') },
+      { key: 'frontend', label: t('resume.skills.categories.frontend') },
+      { key: 'backend', label: t('resume.skills.categories.backend') },
+      { key: 'database', label: t('resume.skills.categories.database') },
+      { key: 'tools', label: t('resume.skills.categories.tools') },
+      { key: 'cloud', label: t('resume.skills.categories.cloud') },
+      { key: 'other', label: t('resume.skills.categories.other') },
+    ],
+    [t]
+  );
+
   const [inputVisible, setInputVisible] = useState(false);
   const [skillName, setSkillName] = useState('');
-  const [skillCategory, setSkillCategory] = useState(SKILL_CATEGORIES[0]);
-  const [proficiencyLevel, setProficiencyLevel] = useState('熟练');
+  const [skillCategory, setSkillCategory] = useState(categories[0]?.key ?? 'language');
+  const [proficiencyLevel, setProficiencyLevel] = useState<string>('proficient');
+  const [saving, setSaving] = useState(false);
 
-  const handleAdd = () => {
-    if (skillName.trim()) {
-      const newSkill: Skill = {
-        id: Date.now(),
-        resumeId: 0,
-        category: skillCategory,
-        name: skillName.trim(),
-        proficiencyLevel: proficiencyLevel,
-        displayOrder: data.length,
-      };
-      onChange([...data, newSkill]);
-      setSkillName('');
-      setInputVisible(false);
+  // Load data when component mounts
+  useEffect(() => {
+    if (id) {
+      loadSkills();
+    }
+  }, [id]);
+
+  const loadSkills = async () => {
+    if (!id) return;
+    try {
+      const skills = await resumeService.getSkills(Number(id));
+      onChange(skills);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      message.error(t('resume.skills.loadFailed', { message: msg }));
     }
   };
 
-  const handleDelete = (id: number) => {
-    onChange(data.filter((skill) => skill.id !== id));
+  const handleAdd = async () => {
+    if (!id || !skillName.trim()) return;
+
+    setSaving(true);
+    try {
+      const skillData = {
+        category: skillCategory,
+        name: skillName.trim(),
+        proficiencyLevel: t(`resume.skills.proficiency.${proficiencyLevel}`),
+        displayOrder: data.length,
+      };
+
+      await resumeService.createSkill(Number(id), skillData);
+      message.success(t('resume.skills.addSuccess'));
+      await loadSkills();
+      setSkillName('');
+      setInputVisible(false);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      message.error(t('resume.skills.addFailed', { message: msg }));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (skill: Skill) => {
+    if (!id) return;
+
+    try {
+      await resumeService.deleteSkill(Number(id), skill.id);
+      message.success(t('resume.skills.deleteSuccess'));
+      await loadSkills();
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      message.error(t('resume.skills.deleteFailed', { message: msg }));
+    }
   };
 
   // 按类别分组技能
   const groupedSkills = data.reduce((acc, skill) => {
-    const category = skill.category || '其他';
+    const key = skill.category || t('resume.skills.categories.other');
+    const category =
+      categories.find((c) => c.key === key)?.label ||
+      skill.category ||
+      t('resume.skills.categories.other');
     if (!acc[category]) {
       acc[category] = [];
     }
@@ -62,7 +112,9 @@ export const SkillsSection = ({ data, onChange }: SkillsSectionProps) => {
   }, {} as Record<string, Skill[]>);
 
   const getProficiencyColor = (level?: string) => {
-    const found = PROFICIENCY_LEVELS.find((p) => p.value === level);
+    const found = PROFICIENCY_LEVELS.find(
+      (p) => t(`resume.skills.proficiency.${p.key}`) === level
+    );
     return found?.color || 'default';
   };
 
@@ -74,7 +126,7 @@ export const SkillsSection = ({ data, onChange }: SkillsSectionProps) => {
             <Row gutter={8} align="middle">
               <Col flex="auto">
                 <Input
-                  placeholder="输入技能名称"
+                  placeholder={t('resume.skills.inputPlaceholder')}
                   value={skillName}
                   onChange={(e) => setSkillName(e.target.value)}
                   onPressEnter={handleAdd}
@@ -89,9 +141,9 @@ export const SkillsSection = ({ data, onChange }: SkillsSectionProps) => {
                   style={{ width: 120 }}
                   size="large"
                 >
-                  {SKILL_CATEGORIES.map((cat) => (
-                    <Select.Option key={cat} value={cat}>
-                      {cat}
+                  {categories.map((cat) => (
+                    <Select.Option key={cat.key} value={cat.key}>
+                      {cat.label}
                     </Select.Option>
                   ))}
                 </Select>
@@ -99,23 +151,25 @@ export const SkillsSection = ({ data, onChange }: SkillsSectionProps) => {
               <Col>
                 <Select
                   value={proficiencyLevel}
-                  onChange={setProficiencyLevel}
+                  onChange={(val) => setProficiencyLevel(val)}
                   style={{ width: 100 }}
                   size="large"
                 >
                   {PROFICIENCY_LEVELS.map((level) => (
-                    <Select.Option key={level.value} value={level.value}>
-                      {level.value}
+                    <Select.Option key={level.key} value={level.key}>
+                      {t(`resume.skills.proficiency.${level.key}`)}
                     </Select.Option>
                   ))}
                 </Select>
               </Col>
               <Col>
-                <Space>
-                  <Button type="primary" onClick={handleAdd}>
-                    添加
+                <Space className='mt-10'>
+                  <Button type="primary" onClick={handleAdd} loading={saving}>
+                    {t('resume.skills.addConfirm')}
                   </Button>
-                  <Button onClick={() => setInputVisible(false)}>取消</Button>
+                  <Button onClick={() => setInputVisible(false)}>
+                    {t('resume.skills.cancel')}
+                  </Button>
                 </Space>
               </Col>
             </Row>
@@ -127,14 +181,14 @@ export const SkillsSection = ({ data, onChange }: SkillsSectionProps) => {
               block
               size="large"
             >
-              添加技能
+              {t('resume.skills.addButton')}
             </Button>
           )}
         </Space>
       </Card>
 
       {Object.keys(groupedSkills).length === 0 ? (
-        <Empty description="暂无技能" />
+        <Empty description={t('resume.skills.emptyDescription')} />
       ) : (
         <Space direction="vertical" style={{ width: '100%' }} size="middle">
           {Object.entries(groupedSkills).map(([category, skills]) => (
@@ -144,7 +198,7 @@ export const SkillsSection = ({ data, onChange }: SkillsSectionProps) => {
                   <Tag
                     key={skill.id}
                     closable
-                    onClose={() => handleDelete(skill.id)}
+                    onClose={() => handleDelete(skill)}
                     color={getProficiencyColor(skill.proficiencyLevel)}
                     style={{ fontSize: 14, padding: '4px 8px' }}
                     closeIcon={<CloseOutlined />}

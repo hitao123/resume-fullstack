@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Card,
   Button,
@@ -12,6 +12,7 @@ import {
   Dropdown,
   Space,
   message,
+  Spin,
 } from 'antd';
 import {
   PlusOutlined,
@@ -22,66 +23,71 @@ import {
   FileTextOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { useResumeStore } from '@/store/resumeStore';
 import type { MenuProps } from 'antd';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Text } = Typography;
 
-// 模拟数据
-const mockResumes = [
-  {
-    id: 1,
-    title: '软件工程师简历',
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 2,
-    title: '前端开发简历',
-    updatedAt: new Date(Date.now() - 86400000).toISOString(),
-  },
-];
-
 export const Dashboard = () => {
   const navigate = useNavigate();
-  const [resumes, setResumes] = useState(mockResumes);
+  const { t, i18n } = useTranslation();
+  const {
+    resumes,
+    isLoading,
+    fetchResumes,
+    createResume,
+    deleteResume,
+    duplicateResume,
+  } = useResumeStore();
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [form] = Form.useForm();
 
-  const handleCreateResume = (values: { title: string }) => {
-    const newResume = {
-      id: resumes.length + 1,
-      title: values.title || '未命名简历',
-      updatedAt: new Date().toISOString(),
-    };
-    setResumes([...resumes, newResume]);
-    message.success('简历创建成功');
-    setCreateModalOpen(false);
-    form.resetFields();
-    navigate(`/editor/${newResume.id}`);
+  // Load resumes on mount
+  useEffect(() => {
+    fetchResumes().catch((error) => {
+      message.error(t('dashboard.loadFailed', { message: error.message }));
+    });
+  }, [fetchResumes, t]);
+
+  const handleCreateResume = async (values: { title: string }) => {
+    try {
+      const resume = await createResume(values.title || t('dashboard.createDefaultTitle'));
+      message.success(t('dashboard.createSuccess'));
+      setCreateModalOpen(false);
+      form.resetFields();
+      navigate(`/editor/${resume.id}`);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      message.error(t('dashboard.createFailed', { message: msg }));
+    }
   };
 
   const handleDeleteResume = (id: number) => {
     Modal.confirm({
-      title: '删除简历',
-      content: '确定要删除这份简历吗？此操作无法撤销。',
-      okText: '删除',
+      title: t('dashboard.deleteTitle'),
+      content: t('dashboard.deleteContent'),
+      okText: t('dashboard.deleteOk'),
       okType: 'danger',
-      onOk: () => {
-        setResumes(resumes.filter((r) => r.id !== id));
-        message.success('简历已删除');
+      onOk: async () => {
+        try {
+          await deleteResume(id);
+          message.success(t('dashboard.deleted'));
+        } catch (error: unknown) {
+          const msg = error instanceof Error ? error.message : String(error);
+          message.error(t('dashboard.deleteFailed', { message: msg }));
+        }
       },
     });
   };
 
-  const handleDuplicateResume = (id: number) => {
-    const original = resumes.find((r) => r.id === id);
-    if (original) {
-      const newResume = {
-        id: resumes.length + 1,
-        title: `${original.title} - 副本`,
-        updatedAt: new Date().toISOString(),
-      };
-      setResumes([...resumes, newResume]);
-      message.success('简历已复制');
+  const handleDuplicateResume = async (id: number) => {
+    try {
+      await duplicateResume(id);
+      message.success(t('dashboard.duplicated'));
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      message.error(t('dashboard.duplicateFailed', { message: msg }));
     }
   };
 
@@ -89,13 +95,13 @@ export const Dashboard = () => {
     {
       key: 'edit',
       icon: <EditOutlined />,
-      label: '编辑',
+      label: t('dashboard.edit'),
       onClick: () => navigate(`/editor/${resumeId}`),
     },
     {
       key: 'duplicate',
       icon: <CopyOutlined />,
-      label: '复制',
+      label: t('dashboard.duplicate'),
       onClick: () => handleDuplicateResume(resumeId),
     },
     {
@@ -104,7 +110,7 @@ export const Dashboard = () => {
     {
       key: 'delete',
       icon: <DeleteOutlined />,
-      label: '删除',
+      label: t('dashboard.delete'),
       danger: true,
       onClick: () => handleDeleteResume(resumeId),
     },
@@ -117,11 +123,19 @@ export const Dashboard = () => {
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (hours < 1) return '刚刚更新';
-    if (hours < 24) return `${hours} 小时前更新`;
-    if (days < 30) return `${days} 天前更新`;
-    return date.toLocaleDateString('zh-CN');
+    if (hours < 1) return t('dashboard.updatedJustNow');
+    if (hours < 24) return t('dashboard.updatedHoursAgo', { count: hours });
+    if (days < 30) return t('dashboard.updatedDaysAgo', { count: days });
+    return date.toLocaleDateString(i18n.language?.startsWith('zh') ? 'zh-CN' : 'en-US');
   };
+
+  if (isLoading && resumes.length === 0) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <Spin size="large" tip={t('dashboard.loading')} />
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto' }}>
@@ -133,14 +147,14 @@ export const Dashboard = () => {
           marginBottom: 24,
         }}
       >
-        <Title level={2}>我的简历</Title>
+        <Title level={2}>{t('dashboard.title')}</Title>
         <Button
           type="primary"
           icon={<PlusOutlined />}
           size="large"
           onClick={() => setCreateModalOpen(true)}
         >
-          新建简历
+          {t('dashboard.new')}
         </Button>
       </div>
 
@@ -150,8 +164,8 @@ export const Dashboard = () => {
             image={Empty.PRESENTED_IMAGE_SIMPLE}
             description={
               <Space direction="vertical">
-                <Text>你还没有任何简历</Text>
-                <Text type="secondary">创建你的第一份简历开始吧</Text>
+                <Text>{t('dashboard.emptyTitle')}</Text>
+                <Text type="secondary">{t('dashboard.emptySubtitle')}</Text>
               </Space>
             }
           >
@@ -160,7 +174,7 @@ export const Dashboard = () => {
               icon={<PlusOutlined />}
               onClick={() => setCreateModalOpen(true)}
             >
-              创建简历
+              {t('dashboard.create')}
             </Button>
           </Empty>
         </Card>
@@ -202,7 +216,7 @@ export const Dashboard = () => {
       )}
 
       <Modal
-        title="创建新简历"
+        title={t('dashboard.modalTitle')}
         open={createModalOpen}
         onCancel={() => {
           setCreateModalOpen(false);
@@ -212,24 +226,24 @@ export const Dashboard = () => {
       >
         <Form form={form} layout="vertical" onFinish={handleCreateResume}>
           <Form.Item
-            label="简历标题"
+            label={t('dashboard.resumeTitleLabel')}
             name="title"
             rules={[
-              { required: true, message: '请输入简历标题' },
-              { max: 255, message: '标题过长' },
+              { required: true, message: t('dashboard.resumeTitleRequired') },
+              { max: 255, message: t('dashboard.resumeTitleTooLong') },
             ]}
           >
             <Input
-              placeholder="例如：软件工程师简历"
+              placeholder={t('dashboard.resumeTitlePlaceholder')}
               autoFocus
             />
           </Form.Item>
 
           <Form.Item style={{ marginBottom: 0 }}>
             <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
-              <Button onClick={() => setCreateModalOpen(false)}>取消</Button>
-              <Button type="primary" htmlType="submit">
-                创建
+              <Button onClick={() => setCreateModalOpen(false)}>{t('dashboard.cancel')}</Button>
+              <Button type="primary" htmlType="submit" loading={isLoading}>
+                {t('dashboard.confirmCreate')}
               </Button>
             </Space>
           </Form.Item>

@@ -9,7 +9,16 @@
       "Bash(npm install)",
       "Bash(npm run build)",
       "Bash(brew services start:*)",
-      "Bash(npm install dayjs)"
+      "Bash(npm install dayjs)",
+      "Bash(mysql:*)",
+      "Bash(mysqladmin ping:*)",
+      "Bash(go mod tidy:*)",
+      "Bash(go run:*)",
+      "Bash(brew services:*)",
+      "Bash(curl:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoidGVzdEBleGFtcGxlLmNvbSIsImV4cCI6MTc3MDg2NjU1NiwibmJmIjoxNzcwODY1NjU2LCJpYXQiOjE3NzA4NjU2NTZ9.TFAobvsdr7McSAzi9QELitJIHiZppLFh7OAZslTYsyI\")",
+      "Bash(lsof:*)",
+      "Bash(xargs:*)"
     ]
   }
 }

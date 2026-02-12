@@ -1,0 +1,24 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="40" y1="32" x2="216" y2="224" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1677FF"/>
+      <stop offset="1" stop-color="#52C41A"/>
+    </linearGradient>
+    <filter id="s" x="-20" y="-20" width="296" height="296" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#0B1F3B" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#s)">
+    <rect x="28" y="28" width="200" height="200" rx="56" fill="url(#g)"/>
+  </g>
+
+  <!-- stylized document -->
+  <path d="M88 76C88 67.163 95.163 60 104 60H148.9C153.122 60 157.172 61.686 160.154 64.686L179.1 83.7C182.054 86.662 183.7 90.673 183.7 94.85V180C183.7 188.837 176.537 196 167.7 196H104C95.163 196 88 188.837 88 180V76Z" fill="white" fill-opacity="0.96"/>
+  <path d="M160 60V78.5C160 84.299 164.701 89 170.5 89H189" stroke="#E6F4FF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- lines -->
+  <path d="M110 118H162" stroke="#0B1F3B" stroke-opacity="0.55" stroke-width="10" stroke-linecap="round"/>
+  <path d="M110 144H150" stroke="#0B1F3B" stroke-opacity="0.45" stroke-width="10" stroke-linecap="round"/>
+  <path d="M110 170H156" stroke="#0B1F3B" stroke-opacity="0.4" stroke-width="10" stroke-linecap="round"/>
+</svg>

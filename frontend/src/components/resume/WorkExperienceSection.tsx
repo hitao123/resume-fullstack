@@ -1,8 +1,11 @@
-import { useState } from 'react';
-import { Button, List, Card, Modal, Form, Input, DatePicker, Checkbox, Space, Empty } from 'antd';
+import { useState, useEffect } from 'react';
+import { Button, List, Card, Modal, Form, Input, DatePicker, Checkbox, Space, Empty, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 import type { WorkExperience } from '@/types/resume.types';
+import resumeService from '@/services/resumeService';
+import { useTranslation } from 'react-i18next';
 
 const { TextArea } = Input;
 const { RangePicker } = DatePicker;
@@ -13,18 +16,38 @@ interface WorkExperienceSectionProps {
 }
 
 export const WorkExperienceSection = ({ data, onChange }: WorkExperienceSectionProps) => {
+  const { id } = useParams<{ id: string }>();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingItem, setEditingItem] = useState<WorkExperience | null>(null);
+  const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
+  const { t } = useTranslation();
+
+  // Load data when component mounts
+  useEffect(() => {
+    if (id) {
+      loadWorkExperiences();
+    }
+  }, [id]);
+
+  const loadWorkExperiences = async () => {
+    if (!id) return;
+    try {
+      const experiences = await resumeService.getWorkExperiences(Number(id));
+      onChange(experiences);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      message.error(t('resume.work.loadFailed', { message: msg }));
+    }
+  };
 
   const handleAdd = () => {
     form.resetFields();
-    setEditingIndex(null);
+    setEditingItem(null);
     setIsModalOpen(true);
   };
 
-  const handleEdit = (index: number) => {
-    const item = data[index];
+  const handleEdit = (item: WorkExperience) => {
     form.setFieldsValue({
       ...item,
       dateRange: item.startDate && !item.isCurrent
@@ -33,52 +56,71 @@ export const WorkExperienceSection = ({ data, onChange }: WorkExperienceSectionP
         ? [dayjs(item.startDate), null]
         : null,
     });
-    setEditingIndex(index);
+    setEditingItem(item);
     setIsModalOpen(true);
   };
 
-  const handleDelete = (index: number) => {
+  const handleDelete = async (item: WorkExperience) => {
+    if (!id) return;
+
     Modal.confirm({
-      title: '确认删除',
-      content: '确定要删除这条工作经历吗？',
-      onOk: () => {
-        const newData = data.filter((_, i) => i !== index);
-        onChange(newData);
+      title: t('resume.work.deleteConfirmTitle'),
+      content: t('resume.work.deleteConfirmContent'),
+      onOk: async () => {
+        try {
+          await resumeService.deleteWorkExperience(Number(id), item.id);
+          message.success(t('resume.work.deleteSuccess'));
+          await loadWorkExperiences();
+        } catch (error: unknown) {
+          const msg = error instanceof Error ? error.message : String(error);
+          message.error(t('resume.work.deleteFailed', { message: msg }));
+        }
       },
     });
   };
 
   const handleSubmit = async () => {
+    if (!id) return;
+
     try {
       const values = await form.validateFields();
       const [startDate, endDate] = values.dateRange || [null, null];
 
-      const newItem: WorkExperience = {
-        id: editingIndex !== null ? data[editingIndex].id : Date.now(),
-        resumeId: 0,
+      setSaving(true);
+
+      const workExpData = {
         companyName: values.companyName,
         position: values.position,
-        location: values.location,
+        location: values.location || '',
         startDate: startDate ? startDate.format('YYYY-MM-DD') : '',
-        endDate: values.isCurrent ? null : (endDate ? endDate.format('YYYY-MM-DD') : null),
+        endDate: values.isCurrent ? '' : (endDate ? endDate.format('YYYY-MM-DD') : ''),
         isCurrent: values.isCurrent || false,
-        description: values.description,
-        displayOrder: editingIndex !== null ? data[editingIndex].displayOrder : data.length,
+        description: values.description || '',
+        displayOrder: editingItem ? editingItem.displayOrder : data.length,
       };
 
-      let newData;
-      if (editingIndex !== null) {
-        newData = [...data];
-        newData[editingIndex] = newItem;
+      if (editingItem) {
+        // Update existing
+        await resumeService.updateWorkExperience(Number(id), editingItem.id, workExpData);
+        message.success(t('resume.work.updateSuccess'));
       } else {
-        newData = [...data, newItem];
+        // Create new
+        await resumeService.createWorkExperience(Number(id), workExpData);
+        message.success(t('resume.work.createSuccess'));
       }
 
-      onChange(newData);
+      await loadWorkExperiences();
       setIsModalOpen(false);
       form.resetFields();
-    } catch (error) {
-      console.error('表单验证失败:', error);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      message.error(
+        editingItem
+          ? t('resume.work.updateFailed', { message: msg })
+          : t('resume.work.createFailed', { message: msg })
+      );
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -92,15 +134,15 @@ export const WorkExperienceSection = ({ data, onChange }: WorkExperienceSectionP
         size="large"
         style={{ marginBottom: 16 }}
       >
-        添加工作经历
+        {t('resume.work.addButton')}
       </Button>
 
       {data.length === 0 ? (
-        <Empty description="暂无工作经历" />
+        <Empty description={t('resume.work.emptyDescription')} />
       ) : (
         <List
           dataSource={data}
-          renderItem={(item, index) => (
+          renderItem={(item) => (
             <Card
               key={item.id}
               style={{ marginBottom: 12 }}
@@ -110,13 +152,13 @@ export const WorkExperienceSection = ({ data, onChange }: WorkExperienceSectionP
                   <Button
                     type="link"
                     icon={<EditOutlined />}
-                    onClick={() => handleEdit(index)}
+                    onClick={() => handleEdit(item)}
                   />
                   <Button
                     type="link"
                     danger
                     icon={<DeleteOutlined />}
-                    onClick={() => handleDelete(index)}
+                    onClick={() => handleDelete(item)}
                   />
                 </Space>
               }
@@ -141,54 +183,58 @@ export const WorkExperienceSection = ({ data, onChange }: WorkExperienceSectionP
       )}
 
       <Modal
-        title={editingIndex !== null ? '编辑工作经历' : '添加工作经历'}
+        title={editingItem ? t('resume.work.modalTitleEdit') : t('resume.work.modalTitleCreate')}
         open={isModalOpen}
         onOk={handleSubmit}
+        confirmLoading={saving}
         onCancel={() => setIsModalOpen(false)}
         width={600}
       >
         <Form form={form} layout="vertical">
           <Form.Item
-            label="职位"
+            label={t('resume.work.positionLabel')}
             name="position"
-            rules={[{ required: true, message: '请输入职位' }]}
+            rules={[{ required: true, message: t('resume.work.positionRequired') }]}
           >
-            <Input placeholder="前端工程师" />
+            <Input placeholder={t('resume.work.positionPlaceholder')} />
           </Form.Item>
 
           <Form.Item
-            label="公司名称"
+            label={t('resume.work.companyLabel')}
             name="companyName"
-            rules={[{ required: true, message: '请输入公司名称' }]}
+            rules={[{ required: true, message: t('resume.work.companyRequired') }]}
           >
-            <Input placeholder="某科技公司" />
+            <Input placeholder={t('resume.work.companyPlaceholder')} />
           </Form.Item>
 
-          <Form.Item label="工作地点" name="location">
-            <Input placeholder="北京" />
+          <Form.Item label={t('resume.work.locationLabel')} name="location">
+            <Input placeholder={t('resume.work.locationPlaceholder')} />
           </Form.Item>
 
           <Form.Item
-            label="工作时间"
+            label={t('resume.work.dateRangeLabel')}
             name="dateRange"
-            rules={[{ required: true, message: '请选择工作时间' }]}
+            rules={[{ required: true, message: t('resume.work.dateRangeRequired') }]}
           >
             <RangePicker
               style={{ width: '100%' }}
               picker="month"
               format="YYYY-MM"
-              placeholder={['开始时间', '结束时间']}
+              placeholder={[
+                t('resume.work.dateRangePlaceholderStart'),
+                t('resume.work.dateRangePlaceholderEnd'),
+              ]}
             />
           </Form.Item>
 
           <Form.Item name="isCurrent" valuePropName="checked">
-            <Checkbox>目前在职</Checkbox>
+            <Checkbox>{t('resume.work.isCurrentLabel')}</Checkbox>
           </Form.Item>
 
-          <Form.Item label="工作描述" name="description">
+          <Form.Item label={t('resume.work.descriptionLabel')} name="description">
             <TextArea
               rows={4}
-              placeholder="描述你的主要职责和成就..."
+              placeholder={t('resume.work.descriptionPlaceholder')}
               maxLength={1000}
               showCount
             />

@@ -1,8 +1,11 @@
-import { useState } from 'react';
-import { Button, List, Card, Modal, Form, Input, DatePicker, Space, Empty } from 'antd';
+import { useState, useEffect } from 'react';
+import { Button, List, Card, Modal, Form, Input, DatePicker, Space, Empty, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 import type { Education } from '@/types/resume.types';
+import resumeService from '@/services/resumeService';
+import { useTranslation } from 'react-i18next';
 
 const { TextArea } = Input;
 const { RangePicker } = DatePicker;
@@ -13,71 +16,110 @@ interface EducationSectionProps {
 }
 
 export const EducationSection = ({ data, onChange }: EducationSectionProps) => {
+  const { id } = useParams<{ id: string }>();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingItem, setEditingItem] = useState<Education | null>(null);
+  const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
+  const { t } = useTranslation();
+
+  // Load data when component mounts
+  useEffect(() => {
+    if (id) {
+      loadEducation();
+    }
+  }, [id]);
+
+  const loadEducation = async () => {
+    if (!id) return;
+    try {
+      const education = await resumeService.getEducation(Number(id));
+      onChange(education);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      message.error(t('resume.education.loadFailed', { message: msg }));
+    }
+  };
 
   const handleAdd = () => {
     form.resetFields();
-    setEditingIndex(null);
+    setEditingItem(null);
     setIsModalOpen(true);
   };
 
-  const handleEdit = (index: number) => {
-    const item = data[index];
+  const handleEdit = (item: Education) => {
     form.setFieldsValue({
       ...item,
       dateRange: item.startDate
         ? [dayjs(item.startDate), item.endDate ? dayjs(item.endDate) : null]
         : null,
     });
-    setEditingIndex(index);
+    setEditingItem(item);
     setIsModalOpen(true);
   };
 
-  const handleDelete = (index: number) => {
+  const handleDelete = async (item: Education) => {
+    if (!id) return;
+
     Modal.confirm({
-      title: '确认删除',
-      content: '确定要删除这条教育经历吗？',
-      onOk: () => {
-        const newData = data.filter((_, i) => i !== index);
-        onChange(newData);
+      title: t('resume.education.deleteConfirmTitle'),
+      content: t('resume.education.deleteConfirmContent'),
+      onOk: async () => {
+        try {
+          await resumeService.deleteEducation(Number(id), item.id);
+          message.success(t('resume.education.deleteSuccess'));
+          await loadEducation();
+        } catch (error: unknown) {
+          const msg = error instanceof Error ? error.message : String(error);
+          message.error(t('resume.education.deleteFailed', { message: msg }));
+        }
       },
     });
   };
 
   const handleSubmit = async () => {
+    if (!id) return;
+
     try {
       const values = await form.validateFields();
       const [startDate, endDate] = values.dateRange || [null, null];
 
-      const newItem: Education = {
-        id: editingIndex !== null ? data[editingIndex].id : Date.now(),
-        resumeId: 0,
+      setSaving(true);
+
+      const educationData = {
         institution: values.institution,
         degree: values.degree,
-        fieldOfStudy: values.fieldOfStudy,
-        location: values.location,
+        fieldOfStudy: values.fieldOfStudy || '',
+        location: values.location || '',
         startDate: startDate ? startDate.format('YYYY-MM-DD') : '',
-        endDate: endDate ? endDate.format('YYYY-MM-DD') : null,
-        gpa: values.gpa,
-        description: values.description,
-        displayOrder: editingIndex !== null ? data[editingIndex].displayOrder : data.length,
+        endDate: endDate ? endDate.format('YYYY-MM-DD') : '',
+        gpa: values.gpa || '',
+        description: values.description || '',
+        displayOrder: editingItem ? editingItem.displayOrder : data.length,
       };
 
-      let newData;
-      if (editingIndex !== null) {
-        newData = [...data];
-        newData[editingIndex] = newItem;
+      if (editingItem) {
+        // Update existing
+        await resumeService.updateEducation(Number(id), editingItem.id, educationData);
+        message.success(t('resume.education.updateSuccess'));
       } else {
-        newData = [...data, newItem];
+        // Create new
+        await resumeService.createEducation(Number(id), educationData);
+        message.success(t('resume.education.createSuccess'));
       }
 
-      onChange(newData);
+      await loadEducation();
       setIsModalOpen(false);
       form.resetFields();
-    } catch (error) {
-      console.error('表单验证失败:', error);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      message.error(
+        editingItem
+          ? t('resume.education.updateFailed', { message: msg })
+          : t('resume.education.createFailed', { message: msg })
+      );
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -91,15 +133,15 @@ export const EducationSection = ({ data, onChange }: EducationSectionProps) => {
         size="large"
         style={{ marginBottom: 16 }}
       >
-        添加教育经历
+        {t('resume.education.addButton')}
       </Button>
 
       {data.length === 0 ? (
-        <Empty description="暂无教育经历" />
+        <Empty description={t('resume.education.emptyDescription')} />
       ) : (
         <List
           dataSource={data}
-          renderItem={(item, index) => (
+          renderItem={(item) => (
             <Card
               key={item.id}
               style={{ marginBottom: 12 }}
@@ -109,13 +151,13 @@ export const EducationSection = ({ data, onChange }: EducationSectionProps) => {
                   <Button
                     type="link"
                     icon={<EditOutlined />}
-                    onClick={() => handleEdit(index)}
+                    onClick={() => handleEdit(item)}
                   />
                   <Button
                     type="link"
                     danger
                     icon={<DeleteOutlined />}
-                    onClick={() => handleDelete(index)}
+                    onClick={() => handleDelete(item)}
                   />
                 </Space>
               }
@@ -126,11 +168,13 @@ export const EducationSection = ({ data, onChange }: EducationSectionProps) => {
                   {item.degree} {item.fieldOfStudy && `· ${item.fieldOfStudy}`}
                 </div>
                 <div style={{ color: '#999', fontSize: 12, marginTop: 4 }}>
-                  {item.startDate} - {item.endDate || '至今'}
+                  {item.startDate} - {item.endDate || t('resume.common.toPresent')}
                   {item.location && ` · ${item.location}`}
                 </div>
                 {item.gpa && (
-                  <div style={{ marginTop: 4, color: '#666' }}>GPA: {item.gpa}</div>
+                  <div style={{ marginTop: 4, color: '#666' }}>
+                    {t('resume.common.gpaLabel')}: {item.gpa}
+                  </div>
                 )}
                 {item.description && (
                   <div style={{ marginTop: 8, whiteSpace: 'pre-wrap' }}>
@@ -144,58 +188,66 @@ export const EducationSection = ({ data, onChange }: EducationSectionProps) => {
       )}
 
       <Modal
-        title={editingIndex !== null ? '编辑教育经历' : '添加教育经历'}
+        title={editingItem ? t('resume.education.modalTitleEdit') : t('resume.education.modalTitleCreate')}
         open={isModalOpen}
         onOk={handleSubmit}
+        confirmLoading={saving}
         onCancel={() => setIsModalOpen(false)}
         width={600}
       >
         <Form form={form} layout="vertical">
           <Form.Item
-            label="学校名称"
+            label={t('resume.education.institutionLabel')}
             name="institution"
-            rules={[{ required: true, message: '请输入学校名称' }]}
+            rules={[
+              { required: true, message: t('resume.education.institutionRequired') },
+            ]}
           >
-            <Input placeholder="清华大学" />
+            <Input placeholder={t('resume.education.institutionPlaceholder')} />
           </Form.Item>
 
           <Form.Item
-            label="学位"
+            label={t('resume.education.degreeLabel')}
             name="degree"
-            rules={[{ required: true, message: '请输入学位' }]}
+            rules={[{ required: true, message: t('resume.education.degreeRequired') }]}
           >
-            <Input placeholder="计算机科学学士" />
+            <Input placeholder={t('resume.education.degreePlaceholder')} />
           </Form.Item>
 
-          <Form.Item label="专业" name="fieldOfStudy">
-            <Input placeholder="软件工程" />
+          <Form.Item label={t('resume.education.fieldLabel')} name="fieldOfStudy">
+            <Input placeholder={t('resume.education.fieldPlaceholder')} />
           </Form.Item>
 
-          <Form.Item label="地点" name="location">
-            <Input placeholder="北京" />
+          <Form.Item label={t('resume.education.locationLabel')} name="location">
+            <Input placeholder={t('resume.education.locationPlaceholder')} />
           </Form.Item>
 
           <Form.Item
-            label="就读时间"
+            label={t('resume.education.dateRangeLabel')}
             name="dateRange"
-            rules={[{ required: true, message: '请选择就读时间' }]}
+            rules={[
+              { required: true, message: t('resume.education.dateRangeRequired') },
+            ]}
           >
             <RangePicker
               style={{ width: '100%' }}
               picker="month"
               format="YYYY-MM"
-              placeholder={['开始时间', '结束时间']}
+              placeholder={[
+                t('resume.education.dateRangePlaceholderStart'),
+                t('resume.education.dateRangePlaceholderEnd'),
+              ]}
             />
           </Form.Item>
 
-          <Form.Item label="GPA" name="gpa">
-            <Input placeholder="3.8/4.0" />
+          <Form.Item label={t('resume.education.gpaLabel')} name="gpa">
+            <Input placeholder={t('resume.education.gpaPlaceholder')} />
           </Form.Item>
 
-          <Form.Item label="描述" name="description">
+          <Form.Item label={t('resume.education.descriptionLabel')} name="description">
             <TextArea
               rows={3}
-              placeholder="主修课程、获得奖项等..."
+              placeholder={t('resume.education.descriptionPlaceholder')}
               maxLength={500}
               showCount
             />

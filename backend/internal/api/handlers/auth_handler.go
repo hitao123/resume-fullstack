@@ -63,6 +63,9 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
+	// Create default resume with sample data
+	h.createDefaultResume(user.ID, user.Name)
+
 	// Generate tokens
 	accessToken, err := auth.GenerateAccessToken(user.ID, user.Email)
 	if err != nil {
@@ -301,3 +304,92 @@ func (h *AuthHandler) Me(c *gin.Context) {
 		},
 	})
 }
+
+// createDefaultResume creates a default resume with sample data for new users
+func (h *AuthHandler) createDefaultResume(userID uint, userName string) {
+	// Create default resume
+	resume := models.Resume{
+		UserID:     userID,
+		Title:      "我的简历",
+		TemplateID: 1,
+		IsDefault:  true,
+	}
+
+	if err := database.DB.Create(&resume).Error; err != nil {
+		return // Silently fail, don't block registration
+	}
+
+	// Create sample personal info
+	startDate, _ := time.Parse("2006-01-02", "2020-01-01")
+
+	personalInfo := models.PersonalInfo{
+		ResumeID: resume.ID,
+		FullName: userName,
+		Email:    "",
+		Phone:    "",
+		Location: "",
+		Summary:  "简要介绍你的职业背景和技能特长",
+	}
+	database.DB.Create(&personalInfo)
+
+	// Create sample work experience
+	workExp := models.WorkExperience{
+		ResumeID:     resume.ID,
+		CompanyName:  "示例公司",
+		Position:     "职位名称",
+		Location:     "城市",
+		StartDate:    startDate,
+		EndDate:      nil,
+		IsCurrent:    true,
+		Description:  "• 描述你的工作职责和成就\n• 使用量化数据展示工作成果\n• 突出你的关键技能和贡献",
+		DisplayOrder: 0,
+	}
+	database.DB.Create(&workExp)
+
+	// Create sample education
+	education := models.Education{
+		ResumeID:     resume.ID,
+		Institution:  "大学名称",
+		Degree:       "学位 (如学士/硕士)",
+		FieldOfStudy: "专业名称",
+		Location:     "城市",
+		StartDate:    startDate,
+		EndDate:      nil,
+		Description:  "相关课程、荣誉或活动",
+		DisplayOrder: 0,
+	}
+	database.DB.Create(&education)
+
+	// Create sample skills
+	skills := []models.Skill{
+		{
+			ResumeID:         resume.ID,
+			Category:         "编程语言",
+			Name:             "JavaScript, Python, Go",
+			ProficiencyLevel: "熟练",
+			DisplayOrder:     0,
+		},
+		{
+			ResumeID:         resume.ID,
+			Category:         "框架/工具",
+			Name:             "React, Node.js, Docker",
+			ProficiencyLevel: "熟练",
+			DisplayOrder:     1,
+		},
+	}
+	for _, skill := range skills {
+		database.DB.Create(&skill)
+	}
+
+	// Create sample project
+	project := models.Project{
+		ResumeID:     resume.ID,
+		Name:         "项目名称",
+		Description:  "项目简介和你在其中的角色\n\n技术栈：列出使用的技术\n\n主要成果：\n• 成就1\n• 成就2",
+		Technologies: "React, Node.js, MongoDB",
+		StartDate:    &startDate,
+		DisplayOrder: 0,
+	}
+	database.DB.Create(&project)
+}
+

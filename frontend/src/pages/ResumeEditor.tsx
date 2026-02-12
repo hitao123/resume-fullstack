@@ -1,82 +1,78 @@
-import { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Layout, Card, Tabs, Button, Space, message, Dropdown } from 'antd';
-import { SaveOutlined, DownloadOutlined, EyeOutlined, MoreOutlined } from '@ant-design/icons';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Layout, Card, Tabs, Button, Space, message, Dropdown, Spin, Badge } from 'antd';
+import { DownloadOutlined, EyeOutlined, MoreOutlined, ArrowLeftOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import PersonalInfoForm from '@/components/resume/PersonalInfoForm';
 import WorkExperienceSection from '@/components/resume/WorkExperienceSection';
 import EducationSection from '@/components/resume/EducationSection';
 import SkillsSection from '@/components/resume/SkillsSection';
+import ProjectsSection from '@/components/resume/ProjectsSection';
 import ResumePreview from '@/components/resume/ResumePreview';
 import { usePDFExport } from '@/hooks/usePDFExport';
+import { useResumeStore } from '@/store/resumeStore';
 import type { Resume } from '@/types/resume.types';
 import type { MenuProps } from 'antd';
+import { useTranslation } from 'react-i18next';
 
 const { Content, Sider } = Layout;
 
-// 初始化空简历数据
-const initializeEmptyResume = (id: string): Resume => ({
-  id: Number(id),
-  userId: 1,
-  title: '我的简历',
-  templateId: 1,
-  isDefault: false,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-  personalInfo: {
-    id: 0,
-    resumeId: Number(id),
-    fullName: '',
-    email: '',
-    phone: '',
-    location: '',
-    website: '',
-    linkedin: '',
-    github: '',
-    summary: '',
-  },
-  workExperiences: [],
-  education: [],
-  skills: [],
-  projects: [],
-  certifications: [],
-  languages: [],
-});
-
 export const ResumeEditor = () => {
   const { id } = useParams<{ id: string }>();
-  const [resume, setResume] = useState<Resume>(() => initializeEmptyResume(id || '1'));
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { currentResume, fetchResume, isLoading } = useResumeStore();
+  const [resume, setResume] = useState<Resume | null>(null);
   const [activeTab, setActiveTab] = useState('personal');
   const [previewVisible, setPreviewVisible] = useState(true);
   const [pdfTemplate, setPdfTemplate] = useState<'classic' | 'modern'>('classic');
   const { generatePDF, previewPDF, isGenerating } = usePDFExport();
 
-  const handleSave = () => {
-    // 这里后续会调用 API 保存
-    message.success('简历已保存');
-    console.log('保存简历:', resume);
-  };
+  // Load resume on mount
+  useEffect(() => {
+    if (id) {
+      fetchResume(Number(id))
+        .then(() => {
+          if (currentResume) {
+            setResume(currentResume);
+          }
+        })
+        .catch((error) => {
+          message.error(t('resumeEditor.loadFailed', { message: error.message }));
+          navigate('/dashboard');
+        });
+    }
+  }, [id, fetchResume, navigate]);
+
+  // Update local state when currentResume changes
+  useEffect(() => {
+    if (currentResume && currentResume.id === Number(id)) {
+      setResume(currentResume);
+    }
+  }, [currentResume, id]);
 
   const handleExport = async () => {
+    if (!resume) return;
     await generatePDF(resume, pdfTemplate);
   };
 
   const handlePreviewPDF = async () => {
+    if (!resume) return;
     await previewPDF(resume, pdfTemplate);
   };
 
   const exportMenuItems: MenuProps['items'] = [
     {
       key: 'template',
-      label: '选择模板',
+      label: t('resumeEditor.export.chooseTemplate'),
       children: [
         {
           key: 'classic',
-          label: '经典模板',
+          label: t('resumeEditor.export.classic'),
           onClick: () => setPdfTemplate('classic'),
         },
         {
           key: 'modern',
-          label: '现代模板',
+          label: t('resumeEditor.export.modern'),
           onClick: () => setPdfTemplate('modern'),
         },
       ],
@@ -86,50 +82,84 @@ export const ResumeEditor = () => {
     },
     {
       key: 'download',
-      label: `下载 PDF (${pdfTemplate === 'classic' ? '经典' : '现代'})`,
+      label: t('resumeEditor.export.downloadPdf', {
+        template: pdfTemplate === 'classic' ? t('resumeEditor.export.classicShort') : t('resumeEditor.export.modernShort'),
+      }),
       icon: <DownloadOutlined />,
       onClick: handleExport,
     },
     {
       key: 'preview',
-      label: `预览 PDF (${pdfTemplate === 'classic' ? '经典' : '现代'})`,
+      label: t('resumeEditor.export.previewPdf', {
+        template: pdfTemplate === 'classic' ? t('resumeEditor.export.classicShort') : t('resumeEditor.export.modernShort'),
+      }),
       icon: <EyeOutlined />,
       onClick: handlePreviewPDF,
     },
   ];
 
   const updatePersonalInfo = (data: any) => {
-    setResume((prev) => ({
-      ...prev,
-      personalInfo: { ...prev.personalInfo!, ...data },
-    }));
+    setResume((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        personalInfo: { ...prev.personalInfo!, ...data },
+      };
+    });
   };
 
   const updateWorkExperiences = (data: any[]) => {
-    setResume((prev) => ({
-      ...prev,
-      workExperiences: data,
-    }));
+    setResume((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        workExperiences: data,
+      };
+    });
   };
 
   const updateEducation = (data: any[]) => {
-    setResume((prev) => ({
-      ...prev,
-      education: data,
-    }));
+    setResume((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        education: data,
+      };
+    });
   };
 
   const updateSkills = (data: any[]) => {
-    setResume((prev) => ({
-      ...prev,
-      skills: data,
-    }));
+    setResume((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        skills: data,
+      };
+    });
   };
+
+  const updateProjects = (data: any[]) => {
+    setResume((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        projects: data,
+      };
+    });
+  };
+
+  if (isLoading || !resume) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <Spin size="large" tip={t('resumeEditor.loading')} />
+      </div>
+    );
+  }
 
   const tabItems = [
     {
       key: 'personal',
-      label: '个人信息',
+      label: t('resumeEditor.tabs.personal'),
       children: (
         <PersonalInfoForm
           data={resume.personalInfo}
@@ -139,7 +169,7 @@ export const ResumeEditor = () => {
     },
     {
       key: 'experience',
-      label: '工作经历',
+      label: t('resumeEditor.tabs.experience'),
       children: (
         <WorkExperienceSection
           data={resume.workExperiences || []}
@@ -149,7 +179,7 @@ export const ResumeEditor = () => {
     },
     {
       key: 'education',
-      label: '教育背景',
+      label: t('resumeEditor.tabs.education'),
       children: (
         <EducationSection
           data={resume.education || []}
@@ -159,11 +189,21 @@ export const ResumeEditor = () => {
     },
     {
       key: 'skills',
-      label: '专业技能',
+      label: t('resumeEditor.tabs.skills'),
       children: (
         <SkillsSection
           data={resume.skills || []}
           onChange={updateSkills}
+        />
+      ),
+    },
+    {
+      key: 'projects',
+      label: t('resumeEditor.tabs.projects'),
+      children: (
+        <ProjectsSection
+          data={resume.projects || []}
+          onChange={updateProjects}
         />
       ),
     },
@@ -176,7 +216,19 @@ export const ResumeEditor = () => {
         <Card
           title={
             <Space>
+              <Button
+                icon={<ArrowLeftOutlined />}
+                onClick={() => navigate('/dashboard')}
+              />
               <span>{resume.title}</span>
+              <Badge
+                status="success"
+                text={
+                  <span style={{ fontSize: '12px', color: '#52c41a' }}>
+                    <CheckCircleOutlined /> {t('resumeEditor.autoSave')}
+                  </span>
+                }
+              />
             </Space>
           }
           extra={
@@ -185,18 +237,15 @@ export const ResumeEditor = () => {
                 icon={<EyeOutlined />}
                 onClick={() => setPreviewVisible(!previewVisible)}
               >
-                {previewVisible ? '隐藏预览' : '显示预览'}
-              </Button>
-              <Button icon={<SaveOutlined />} type="primary" onClick={handleSave}>
-                保存
+                {previewVisible ? t('resumeEditor.hidePreview') : t('resumeEditor.showPreview')}
               </Button>
               <Dropdown menu={{ items: exportMenuItems }} placement="bottomRight">
                 <Button
                   icon={<DownloadOutlined />}
                   loading={isGenerating}
-                  type="default"
+                  type="primary"
                 >
-                  导出 <MoreOutlined />
+                  {t('resumeEditor.export.button')} <MoreOutlined />
                 </Button>
               </Dropdown>
             </Space>

@@ -1,21 +1,30 @@
-import { Form, Input, Button, Card, Typography } from 'antd';
+import { Form, Input, Button, Card, Typography, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/store/authStore';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 
 const { Title, Text } = Typography;
 
-export const Login = () => {
-  const [loading, setLoading] = useState(false);
+interface LoginFormValues {
+  email: string;
+  password: string;
+}
 
-  const onFinish = async () => {
-    setLoading(true);
+export const Login = () => {
+  const navigate = useNavigate();
+  const { login, isLoading } = useAuthStore();
+  const { t } = useTranslation();
+
+  const onFinish = async (values: LoginFormValues) => {
     try {
-      // await login(values.email, values.password);
-    } catch (error) {
-      // Error is already handled in useAuth hook
-    } finally {
-      setLoading(false);
+      await login(values.email, values.password);
+      message.success(t('auth.login.success'));
+      navigate('/dashboard');
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : undefined;
+      message.error(msg || t('auth.login.failed'));
     }
   };
 
@@ -27,8 +36,12 @@ export const Login = () => {
         alignItems: 'center',
         minHeight: '100vh',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        position: 'relative',
       }}
     >
+      <div style={{ position: 'absolute', top: 16, right: 16 }}>
+        <LanguageSwitcher variant="default" />
+      </div>
       <Card
         style={{
           width: '100%',
@@ -37,8 +50,8 @@ export const Login = () => {
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Title level={2}>Welcome Back</Title>
-          <Text type="secondary">Sign in to your account</Text>
+          <Title level={2}>{t('auth.login.title')}</Title>
+          <Text type="secondary">{t('auth.login.subtitle')}</Text>
         </div>
 
         <Form
@@ -50,13 +63,13 @@ export const Login = () => {
           <Form.Item
             name="email"
             rules={[
-              { required: true, message: 'Please input your email' },
-              { type: 'email', message: 'Please enter a valid email' },
+              { required: true, message: t('auth.login.emailRequired') },
+              { type: 'email', message: t('auth.login.emailInvalid') },
             ]}
           >
             <Input
               prefix={<UserOutlined />}
-              placeholder="Email"
+              placeholder={t('auth.login.email')}
               size="large"
               type="email"
             />
@@ -64,11 +77,11 @@ export const Login = () => {
 
           <Form.Item
             name="password"
-            rules={[{ required: true, message: 'Please input your password' }]}
+            rules={[{ required: true, message: t('auth.login.passwordRequired') }]}
           >
             <Input.Password
               prefix={<LockOutlined />}
-              placeholder="Password"
+              placeholder={t('auth.login.password')}
               size="large"
             />
           </Form.Item>
@@ -79,15 +92,15 @@ export const Login = () => {
               htmlType="submit"
               size="large"
               block
-              loading={loading}
+              loading={isLoading}
             >
-              Sign In
+              {t('auth.login.signIn')}
             </Button>
           </Form.Item>
 
           <div style={{ textAlign: 'center' }}>
             <Text type="secondary">
-              Don't have an account? <Link to="/register">Sign up</Link>
+              {t('auth.login.noAccount')} <Link to="/register">{t('auth.login.signUp')}</Link>
             </Text>
           </div>
         </Form>

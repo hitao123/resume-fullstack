@@ -41,16 +41,40 @@ func SetupRoutes(router *gin.Engine) {
 		resumes.GET("/:id", resumeHandler.GetResume)
 		resumes.PUT("/:id", resumeHandler.UpdateResume)
 		resumes.DELETE("/:id", resumeHandler.DeleteResume)
+		resumes.POST("/:id/duplicate", resumeHandler.DuplicateResume)
 
-		// Personal Info
-		resumes.GET("/:resumeId/personal-info", resumeHandler.GetPersonalInfo)
-		resumes.PUT("/:resumeId/personal-info", resumeHandler.UpdatePersonalInfo)
+		// Resume sections - use :id as resumeId
+		resumes.GET("/:id/personal-info", resumeHandler.GetPersonalInfo)
+		resumes.PUT("/:id/personal-info", resumeHandler.UpdatePersonalInfo)
+
+		// Work Experience
+		resumes.GET("/:id/work-experiences", resumeHandler.GetWorkExperiences)
+		resumes.POST("/:id/work-experiences", resumeHandler.CreateWorkExperience)
+		resumes.PUT("/:id/work-experiences/reorder", resumeHandler.ReorderWorkExperiences)
+		resumes.PUT("/:id/work-experiences/:itemId", resumeHandler.UpdateWorkExperience)
+		resumes.DELETE("/:id/work-experiences/:itemId", resumeHandler.DeleteWorkExperience)
+
+		// Education
+		resumes.GET("/:id/education", resumeHandler.GetEducation)
+		resumes.POST("/:id/education", resumeHandler.CreateEducation)
+		resumes.PUT("/:id/education/reorder", resumeHandler.ReorderEducation)
+		resumes.PUT("/:id/education/:itemId", resumeHandler.UpdateEducation)
+		resumes.DELETE("/:id/education/:itemId", resumeHandler.DeleteEducation)
+
+		// Skills
+		resumes.GET("/:id/skills", resumeHandler.GetSkills)
+		resumes.POST("/:id/skills", resumeHandler.CreateSkill)
+		resumes.PUT("/:id/skills/bulk", resumeHandler.BulkUpdateSkills)
+		resumes.PUT("/:id/skills/:itemId", resumeHandler.UpdateSkill)
+		resumes.DELETE("/:id/skills/:itemId", resumeHandler.DeleteSkill)
+
+		// Projects
+		resumes.GET("/:id/projects", resumeHandler.GetProjects)
+		resumes.POST("/:id/projects", resumeHandler.CreateProject)
+		resumes.PUT("/:id/projects/:itemId", resumeHandler.UpdateProject)
+		resumes.DELETE("/:id/projects/:itemId", resumeHandler.DeleteProject)
 
 		// TODO: Add more resume section endpoints
-		// - Work Experience
-		// - Education
-		// - Skills
-		// - Projects
 		// - Certifications
 		// - Languages
 	}

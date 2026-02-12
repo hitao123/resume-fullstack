@@ -1,6 +1,7 @@
 import { Card, Typography, Space, Tag, Divider } from 'antd';
 import { MailOutlined, PhoneOutlined, EnvironmentOutlined, LinkOutlined } from '@ant-design/icons';
 import type { Resume } from '@/types/resume.types';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -9,12 +10,19 @@ interface ResumePreviewProps {
 }
 
 export const ResumePreview = ({ resume }: ResumePreviewProps) => {
-  const { personalInfo, workExperiences, education, skills } = resume;
+  const { personalInfo, workExperiences, education, skills, projects } = resume;
+  const { t, i18n } = useTranslation();
 
   const formatDate = (dateStr?: string | null) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    return `${date.getFullYear()}年${date.getMonth() + 1}月`;
+    if (i18n.language?.startsWith('zh')) {
+      return `${date.getFullYear()}年${date.getMonth() + 1}月`;
+    }
+    return new Intl.DateTimeFormat(i18n.language || 'en-US', {
+      year: 'numeric',
+      month: 'short',
+    }).format(date);
   };
 
   const formatDateRange = (
@@ -22,16 +30,23 @@ export const ResumePreview = ({ resume }: ResumePreviewProps) => {
     end?: string | null,
     isCurrent?: boolean
   ) => {
-    return `${formatDate(start)} - ${isCurrent || !end ? '至今' : formatDate(end)}`;
+    return `${formatDate(start)} - ${
+      isCurrent || !end ? t('resume.common.toPresent') : formatDate(end)
+    }`;
   };
 
   // 按类别分组技能
   const groupedSkills = (skills || []).reduce((acc, skill) => {
-    const category = skill.category || '其他';
-    if (!acc[category]) {
-      acc[category] = [];
+    const key = skill.category || t('resume.skills.categories.other');
+    const label =
+      t(`resume.skills.categories.${key}`, {
+        defaultValue: skill.category || t('resume.skills.categories.other'),
+      }) || key;
+
+    if (!acc[label]) {
+      acc[label] = [];
     }
-    acc[category].push(skill);
+    acc[label].push(skill);
     return acc;
   }, {} as Record<string, typeof skills>);
 
@@ -41,7 +56,7 @@ export const ResumePreview = ({ resume }: ResumePreviewProps) => {
         {/* 个人信息 */}
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <Title level={3} style={{ marginBottom: 8 }}>
-            {personalInfo?.fullName || '未填写姓名'}
+            {personalInfo?.fullName || t('resume.preview.noName')}
           </Title>
           <Space direction="vertical" size="small" style={{ width: '100%' }}>
             {personalInfo?.email && (
@@ -88,7 +103,7 @@ export const ResumePreview = ({ resume }: ResumePreviewProps) => {
         {workExperiences && workExperiences.length > 0 && (
           <>
             <Divider orientation="left">
-              <Title level={5}>工作经历</Title>
+              <Title level={5}>{t('resume.preview.workTitle')}</Title>
             </Divider>
             <Space direction="vertical" style={{ width: '100%' }} size="middle">
               {workExperiences.map((work) => (
@@ -134,7 +149,7 @@ export const ResumePreview = ({ resume }: ResumePreviewProps) => {
         {education && education.length > 0 && (
           <>
             <Divider orientation="left">
-              <Title level={5}>教育背景</Title>
+              <Title level={5}>{t('resume.preview.educationTitle')}</Title>
             </Divider>
             <Space direction="vertical" style={{ width: '100%' }} size="middle">
               {education.map((edu) => (
@@ -158,7 +173,7 @@ export const ResumePreview = ({ resume }: ResumePreviewProps) => {
                   {edu.gpa && (
                     <div style={{ marginTop: 4 }}>
                       <Text type="secondary" style={{ fontSize: 12 }}>
-                        GPA: {edu.gpa}
+                        {t('resume.common.gpaLabel')}: {edu.gpa}
                       </Text>
                     </div>
                   )}
@@ -184,7 +199,7 @@ export const ResumePreview = ({ resume }: ResumePreviewProps) => {
         {skills && skills.length > 0 && (
           <>
             <Divider orientation="left">
-              <Title level={5}>专业技能</Title>
+              <Title level={5}>{t('resume.preview.skillsTitle')}</Title>
             </Divider>
             <Space direction="vertical" style={{ width: '100%' }} size="small">
               {Object.entries(groupedSkills).map(([category, categorySkills]) => (
@@ -200,6 +215,69 @@ export const ResumePreview = ({ resume }: ResumePreviewProps) => {
                       </Tag>
                     ))}
                   </Space>
+                </div>
+              ))}
+            </Space>
+          </>
+        )}
+
+        {/* 项目经历 */}
+        {projects && projects.length > 0 && (
+          <>
+            <Divider orientation="left">
+              <Title level={5}>{t('resume.preview.projectsTitle')}</Title>
+            </Divider>
+            <Space direction="vertical" style={{ width: '100%' }} size="middle">
+              {projects.map((project) => (
+                <div key={project.id}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginBottom: 4,
+                    }}
+                  >
+                    <Text strong>{project.name}</Text>
+                    {project.startDate && (
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        {formatDateRange(project.startDate, project.endDate, false)}
+                      </Text>
+                    )}
+                  </div>
+                  {project.technologies && (
+                    <div style={{ marginBottom: 4 }}>
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                      {t('resume.preview.techPrefix')}: {project.technologies}
+                      </Text>
+                    </div>
+                  )}
+                  {project.description && (
+                    <Paragraph
+                      style={{
+                        fontSize: 13,
+                        color: '#666',
+                        lineHeight: 1.6,
+                        marginTop: 8,
+                        whiteSpace: 'pre-wrap',
+                      }}
+                    >
+                      {project.description}
+                    </Paragraph>
+                  )}
+                  {(project.url || project.githubUrl) && (
+                    <div style={{ marginTop: 4, fontSize: 12 }}>
+                      {project.url && (
+                        <a href={project.url} target="_blank" rel="noopener noreferrer" style={{ marginRight: 12 }}>
+                          <LinkOutlined /> {t('resume.projects.urlText')}
+                        </a>
+                      )}
+                      {project.githubUrl && (
+                        <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
+                          <LinkOutlined /> GitHub
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </Space>

@@ -1,8 +1,12 @@
-import { Layout as AntLayout, Menu, Dropdown, Avatar } from 'antd';
+import { Layout as AntLayout, Menu, Dropdown, Avatar, theme } from 'antd';
 import { UserOutlined, FileTextOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import type { MenuProps } from 'antd';
+import logoUrl from '@/assets/logo.svg';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '@/components/common/LanguageSwitcher';
+import './Header.css';
 
 const { Header: AntHeader } = AntLayout;
 
@@ -10,6 +14,8 @@ export const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { token } = theme.useToken();
+  const { t } = useTranslation();
 
   const handleLogout = async () => {
     await logout();
@@ -28,7 +34,7 @@ export const Header = () => {
     {
       key: 'logout',
       icon: <LogoutOutlined />,
-      label: 'Logout',
+      label: t('auth.logout'),
       onClick: handleLogout,
     },
   ];
@@ -37,48 +43,43 @@ export const Header = () => {
     {
       key: '/dashboard',
       icon: <FileTextOutlined />,
-      label: 'My Resumes',
+      label: t('nav.myResumes'),
       onClick: () => navigate('/dashboard'),
     },
   ];
 
   return (
     <AntHeader
+      className="appHeader"
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        background: '#001529',
-        padding: '0 24px',
+        // allow theme overrides via ConfigProvider tokens
+        borderBottomColor: token.colorBorderSecondary,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-        <div
-          style={{
-            color: '#fff',
-            fontSize: '20px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-          }}
-          onClick={() => navigate('/dashboard')}
-        >
-          Resume Builder
+      <div className="left">
+        <div className="brand" onClick={() => navigate('/dashboard')} aria-label={t('nav.myResumes')}>
+          <img className="brandLogo" src={logoUrl} alt={t('common.appName')} />
+          <div className="brandText">{t('common.appName')}</div>
         </div>
         <Menu
-          theme="dark"
+          theme="light"
           mode="horizontal"
           selectedKeys={[location.pathname]}
           items={menuItems}
-          style={{ minWidth: 200, border: 'none' }}
+          className="menu"
         />
       </div>
 
-      <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-        <Avatar
-          style={{ backgroundColor: '#1890ff', cursor: 'pointer' }}
-          icon={<UserOutlined />}
-        />
-      </Dropdown>
+      <div className="right">
+        <LanguageSwitcher />
+        <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+          <Avatar
+            className="avatar"
+            style={{ backgroundColor: token.colorPrimary }}
+            icon={<UserOutlined />}
+          />
+        </Dropdown>
+      </div>
     </AntHeader>
   );
 };
