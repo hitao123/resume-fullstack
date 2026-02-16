@@ -19,12 +19,12 @@ import type { ApiResponse } from '@/types/api.types';
 export const resumeService = {
   // Resume CRUD
   async getResumes(): Promise<Resume[]> {
-    const response = await api.get<ApiResponse<Resume[]>>('/resumes');
+    const response = await api.post<ApiResponse<Resume[]>>('/resumes/list');
     return response.data.data;
   },
 
   async getResume(id: number): Promise<Resume> {
-    const response = await api.get<ApiResponse<Resume>>(`/resumes/${id}`);
+    const response = await api.post<ApiResponse<Resume>>('/resumes/get', { id });
     return response.data.data;
   },
 
@@ -34,7 +34,7 @@ export const resumeService = {
   },
 
   async updateResume(id: number, data: UpdateResumeRequest): Promise<Resume> {
-    const response = await api.put<ApiResponse<Resume>>(`/resumes/${id}`, data);
+    const response = await api.post<ApiResponse<Resume>>('/resumes/update', { id, ...data });
     return response.data.data;
   },
 
@@ -49,111 +49,111 @@ export const resumeService = {
 
   // Personal Info
   async getPersonalInfo(resumeId: number): Promise<PersonalInfo> {
-    const response = await api.get<ApiResponse<PersonalInfo>>(`/resumes/${resumeId}/personal-info`);
+    const response = await api.post<ApiResponse<PersonalInfo>>('/resumes/personal-info/get', { resumeId });
     return response.data.data;
   },
 
   async updatePersonalInfo(resumeId: number, data: PersonalInfoInput): Promise<PersonalInfo> {
-    const response = await api.put<ApiResponse<PersonalInfo>>(`/resumes/${resumeId}/personal-info`, data);
+    const response = await api.post<ApiResponse<PersonalInfo>>('/resumes/personal-info/update', { resumeId, ...data });
     return response.data.data;
   },
 
   // Work Experience
   async getWorkExperiences(resumeId: number): Promise<WorkExperience[]> {
-    const response = await api.get<ApiResponse<WorkExperience[]>>(`/resumes/${resumeId}/work-experiences`);
+    const response = await api.post<ApiResponse<WorkExperience[]>>('/resumes/work-experiences/list', { resumeId });
     return response.data.data;
   },
 
   async getWorkExperience(resumeId: number, id: number): Promise<WorkExperience> {
-    const response = await api.get<ApiResponse<WorkExperience>>(`/resumes/${resumeId}/work-experiences/${id}`);
+    const response = await api.post<ApiResponse<WorkExperience>>('/resumes/work-experiences/get', { resumeId, id });
     return response.data.data;
   },
 
   async createWorkExperience(resumeId: number, data: WorkExperienceInput): Promise<WorkExperience> {
-    const response = await api.post<ApiResponse<WorkExperience>>(`/resumes/${resumeId}/work-experiences`, data);
+    const response = await api.post<ApiResponse<WorkExperience>>('/resumes/work-experiences', { resumeId, ...data });
     return response.data.data;
   },
 
   async updateWorkExperience(resumeId: number, id: number, data: Partial<WorkExperienceInput>): Promise<WorkExperience> {
-    const response = await api.put<ApiResponse<WorkExperience>>(`/resumes/${resumeId}/work-experiences/${id}`, data);
+    const response = await api.post<ApiResponse<WorkExperience>>('/resumes/work-experiences/update', { resumeId, id, ...data });
     return response.data.data;
   },
 
   async deleteWorkExperience(resumeId: number, id: number): Promise<void> {
-    await api.delete(`/resumes/${resumeId}/work-experiences/${id}`);
+    await api.delete(`/resumes/work-experiences/${id}`, { data: { resumeId } });
   },
 
   async reorderWorkExperiences(resumeId: number, data: ReorderRequest): Promise<void> {
-    await api.put(`/resumes/${resumeId}/work-experiences/reorder`, data);
+    await api.post('/resumes/work-experiences/reorder', { resumeId, ...data });
   },
 
   // Education
   async getEducation(resumeId: number): Promise<Education[]> {
-    const response = await api.get<ApiResponse<Education[]>>(`/resumes/${resumeId}/education`);
+    const response = await api.post<ApiResponse<Education[]>>('/resumes/education/list', { resumeId });
     return response.data.data;
   },
 
   async createEducation(resumeId: number, data: EducationInput): Promise<Education> {
-    const response = await api.post<ApiResponse<Education>>(`/resumes/${resumeId}/education`, data);
+    const response = await api.post<ApiResponse<Education>>('/resumes/education', { resumeId, ...data });
     return response.data.data;
   },
 
   async updateEducation(resumeId: number, id: number, data: Partial<EducationInput>): Promise<Education> {
-    const response = await api.put<ApiResponse<Education>>(`/resumes/${resumeId}/education/${id}`, data);
+    const response = await api.post<ApiResponse<Education>>('/resumes/education/update', { resumeId, id, ...data });
     return response.data.data;
   },
 
   async deleteEducation(resumeId: number, id: number): Promise<void> {
-    await api.delete(`/resumes/${resumeId}/education/${id}`);
+    await api.delete(`/resumes/education/${id}`, { data: { resumeId } });
   },
 
   async reorderEducation(resumeId: number, data: ReorderRequest): Promise<void> {
-    await api.put(`/resumes/${resumeId}/education/reorder`, data);
+    await api.post('/resumes/education/reorder', { resumeId, ...data });
   },
 
   // Skills
   async getSkills(resumeId: number): Promise<Skill[]> {
-    const response = await api.get<ApiResponse<Skill[]>>(`/resumes/${resumeId}/skills`);
+    const response = await api.post<ApiResponse<Skill[]>>('/resumes/skills/list', { resumeId });
     return response.data.data;
   },
 
   async createSkill(resumeId: number, data: SkillInput): Promise<Skill> {
-    const response = await api.post<ApiResponse<Skill>>(`/resumes/${resumeId}/skills`, data);
+    const response = await api.post<ApiResponse<Skill>>('/resumes/skills', { resumeId, ...data });
     return response.data.data;
   },
 
   async updateSkill(resumeId: number, id: number, data: Partial<SkillInput>): Promise<Skill> {
-    const response = await api.put<ApiResponse<Skill>>(`/resumes/${resumeId}/skills/${id}`, data);
+    const response = await api.post<ApiResponse<Skill>>('/resumes/skills/update', { resumeId, id, ...data });
     return response.data.data;
   },
 
   async deleteSkill(resumeId: number, id: number): Promise<void> {
-    await api.delete(`/resumes/${resumeId}/skills/${id}`);
+    await api.delete(`/resumes/skills/${id}`, { data: { resumeId } });
   },
 
   async bulkUpdateSkills(resumeId: number, skills: Skill[]): Promise<Skill[]> {
-    const response = await api.put<ApiResponse<Skill[]>>(`/resumes/${resumeId}/skills/bulk`, { skills });
+    const response = await api.post<ApiResponse<Skill[]>>('/resumes/skills/bulk', { resumeId, skills });
     return response.data.data;
   },
 
   // Projects (optional for Phase 2)
   async getProjects(resumeId: number): Promise<Project[]> {
-    const response = await api.get<ApiResponse<Project[]>>(`/resumes/${resumeId}/projects`);
+    const response = await api.post<ApiResponse<Project[]>>('/resumes/projects/list', { resumeId });
     return response.data.data;
   },
 
   async createProject(resumeId: number, data: Omit<Project, 'id' | 'resumeId'>): Promise<Project> {
-    const response = await api.post<ApiResponse<Project>>(`/resumes/${resumeId}/projects`, data);
+    const response = await api.post<ApiResponse<Project>>('/resumes/projects', { resumeId, ...data });
     return response.data.data;
   },
 
   async updateProject(resumeId: number, id: number, data: Partial<Omit<Project, 'id' | 'resumeId'>>): Promise<Project> {
-    const response = await api.put<ApiResponse<Project>>(`/resumes/${resumeId}/projects/${id}`, data);
+    const response = await api.post<ApiResponse<Project>>('/resumes/projects/update', { resumeId, id, ...data });
     return response.data.data;
   },
 
   async deleteProject(resumeId: number, id: number): Promise<void> {
-    await api.delete(`/resumes/${resumeId}/projects/${id}`);
+    await api.delete(`/resumes/projects/${id}`, { data: { resumeId } });
   },
 };
 

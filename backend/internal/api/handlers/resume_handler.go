@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -32,6 +31,13 @@ func (h *ResumeHandler) GetResumes(c *gin.Context) {
 		return
 	}
 
+	// 如果当前用户还没有任何简历，兜底创建一份默认模板简历并返回
+	if len(resumes) == 0 {
+		if defaultResume, err := h.createDefaultResumeForUser(userID); err == nil && defaultResume != nil {
+			resumes = append(resumes, *defaultResume)
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data":    resumes,
@@ -41,10 +47,18 @@ func (h *ResumeHandler) GetResumes(c *gin.Context) {
 // GetResume returns a specific resume with all sections
 func (h *ResumeHandler) GetResume(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
+
+	var req dto.GetResumeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
 
 	var resume models.Resume
-	if err := database.DB.Where("id = ? AND user_id = ?", resumeID, userID).
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ID, userID).
 		Preload("PersonalInfo").
 		Preload("WorkExperiences", func(db *gorm.DB) *gorm.DB {
 			return db.Order("display_order ASC")
@@ -117,22 +131,21 @@ func (h *ResumeHandler) CreateResume(c *gin.Context) {
 // UpdateResume updates resume metadata
 func (h *ResumeHandler) UpdateResume(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
-
-	var resume models.Resume
-	if err := database.DB.Where("id = ? AND user_id = ?", resumeID, userID).First(&resume).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"success": false,
-			"message": "Resume not found",
-		})
-		return
-	}
 
 	var req dto.UpdateResumeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
 			"message": err.Error(),
+		})
+		return
+	}
+
+	var resume models.Resume
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ID, userID).First(&resume).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Resume not found",
 		})
 		return
 	}
@@ -192,11 +205,27 @@ func (h *ResumeHandler) DeleteResume(c *gin.Context) {
 // DuplicateResume creates a copy of an existing resume with all its sections
 func (h *ResumeHandler) DuplicateResume(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
 
-	// Get the original resume with all sections
+	var req dto.GetResumeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
+
 	var originalResume models.Resume
-	if err := database.DB.Where("id = ? AND user_id = ?", resumeID, userID).
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ID, userID).First(&originalResume).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Resume not found",
+		})
+		return
+	}
+
+	// Get the original resume with all sections (already loaded above)
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ID, userID).
 		Preload("PersonalInfo").
 		Preload("WorkExperiences").
 		Preload("Education").
@@ -348,15 +377,28 @@ func (h *ResumeHandler) DuplicateResume(c *gin.Context) {
 // GetPersonalInfo returns personal info for a resume
 func (h *ResumeHandler) GetPersonalInfo(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
+
+	var req dto.GetPersonalInfoRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
 
 	// Verify resume ownership
-	if !h.verifyResumeOwnership(c, resumeID, userID) {
+	var resume models.Resume
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ResumeID, userID).First(&resume).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Resume not found",
+		})
 		return
 	}
 
 	var personalInfo models.PersonalInfo
-	if err := database.DB.Where("resume_id = ?", resumeID).First(&personalInfo).Error; err != nil {
+	if err := database.DB.Where("resume_id = ?", req.ResumeID).First(&personalInfo).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"success": false,
 			"message": "Personal info not found",
@@ -373,14 +415,8 @@ func (h *ResumeHandler) GetPersonalInfo(c *gin.Context) {
 // UpdatePersonalInfo updates personal info
 func (h *ResumeHandler) UpdatePersonalInfo(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
 
-	// Verify resume ownership
-	if !h.verifyResumeOwnership(c, resumeID, userID) {
-		return
-	}
-
-	var req dto.PersonalInfoInput
+	var req dto.UpdatePersonalInfoRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -389,15 +425,23 @@ func (h *ResumeHandler) UpdatePersonalInfo(c *gin.Context) {
 		return
 	}
 
-	resumeIDUint, _ := strconv.ParseUint(resumeID, 10, 32)
+	// Verify resume ownership
+	var resume models.Resume
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ResumeID, userID).First(&resume).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Resume not found",
+		})
+		return
+	}
 
 	var personalInfo models.PersonalInfo
-	err := database.DB.Where("resume_id = ?", resumeID).First(&personalInfo).Error
+	err := database.DB.Where("resume_id = ?", req.ResumeID).First(&personalInfo).Error
 
 	if err != nil {
 		// Create new personal info
 		personalInfo = models.PersonalInfo{
-			ResumeID: uint(resumeIDUint),
+			ResumeID: req.ResumeID,
 			FullName: req.FullName,
 			Email:    req.Email,
 			Phone:    req.Phone,
@@ -465,19 +509,62 @@ func parseDate(dateStr string) (*time.Time, error) {
 	return &t, nil
 }
 
+// Helper: ensure a default resume exists for the given user and return it.
+// This is mainly a safety net in case the registration hook failed or
+// historical用户没有模板数据。
+func (h *ResumeHandler) createDefaultResumeForUser(userID uint) (*models.Resume, error) {
+	// Double-check to avoid creating duplicates if called并发/多次
+	var existing models.Resume
+	if err := database.DB.
+		Where("user_id = ? AND is_default = ?", userID, true).
+		Order("created_at ASC").
+		First(&existing).Error; err == nil {
+		return &existing, nil
+	}
+
+	// Try to infer a friendly title; fallback to generic.
+	resume := models.Resume{
+		UserID:     userID,
+		Title:      "我的简历",
+		TemplateID: 1,
+		IsDefault:  true,
+	}
+
+	if err := database.DB.Create(&resume).Error; err != nil {
+		// 不要影响主流程，只返回错误给调用方做记录/忽略
+		return nil, err
+	}
+
+	return &resume, nil
+}
+
 // ============ Work Experience Handlers ============
 
 // GetWorkExperiences returns all work experiences for a resume
 func (h *ResumeHandler) GetWorkExperiences(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
 
-	if !h.verifyResumeOwnership(c, resumeID, userID) {
+	var req dto.GetWorkExperiencesRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// Verify resume ownership
+	var resume models.Resume
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ResumeID, userID).First(&resume).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Resume not found",
+		})
 		return
 	}
 
 	var experiences []models.WorkExperience
-	if err := database.DB.Where("resume_id = ?", resumeID).
+	if err := database.DB.Where("resume_id = ?", req.ResumeID).
 		Order("display_order ASC").
 		Find(&experiences).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -496,17 +583,22 @@ func (h *ResumeHandler) GetWorkExperiences(c *gin.Context) {
 // CreateWorkExperience creates a new work experience
 func (h *ResumeHandler) CreateWorkExperience(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
 
-	if !h.verifyResumeOwnership(c, resumeID, userID) {
-		return
-	}
-
-	var req dto.WorkExperienceInput
+	var req dto.CreateWorkExperienceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
 			"message": err.Error(),
+		})
+		return
+	}
+
+	// Verify resume ownership
+	var resume models.Resume
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ResumeID, userID).First(&resume).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Resume not found",
 		})
 		return
 	}
@@ -532,9 +624,8 @@ func (h *ResumeHandler) CreateWorkExperience(c *gin.Context) {
 		}
 	}
 
-	resumeIDUint, _ := strconv.ParseUint(resumeID, 10, 32)
 	experience := models.WorkExperience{
-		ResumeID:     uint(resumeIDUint),
+		ResumeID:     req.ResumeID,
 		CompanyName:  req.CompanyName,
 		Position:     req.Position,
 		Location:     req.Location,
@@ -562,28 +653,32 @@ func (h *ResumeHandler) CreateWorkExperience(c *gin.Context) {
 // UpdateWorkExperience updates a work experience
 func (h *ResumeHandler) UpdateWorkExperience(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
-	experienceID := c.Param("itemId")
 
-	if !h.verifyResumeOwnership(c, resumeID, userID) {
-		return
-	}
-
-	var experience models.WorkExperience
-	if err := database.DB.Where("id = ? AND resume_id = ?", experienceID, resumeID).
-		First(&experience).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"success": false,
-			"message": "Work experience not found",
-		})
-		return
-	}
-
-	var req dto.WorkExperienceInput
+	var req dto.UpdateWorkExperienceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
 			"message": err.Error(),
+		})
+		return
+	}
+
+	// Verify resume ownership
+	var resume models.Resume
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ResumeID, userID).First(&resume).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Resume not found",
+		})
+		return
+	}
+
+	var experience models.WorkExperience
+	if err := database.DB.Where("id = ? AND resume_id = ?", req.ID, req.ResumeID).
+		First(&experience).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Work experience not found",
 		})
 		return
 	}
@@ -635,14 +730,28 @@ func (h *ResumeHandler) UpdateWorkExperience(c *gin.Context) {
 // DeleteWorkExperience deletes a work experience
 func (h *ResumeHandler) DeleteWorkExperience(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
-	experienceID := c.Param("itemId")
+	experienceID := c.Param("id")
 
-	if !h.verifyResumeOwnership(c, resumeID, userID) {
+	var req dto.DeleteWorkExperienceRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": err.Error(),
+		})
 		return
 	}
 
-	result := database.DB.Where("id = ? AND resume_id = ?", experienceID, resumeID).
+	// Verify resume ownership
+	var resume models.Resume
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ResumeID, userID).First(&resume).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Resume not found",
+		})
+		return
+	}
+
+	result := database.DB.Where("id = ? AND resume_id = ?", experienceID, req.ResumeID).
 		Delete(&models.WorkExperience{})
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -669,13 +778,8 @@ func (h *ResumeHandler) DeleteWorkExperience(c *gin.Context) {
 // ReorderWorkExperiences updates display order for work experiences
 func (h *ResumeHandler) ReorderWorkExperiences(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
 
-	if !h.verifyResumeOwnership(c, resumeID, userID) {
-		return
-	}
-
-	var req dto.ReorderRequest
+	var req dto.ReorderWorkExperiencesRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -684,10 +788,20 @@ func (h *ResumeHandler) ReorderWorkExperiences(c *gin.Context) {
 		return
 	}
 
+	// Verify resume ownership
+	var resume models.Resume
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ResumeID, userID).First(&resume).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Resume not found",
+		})
+		return
+	}
+
 	tx := database.DB.Begin()
 	for _, item := range req.Items {
 		if err := tx.Model(&models.WorkExperience{}).
-			Where("id = ? AND resume_id = ?", item.ID, resumeID).
+			Where("id = ? AND resume_id = ?", item.ID, req.ResumeID).
 			Update("display_order", item.DisplayOrder).Error; err != nil {
 			tx.Rollback()
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -710,14 +824,28 @@ func (h *ResumeHandler) ReorderWorkExperiences(c *gin.Context) {
 // GetEducation returns all education for a resume
 func (h *ResumeHandler) GetEducation(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
 
-	if !h.verifyResumeOwnership(c, resumeID, userID) {
+	var req dto.GetEducationRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// Verify resume ownership
+	var resume models.Resume
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ResumeID, userID).First(&resume).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Resume not found",
+		})
 		return
 	}
 
 	var education []models.Education
-	if err := database.DB.Where("resume_id = ?", resumeID).
+	if err := database.DB.Where("resume_id = ?", req.ResumeID).
 		Order("display_order ASC").
 		Find(&education).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -736,13 +864,8 @@ func (h *ResumeHandler) GetEducation(c *gin.Context) {
 // CreateEducation creates a new education entry
 func (h *ResumeHandler) CreateEducation(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
 
-	if !h.verifyResumeOwnership(c, resumeID, userID) {
-		return
-	}
-
-	var req dto.EducationInput
+	var req dto.CreateEducationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -751,7 +874,17 @@ func (h *ResumeHandler) CreateEducation(c *gin.Context) {
 		return
 	}
 
-	startDate, err := parseDate(req.StartDate)
+	// Verify resume ownership
+	var resume models.Resume
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ResumeID, userID).First(&resume).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Resume not found",
+		})
+		return
+	}
+
+	startDate, err := parseDate(req.EducationInput.StartDate)
 	if err != nil || startDate == nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -761,8 +894,8 @@ func (h *ResumeHandler) CreateEducation(c *gin.Context) {
 	}
 
 	var endDate *time.Time
-	if req.EndDate != "" {
-		endDate, err = parseDate(req.EndDate)
+	if req.EducationInput.EndDate != "" {
+		endDate, err = parseDate(req.EducationInput.EndDate)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"success": false,
@@ -772,18 +905,17 @@ func (h *ResumeHandler) CreateEducation(c *gin.Context) {
 		}
 	}
 
-	resumeIDUint, _ := strconv.ParseUint(resumeID, 10, 32)
 	education := models.Education{
-		ResumeID:     uint(resumeIDUint),
-		Institution:  req.Institution,
-		Degree:       req.Degree,
-		FieldOfStudy: req.FieldOfStudy,
-		Location:     req.Location,
+		ResumeID:     req.ResumeID,
+		Institution:  req.EducationInput.Institution,
+		Degree:       req.EducationInput.Degree,
+		FieldOfStudy: req.EducationInput.FieldOfStudy,
+		Location:     req.EducationInput.Location,
 		StartDate:    *startDate,
 		EndDate:      endDate,
-		GPA:          req.GPA,
-		Description:  req.Description,
-		DisplayOrder: req.DisplayOrder,
+		GPA:          req.EducationInput.GPA,
+		Description:  req.EducationInput.Description,
+		DisplayOrder: req.EducationInput.DisplayOrder,
 	}
 
 	if err := database.DB.Create(&education).Error; err != nil {
@@ -803,24 +935,8 @@ func (h *ResumeHandler) CreateEducation(c *gin.Context) {
 // UpdateEducation updates an education entry
 func (h *ResumeHandler) UpdateEducation(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
-	educationID := c.Param("itemId")
 
-	if !h.verifyResumeOwnership(c, resumeID, userID) {
-		return
-	}
-
-	var education models.Education
-	if err := database.DB.Where("id = ? AND resume_id = ?", educationID, resumeID).
-		First(&education).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"success": false,
-			"message": "Education not found",
-		})
-		return
-	}
-
-	var req dto.EducationInput
+	var req dto.UpdateEducationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -829,7 +945,27 @@ func (h *ResumeHandler) UpdateEducation(c *gin.Context) {
 		return
 	}
 
-	startDate, err := parseDate(req.StartDate)
+	// Verify resume ownership
+	var resume models.Resume
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ResumeID, userID).First(&resume).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Resume not found",
+		})
+		return
+	}
+
+	var education models.Education
+	if err := database.DB.Where("id = ? AND resume_id = ?", req.ID, req.ResumeID).
+		First(&education).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Education not found",
+		})
+		return
+	}
+
+	startDate, err := parseDate(req.EducationInput.StartDate)
 	if err != nil || startDate == nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -839,8 +975,8 @@ func (h *ResumeHandler) UpdateEducation(c *gin.Context) {
 	}
 
 	var endDate *time.Time
-	if req.EndDate != "" {
-		endDate, err = parseDate(req.EndDate)
+	if req.EducationInput.EndDate != "" {
+		endDate, err = parseDate(req.EducationInput.EndDate)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"success": false,
@@ -850,15 +986,15 @@ func (h *ResumeHandler) UpdateEducation(c *gin.Context) {
 		}
 	}
 
-	education.Institution = req.Institution
-	education.Degree = req.Degree
-	education.FieldOfStudy = req.FieldOfStudy
-	education.Location = req.Location
+	education.Institution = req.EducationInput.Institution
+	education.Degree = req.EducationInput.Degree
+	education.FieldOfStudy = req.EducationInput.FieldOfStudy
+	education.Location = req.EducationInput.Location
 	education.StartDate = *startDate
 	education.EndDate = endDate
-	education.GPA = req.GPA
-	education.Description = req.Description
-	education.DisplayOrder = req.DisplayOrder
+	education.GPA = req.EducationInput.GPA
+	education.Description = req.EducationInput.Description
+	education.DisplayOrder = req.EducationInput.DisplayOrder
 
 	if err := database.DB.Save(&education).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -877,14 +1013,28 @@ func (h *ResumeHandler) UpdateEducation(c *gin.Context) {
 // DeleteEducation deletes an education entry
 func (h *ResumeHandler) DeleteEducation(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
-	educationID := c.Param("itemId")
+	educationID := c.Param("id")
 
-	if !h.verifyResumeOwnership(c, resumeID, userID) {
+	var req dto.DeleteEducationRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": err.Error(),
+		})
 		return
 	}
 
-	result := database.DB.Where("id = ? AND resume_id = ?", educationID, resumeID).
+	// Verify resume ownership
+	var resume models.Resume
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ResumeID, userID).First(&resume).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Resume not found",
+		})
+		return
+	}
+
+	result := database.DB.Where("id = ? AND resume_id = ?", educationID, req.ResumeID).
 		Delete(&models.Education{})
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -911,13 +1061,8 @@ func (h *ResumeHandler) DeleteEducation(c *gin.Context) {
 // ReorderEducation updates display order for education
 func (h *ResumeHandler) ReorderEducation(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
 
-	if !h.verifyResumeOwnership(c, resumeID, userID) {
-		return
-	}
-
-	var req dto.ReorderRequest
+	var req dto.ReorderEducationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -926,10 +1071,20 @@ func (h *ResumeHandler) ReorderEducation(c *gin.Context) {
 		return
 	}
 
+	// Verify resume ownership
+	var resume models.Resume
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ResumeID, userID).First(&resume).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Resume not found",
+		})
+		return
+	}
+
 	tx := database.DB.Begin()
 	for _, item := range req.Items {
 		if err := tx.Model(&models.Education{}).
-			Where("id = ? AND resume_id = ?", item.ID, resumeID).
+			Where("id = ? AND resume_id = ?", item.ID, req.ResumeID).
 			Update("display_order", item.DisplayOrder).Error; err != nil {
 			tx.Rollback()
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -952,14 +1107,28 @@ func (h *ResumeHandler) ReorderEducation(c *gin.Context) {
 // GetSkills returns all skills for a resume
 func (h *ResumeHandler) GetSkills(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
 
-	if !h.verifyResumeOwnership(c, resumeID, userID) {
+	var req dto.GetSkillsRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// Verify resume ownership
+	var resume models.Resume
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ResumeID, userID).First(&resume).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Resume not found",
+		})
 		return
 	}
 
 	var skills []models.Skill
-	if err := database.DB.Where("resume_id = ?", resumeID).
+	if err := database.DB.Where("resume_id = ?", req.ResumeID).
 		Order("display_order ASC").
 		Find(&skills).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -978,13 +1147,8 @@ func (h *ResumeHandler) GetSkills(c *gin.Context) {
 // CreateSkill creates a new skill
 func (h *ResumeHandler) CreateSkill(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
 
-	if !h.verifyResumeOwnership(c, resumeID, userID) {
-		return
-	}
-
-	var req dto.SkillInput
+	var req dto.CreateSkillRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -993,13 +1157,22 @@ func (h *ResumeHandler) CreateSkill(c *gin.Context) {
 		return
 	}
 
-	resumeIDUint, _ := strconv.ParseUint(resumeID, 10, 32)
+	// Verify resume ownership
+	var resume models.Resume
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ResumeID, userID).First(&resume).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Resume not found",
+		})
+		return
+	}
+
 	skill := models.Skill{
-		ResumeID:         uint(resumeIDUint),
-		Category:         req.Category,
-		Name:             req.Name,
-		ProficiencyLevel: req.ProficiencyLevel,
-		DisplayOrder:     req.DisplayOrder,
+		ResumeID:         req.ResumeID,
+		Category:         req.SkillInput.Category,
+		Name:             req.SkillInput.Name,
+		ProficiencyLevel: req.SkillInput.ProficiencyLevel,
+		DisplayOrder:     req.SkillInput.DisplayOrder,
 	}
 
 	if err := database.DB.Create(&skill).Error; err != nil {
@@ -1019,24 +1192,8 @@ func (h *ResumeHandler) CreateSkill(c *gin.Context) {
 // UpdateSkill updates a skill
 func (h *ResumeHandler) UpdateSkill(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
-	skillID := c.Param("itemId")
 
-	if !h.verifyResumeOwnership(c, resumeID, userID) {
-		return
-	}
-
-	var skill models.Skill
-	if err := database.DB.Where("id = ? AND resume_id = ?", skillID, resumeID).
-		First(&skill).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"success": false,
-			"message": "Skill not found",
-		})
-		return
-	}
-
-	var req dto.SkillInput
+	var req dto.UpdateSkillRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -1045,10 +1202,30 @@ func (h *ResumeHandler) UpdateSkill(c *gin.Context) {
 		return
 	}
 
-	skill.Category = req.Category
-	skill.Name = req.Name
-	skill.ProficiencyLevel = req.ProficiencyLevel
-	skill.DisplayOrder = req.DisplayOrder
+	// Verify resume ownership
+	var resume models.Resume
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ResumeID, userID).First(&resume).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Resume not found",
+		})
+		return
+	}
+
+	var skill models.Skill
+	if err := database.DB.Where("id = ? AND resume_id = ?", req.ID, req.ResumeID).
+		First(&skill).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Skill not found",
+		})
+		return
+	}
+
+	skill.Category = req.SkillInput.Category
+	skill.Name = req.SkillInput.Name
+	skill.ProficiencyLevel = req.SkillInput.ProficiencyLevel
+	skill.DisplayOrder = req.SkillInput.DisplayOrder
 
 	if err := database.DB.Save(&skill).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -1067,14 +1244,28 @@ func (h *ResumeHandler) UpdateSkill(c *gin.Context) {
 // DeleteSkill deletes a skill
 func (h *ResumeHandler) DeleteSkill(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
-	skillID := c.Param("itemId")
+	skillID := c.Param("id")
 
-	if !h.verifyResumeOwnership(c, resumeID, userID) {
+	var req dto.DeleteSkillRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": err.Error(),
+		})
 		return
 	}
 
-	result := database.DB.Where("id = ? AND resume_id = ?", skillID, resumeID).
+	// Verify resume ownership
+	var resume models.Resume
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ResumeID, userID).First(&resume).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Resume not found",
+		})
+		return
+	}
+
+	result := database.DB.Where("id = ? AND resume_id = ?", skillID, req.ResumeID).
 		Delete(&models.Skill{})
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -1101,15 +1292,8 @@ func (h *ResumeHandler) DeleteSkill(c *gin.Context) {
 // BulkUpdateSkills updates multiple skills at once
 func (h *ResumeHandler) BulkUpdateSkills(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
 
-	if !h.verifyResumeOwnership(c, resumeID, userID) {
-		return
-	}
-
-	var req struct {
-		Skills []dto.SkillInput `json:"skills" binding:"required"`
-	}
+	var req dto.BulkUpdateSkillsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -1118,12 +1302,20 @@ func (h *ResumeHandler) BulkUpdateSkills(c *gin.Context) {
 		return
 	}
 
-	resumeIDUint, _ := strconv.ParseUint(resumeID, 10, 32)
+	// Verify resume ownership
+	var resume models.Resume
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ResumeID, userID).First(&resume).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Resume not found",
+		})
+		return
+	}
 
 	tx := database.DB.Begin()
 
 	// Delete all existing skills for this resume
-	if err := tx.Where("resume_id = ?", resumeID).Delete(&models.Skill{}).Error; err != nil {
+	if err := tx.Where("resume_id = ?", req.ResumeID).Delete(&models.Skill{}).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,
@@ -1136,7 +1328,7 @@ func (h *ResumeHandler) BulkUpdateSkills(c *gin.Context) {
 	var newSkills []models.Skill
 	for _, skillInput := range req.Skills {
 		skill := models.Skill{
-			ResumeID:         uint(resumeIDUint),
+			ResumeID:         req.ResumeID,
 			Category:         skillInput.Category,
 			Name:             skillInput.Name,
 			ProficiencyLevel: skillInput.ProficiencyLevel,
@@ -1169,14 +1361,28 @@ func (h *ResumeHandler) BulkUpdateSkills(c *gin.Context) {
 // GetProjects returns all projects for a resume
 func (h *ResumeHandler) GetProjects(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
 
-	if !h.verifyResumeOwnership(c, resumeID, userID) {
+	var req dto.GetProjectsRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// Verify resume ownership
+	var resume models.Resume
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ResumeID, userID).First(&resume).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Resume not found",
+		})
 		return
 	}
 
 	var projects []models.Project
-	if err := database.DB.Where("resume_id = ?", resumeID).
+	if err := database.DB.Where("resume_id = ?", req.ResumeID).
 		Order("display_order ASC").
 		Find(&projects).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -1195,13 +1401,8 @@ func (h *ResumeHandler) GetProjects(c *gin.Context) {
 // CreateProject creates a new project
 func (h *ResumeHandler) CreateProject(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
 
-	if !h.verifyResumeOwnership(c, resumeID, userID) {
-		return
-	}
-
-	var req dto.ProjectInput
+	var req dto.CreateProjectRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -1210,11 +1411,21 @@ func (h *ResumeHandler) CreateProject(c *gin.Context) {
 		return
 	}
 
+	// Verify resume ownership
+	var resume models.Resume
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ResumeID, userID).First(&resume).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Resume not found",
+		})
+		return
+	}
+
 	var startDate, endDate *time.Time
 	var err error
 
-	if req.StartDate != "" {
-		startDate, err = parseDate(req.StartDate)
+	if req.ProjectInput.StartDate != "" {
+		startDate, err = parseDate(req.ProjectInput.StartDate)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"success": false,
@@ -1224,8 +1435,8 @@ func (h *ResumeHandler) CreateProject(c *gin.Context) {
 		}
 	}
 
-	if req.EndDate != "" {
-		endDate, err = parseDate(req.EndDate)
+	if req.ProjectInput.EndDate != "" {
+		endDate, err = parseDate(req.ProjectInput.EndDate)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"success": false,
@@ -1235,17 +1446,16 @@ func (h *ResumeHandler) CreateProject(c *gin.Context) {
 		}
 	}
 
-	resumeIDUint, _ := strconv.ParseUint(resumeID, 10, 32)
 	project := models.Project{
-		ResumeID:     uint(resumeIDUint),
-		Name:         req.Name,
-		Description:  req.Description,
-		Technologies: req.Technologies,
-		URL:          req.URL,
-		GithubURL:    req.GithubURL,
+		ResumeID:     req.ResumeID,
+		Name:         req.ProjectInput.Name,
+		Description:  req.ProjectInput.Description,
+		Technologies: req.ProjectInput.Technologies,
+		URL:          req.ProjectInput.URL,
+		GithubURL:    req.ProjectInput.GithubURL,
 		StartDate:    startDate,
 		EndDate:      endDate,
-		DisplayOrder: req.DisplayOrder,
+		DisplayOrder: req.ProjectInput.DisplayOrder,
 	}
 
 	if err := database.DB.Create(&project).Error; err != nil {
@@ -1265,15 +1475,28 @@ func (h *ResumeHandler) CreateProject(c *gin.Context) {
 // UpdateProject updates a project
 func (h *ResumeHandler) UpdateProject(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
-	projectID := c.Param("itemId")
 
-	if !h.verifyResumeOwnership(c, resumeID, userID) {
+	var reqBody dto.UpdateProjectRequest
+	if err := c.ShouldBindJSON(&reqBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// Verify resume ownership
+	var resume models.Resume
+	if err := database.DB.Where("id = ? AND user_id = ?", reqBody.ResumeID, userID).First(&resume).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Resume not found",
+		})
 		return
 	}
 
 	var project models.Project
-	if err := database.DB.Where("id = ? AND resume_id = ?", projectID, resumeID).
+	if err := database.DB.Where("id = ? AND resume_id = ?", reqBody.ID, reqBody.ResumeID).
 		First(&project).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"success": false,
@@ -1282,20 +1505,11 @@ func (h *ResumeHandler) UpdateProject(c *gin.Context) {
 		return
 	}
 
-	var req dto.ProjectInput
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
-		return
-	}
-
 	var startDate, endDate *time.Time
 	var err error
 
-	if req.StartDate != "" {
-		startDate, err = parseDate(req.StartDate)
+	if reqBody.ProjectInput.StartDate != "" {
+		startDate, err = parseDate(reqBody.ProjectInput.StartDate)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"success": false,
@@ -1305,8 +1519,8 @@ func (h *ResumeHandler) UpdateProject(c *gin.Context) {
 		}
 	}
 
-	if req.EndDate != "" {
-		endDate, err = parseDate(req.EndDate)
+	if reqBody.ProjectInput.EndDate != "" {
+		endDate, err = parseDate(reqBody.ProjectInput.EndDate)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"success": false,
@@ -1316,14 +1530,14 @@ func (h *ResumeHandler) UpdateProject(c *gin.Context) {
 		}
 	}
 
-	project.Name = req.Name
-	project.Description = req.Description
-	project.Technologies = req.Technologies
-	project.URL = req.URL
-	project.GithubURL = req.GithubURL
+	project.Name = reqBody.ProjectInput.Name
+	project.Description = reqBody.ProjectInput.Description
+	project.Technologies = reqBody.ProjectInput.Technologies
+	project.URL = reqBody.ProjectInput.URL
+	project.GithubURL = reqBody.ProjectInput.GithubURL
 	project.StartDate = startDate
 	project.EndDate = endDate
-	project.DisplayOrder = req.DisplayOrder
+	project.DisplayOrder = reqBody.ProjectInput.DisplayOrder
 
 	if err := database.DB.Save(&project).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -1342,14 +1556,28 @@ func (h *ResumeHandler) UpdateProject(c *gin.Context) {
 // DeleteProject deletes a project
 func (h *ResumeHandler) DeleteProject(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
-	resumeID := c.Param("id")
-	projectID := c.Param("itemId")
+	projectID := c.Param("id")
 
-	if !h.verifyResumeOwnership(c, resumeID, userID) {
+	var req dto.DeleteProjectRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": err.Error(),
+		})
 		return
 	}
 
-	result := database.DB.Where("id = ? AND resume_id = ?", projectID, resumeID).
+	// Verify resume ownership
+	var resume models.Resume
+	if err := database.DB.Where("id = ? AND user_id = ?", req.ResumeID, userID).First(&resume).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Resume not found",
+		})
+		return
+	}
+
+	result := database.DB.Where("id = ? AND resume_id = ?", projectID, req.ResumeID).
 		Delete(&models.Project{})
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

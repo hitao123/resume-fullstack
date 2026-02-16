@@ -8,9 +8,20 @@ type CreateResumeRequest struct {
 
 // UpdateResumeRequest represents update resume request
 type UpdateResumeRequest struct {
+	ID         uint    `json:"id" binding:"required"`
 	Title      *string `json:"title" binding:"omitempty,max=255"`
 	TemplateID *int    `json:"templateId"`
 	IsDefault  *bool   `json:"isDefault"`
+}
+
+// GetResumeRequest represents get resume request
+type GetResumeRequest struct {
+	ID uint `json:"id" binding:"required"`
+}
+
+// DeleteResumeRequest represents delete resume request
+type DeleteResumeRequest struct {
+	ID uint `json:"id" binding:"required"`
 }
 
 // ReorderRequest represents reorder items request
@@ -79,4 +90,131 @@ type ProjectInput struct {
 	StartDate    string `json:"startDate"`
 	EndDate      string `json:"endDate"`
 	DisplayOrder int    `json:"displayOrder"`
+}
+
+// ========== Request wrappers for personal info, sections, etc ==========
+
+// GetPersonalInfoRequest represents get personal info request
+type GetPersonalInfoRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+}
+
+// UpdatePersonalInfoRequest represents update personal info request
+type UpdatePersonalInfoRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	PersonalInfoInput
+}
+
+// GetWorkExperiencesRequest represents get work experiences request
+type GetWorkExperiencesRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+}
+
+// CreateWorkExperienceRequest represents create work experience request
+type CreateWorkExperienceRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	WorkExperienceInput
+}
+
+// UpdateWorkExperienceRequest represents update work experience request
+type UpdateWorkExperienceRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	ID       uint `json:"id" binding:"required"`
+	WorkExperienceInput
+}
+
+// DeleteWorkExperienceRequest represents delete work experience request
+type DeleteWorkExperienceRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	ID       uint `json:"id" binding:"required"`
+}
+
+// ReorderWorkExperiencesRequest represents reorder work experiences request
+type ReorderWorkExperiencesRequest struct {
+	ResumeID uint          `json:"resumeId" binding:"required"`
+	Items    []ReorderItem `json:"items" binding:"required"`
+}
+
+// GetEducationRequest represents get education request
+type GetEducationRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+}
+
+// CreateEducationRequest represents create education request
+type CreateEducationRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	EducationInput
+}
+
+// UpdateEducationRequest represents update education request
+type UpdateEducationRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	ID       uint `json:"id" binding:"required"`
+	EducationInput
+}
+
+// DeleteEducationRequest represents delete education request
+type DeleteEducationRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	ID       uint `json:"id" binding:"required"`
+}
+
+// ReorderEducationRequest represents reorder education request
+type ReorderEducationRequest struct {
+	ResumeID uint          `json:"resumeId" binding:"required"`
+	Items    []ReorderItem `json:"items" binding:"required"`
+}
+
+// GetSkillsRequest represents get skills request
+type GetSkillsRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+}
+
+// CreateSkillRequest represents create skill request
+type CreateSkillRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	SkillInput
+}
+
+// UpdateSkillRequest represents update skill request
+type UpdateSkillRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	ID       uint `json:"id" binding:"required"`
+	SkillInput
+}
+
+// DeleteSkillRequest represents delete skill request
+type DeleteSkillRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	ID       uint `json:"id" binding:"required"`
+}
+
+// BulkUpdateSkillsRequest represents bulk update skills request
+type BulkUpdateSkillsRequest struct {
+	ResumeID uint       `json:"resumeId" binding:"required"`
+	Skills   []SkillInput `json:"skills" binding:"required"`
+}
+
+// GetProjectsRequest represents get projects request
+type GetProjectsRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+}
+
+// CreateProjectRequest represents create project request
+type CreateProjectRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	ProjectInput
+}
+
+// UpdateProjectRequest represents update project request
+type UpdateProjectRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	ID       uint `json:"id" binding:"required"`
+	ProjectInput
+}
+
+// DeleteProjectRequest represents delete project request
+type DeleteProjectRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	ID       uint `json:"id" binding:"required"`
 }

@@ -27,7 +27,7 @@ func SetupRoutes(router *gin.Engine) {
 		auth.POST("/login", authHandler.Login)
 		auth.POST("/refresh", authHandler.Refresh)
 		auth.POST("/logout", authHandler.Logout)
-		auth.GET("/me", middleware.AuthMiddleware(), authHandler.Me)
+		auth.POST("/me", middleware.AuthMiddleware(), authHandler.Me)
 	}
 
 	// Resume handlers (protected)
@@ -36,43 +36,43 @@ func SetupRoutes(router *gin.Engine) {
 	resumes.Use(middleware.AuthMiddleware())
 	{
 		// Resume CRUD
-		resumes.GET("", resumeHandler.GetResumes)
+		resumes.POST("/list", resumeHandler.GetResumes)
 		resumes.POST("", resumeHandler.CreateResume)
-		resumes.GET("/:id", resumeHandler.GetResume)
-		resumes.PUT("/:id", resumeHandler.UpdateResume)
+		resumes.POST("/get", resumeHandler.GetResume)
+		resumes.POST("/update", resumeHandler.UpdateResume)
 		resumes.DELETE("/:id", resumeHandler.DeleteResume)
 		resumes.POST("/:id/duplicate", resumeHandler.DuplicateResume)
 
 		// Resume sections - use :id as resumeId
-		resumes.GET("/:id/personal-info", resumeHandler.GetPersonalInfo)
-		resumes.PUT("/:id/personal-info", resumeHandler.UpdatePersonalInfo)
+		resumes.POST("/personal-info/get", resumeHandler.GetPersonalInfo)
+		resumes.POST("/personal-info/update", resumeHandler.UpdatePersonalInfo)
 
 		// Work Experience
-		resumes.GET("/:id/work-experiences", resumeHandler.GetWorkExperiences)
-		resumes.POST("/:id/work-experiences", resumeHandler.CreateWorkExperience)
-		resumes.PUT("/:id/work-experiences/reorder", resumeHandler.ReorderWorkExperiences)
-		resumes.PUT("/:id/work-experiences/:itemId", resumeHandler.UpdateWorkExperience)
-		resumes.DELETE("/:id/work-experiences/:itemId", resumeHandler.DeleteWorkExperience)
+		resumes.POST("/work-experiences/list", resumeHandler.GetWorkExperiences)
+		resumes.POST("/work-experiences", resumeHandler.CreateWorkExperience)
+		resumes.POST("/work-experiences/reorder", resumeHandler.ReorderWorkExperiences)
+		resumes.POST("/work-experiences/update", resumeHandler.UpdateWorkExperience)
+		resumes.DELETE("/work-experiences/:id", resumeHandler.DeleteWorkExperience)
 
 		// Education
-		resumes.GET("/:id/education", resumeHandler.GetEducation)
-		resumes.POST("/:id/education", resumeHandler.CreateEducation)
-		resumes.PUT("/:id/education/reorder", resumeHandler.ReorderEducation)
-		resumes.PUT("/:id/education/:itemId", resumeHandler.UpdateEducation)
-		resumes.DELETE("/:id/education/:itemId", resumeHandler.DeleteEducation)
+		resumes.POST("/education/list", resumeHandler.GetEducation)
+		resumes.POST("/education", resumeHandler.CreateEducation)
+		resumes.POST("/education/reorder", resumeHandler.ReorderEducation)
+		resumes.POST("/education/update", resumeHandler.UpdateEducation)
+		resumes.DELETE("/education/:id", resumeHandler.DeleteEducation)
 
 		// Skills
-		resumes.GET("/:id/skills", resumeHandler.GetSkills)
-		resumes.POST("/:id/skills", resumeHandler.CreateSkill)
-		resumes.PUT("/:id/skills/bulk", resumeHandler.BulkUpdateSkills)
-		resumes.PUT("/:id/skills/:itemId", resumeHandler.UpdateSkill)
-		resumes.DELETE("/:id/skills/:itemId", resumeHandler.DeleteSkill)
+		resumes.POST("/skills/list", resumeHandler.GetSkills)
+		resumes.POST("/skills", resumeHandler.CreateSkill)
+		resumes.POST("/skills/bulk", resumeHandler.BulkUpdateSkills)
+		resumes.POST("/skills/update", resumeHandler.UpdateSkill)
+		resumes.DELETE("/skills/:id", resumeHandler.DeleteSkill)
 
 		// Projects
-		resumes.GET("/:id/projects", resumeHandler.GetProjects)
-		resumes.POST("/:id/projects", resumeHandler.CreateProject)
-		resumes.PUT("/:id/projects/:itemId", resumeHandler.UpdateProject)
-		resumes.DELETE("/:id/projects/:itemId", resumeHandler.DeleteProject)
+		resumes.POST("/projects/list", resumeHandler.GetProjects)
+		resumes.POST("/projects", resumeHandler.CreateProject)
+		resumes.POST("/projects/update", resumeHandler.UpdateProject)
+		resumes.DELETE("/projects/:id", resumeHandler.DeleteProject)
 
 		// TODO: Add more resume section endpoints
 		// - Certifications
