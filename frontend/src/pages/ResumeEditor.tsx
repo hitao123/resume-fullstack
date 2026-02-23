@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Layout, Card, Tabs, Button, Space, message, Dropdown, Spin, Badge } from 'antd';
+import { Layout, Card, Tabs, Button, Space, message, Dropdown, Spin, Badge, Tag } from 'antd';
 import { DownloadOutlined, EyeOutlined, MoreOutlined, ArrowLeftOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import PersonalInfoForm from '@/components/resume/PersonalInfoForm';
 import WorkExperienceSection from '@/components/resume/WorkExperienceSection';
@@ -25,7 +25,7 @@ export const ResumeEditor = () => {
   const [activeTab, setActiveTab] = useState('personal');
   const [previewVisible, setPreviewVisible] = useState(true);
   const [pdfTemplate, setPdfTemplate] = useState<'classic' | 'modern'>('classic');
-  const { generatePDF, previewPDF, isGenerating } = usePDFExport();
+  const { generatePDF, previewPDF, isGenerating, exportMode, switchExportMode } = usePDFExport();
 
   // Load resume on mount
   useEffect(() => {
@@ -60,39 +60,75 @@ export const ResumeEditor = () => {
     await previewPDF(resume, pdfTemplate);
   };
 
+  const modeLabel = exportMode === 'html2canvas'
+    ? t('resumeEditor.export.modeHtml2canvasShort')
+    : (pdfTemplate === 'classic' ? t('resumeEditor.export.classicShort') : t('resumeEditor.export.modernShort'));
+
   const exportMenuItems: MenuProps['items'] = [
     {
+      key: 'exportMode',
+      label: t('resumeEditor.export.exportMode'),
+      children: [
+        {
+          key: 'mode-react-pdf',
+          label: (
+            <Space>
+              {t('resumeEditor.export.modeReactPdf')}
+              {exportMode === 'react-pdf' && <CheckCircleOutlined style={{ color: '#52c41a' }} />}
+            </Space>
+          ),
+          onClick: () => switchExportMode('react-pdf'),
+        },
+        {
+          key: 'mode-html2canvas',
+          label: (
+            <Space>
+              {t('resumeEditor.export.modeHtml2canvas')}
+              {exportMode === 'html2canvas' && <CheckCircleOutlined style={{ color: '#52c41a' }} />}
+            </Space>
+          ),
+          onClick: () => switchExportMode('html2canvas'),
+        },
+      ],
+    },
+    ...(exportMode === 'react-pdf' ? [{
       key: 'template',
       label: t('resumeEditor.export.chooseTemplate'),
       children: [
         {
           key: 'classic',
-          label: t('resumeEditor.export.classic'),
+          label: (
+            <Space>
+              {t('resumeEditor.export.classic')}
+              {pdfTemplate === 'classic' && <CheckCircleOutlined style={{ color: '#52c41a' }} />}
+            </Space>
+          ),
           onClick: () => setPdfTemplate('classic'),
         },
         {
           key: 'modern',
-          label: t('resumeEditor.export.modern'),
+          label: (
+            <Space>
+              {t('resumeEditor.export.modern')}
+              {pdfTemplate === 'modern' && <CheckCircleOutlined style={{ color: '#52c41a' }} />}
+            </Space>
+          ),
           onClick: () => setPdfTemplate('modern'),
         },
       ],
-    },
+    }] : []),
     {
-      type: 'divider',
+      type: 'divider' as const,
     },
     {
       key: 'download',
-      label: t('resumeEditor.export.downloadPdf', {
-        template: pdfTemplate === 'classic' ? t('resumeEditor.export.classicShort') : t('resumeEditor.export.modernShort'),
-      }),
+      label: t('resumeEditor.export.downloadPdf', { template: modeLabel }),
       icon: <DownloadOutlined />,
       onClick: handleExport,
     },
     {
       key: 'preview',
-      label: t('resumeEditor.export.previewPdf', {
-        template: pdfTemplate === 'classic' ? t('resumeEditor.export.classicShort') : t('resumeEditor.export.modernShort'),
-      }),
+      label: t('resumeEditor.export.previewPdf', { template: modeLabel }),
       icon: <EyeOutlined />,
       onClick: handlePreviewPDF,
     },
@@ -233,6 +269,9 @@ export const ResumeEditor = () => {
           }
           extra={
             <Space>
+              <Tag color={exportMode === 'html2canvas' ? 'green' : 'blue'}>
+                {exportMode === 'html2canvas' ? 'HTML' : 'PDF'}
+              </Tag>
               <Button
                 icon={<EyeOutlined />}
                 onClick={() => setPreviewVisible(!previewVisible)}

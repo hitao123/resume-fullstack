@@ -6,8 +6,9 @@ import dayjs from 'dayjs';
 import type { Project } from '@/types/resume.types';
 import resumeService from '@/services/resumeService';
 import { useTranslation } from 'react-i18next';
+import RichTextEditor from '@/components/common/RichTextEditor';
+import SafeHtmlRenderer from '@/components/common/SafeHtmlRenderer';
 
-const { TextArea } = Input;
 const { RangePicker } = DatePicker;
 
 interface ProjectsSectionProps {
@@ -174,9 +175,10 @@ export const ProjectsSection = ({ data, onChange }: ProjectsSectionProps) => {
                   </div>
                 )}
                 {item.description && (
-                  <div style={{ marginTop: 8, whiteSpace: 'pre-wrap' }}>
-                    {item.description}
-                  </div>
+                  <SafeHtmlRenderer
+                    content={item.description}
+                    style={{ marginTop: 8, fontSize: 13, color: '#555', lineHeight: 1.6 }}
+                  />
                 )}
                 {(item.url || item.githubUrl) && (
                   <div style={{ marginTop: 8, fontSize: 12 }}>
@@ -232,12 +234,7 @@ export const ProjectsSection = ({ data, onChange }: ProjectsSectionProps) => {
           </Form.Item>
 
           <Form.Item label={t('resume.projects.descriptionLabel')} name="description">
-            <TextArea
-              rows={4}
-              placeholder={t('resume.projects.descriptionPlaceholder')}
-              maxLength={1000}
-              showCount
-            />
+            <RichTextEditor placeholder={t('resume.projects.descriptionPlaceholder')} />
           </Form.Item>
 
           <Form.Item label={t('resume.projects.urlLabel')} name="url">

@@ -4,8 +4,7 @@ import { useParams } from 'react-router-dom';
 import type { PersonalInfo } from '@/types/resume.types';
 import resumeService from '@/services/resumeService';
 import { useTranslation } from 'react-i18next';
-
-const { TextArea } = Input;
+import RichTextEditor from '@/components/common/RichTextEditor';
 
 interface PersonalInfoFormProps {
   data?: PersonalInfo;
@@ -138,12 +137,7 @@ export const PersonalInfoForm = ({ data, onChange }: PersonalInfoFormProps) => {
       </Form.Item>
 
       <Form.Item label={t('resume.personal.summaryLabel')} name="summary">
-        <TextArea
-          rows={4}
-          placeholder={t('resume.personal.summaryPlaceholder')}
-          maxLength={500}
-          showCount
-        />
+        <RichTextEditor placeholder={t('resume.personal.summaryPlaceholder')} />
       </Form.Item>
     </Form>
   );

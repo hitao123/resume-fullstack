@@ -8,6 +8,7 @@ import {
   Font,
 } from '@react-pdf/renderer';
 import type { Resume } from '@/types/resume.types';
+import { htmlToPdfNodes } from '@/utils/htmlToPdfNodes';
 
 // 注册中文字体
 Font.register({
@@ -38,8 +39,8 @@ const styles = StyleSheet.create({
   page: {
     padding: 40,
     fontFamily: 'Noto Serif SC',
-    fontSize: 10,
-    lineHeight: 1.8,
+    fontSize: 11,
+    lineHeight: 1.6,
   },
   // 个人信息
   header: {
@@ -47,25 +48,25 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   name: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 8,
     color: '#1a1a1a',
-    lineHeight: 1.5,
+    lineHeight: 1.4,
   },
   contactInfo: {
-    fontSize: 9,
+    fontSize: 10,
     color: '#666',
-    marginBottom: 5,
-    lineHeight: 1.6,
+    marginBottom: 4,
+    lineHeight: 1.5,
   },
   summary: {
-    fontSize: 10,
+    fontSize: 11,
     color: '#444',
     marginTop: 10,
-    lineHeight: 1.8,
+    lineHeight: 1.6,
     textAlign: 'left',
-    paddingHorizontal: 40,
+    paddingHorizontal: 20,
     width: '100%',
     maxWidth: '100%',
   },
@@ -73,64 +74,64 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    marginTop: 20,
-    marginBottom: 10,
+    marginTop: 16,
+    marginBottom: 8,
     color: '#1a1a1a',
     borderBottom: '2pt solid #1890ff',
     paddingBottom: 4,
-    lineHeight: 1.5,
+    lineHeight: 1.4,
   },
   // 工作经历/教育背景
   item: {
-    marginBottom: 16,
+    marginBottom: 12,
     width: '100%',
   },
   itemHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   itemTitle: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 'bold',
     color: '#1a1a1a',
-    lineHeight: 1.6,
+    lineHeight: 1.5,
   },
   itemDate: {
-    fontSize: 9,
+    fontSize: 10,
     color: '#666',
-    lineHeight: 1.6,
+    lineHeight: 1.5,
   },
   itemSubtitle: {
-    fontSize: 10,
+    fontSize: 11,
     color: '#444',
-    marginBottom: 6,
-    lineHeight: 1.6,
+    marginBottom: 4,
+    lineHeight: 1.5,
   },
   itemDescription: {
-    fontSize: 9,
+    fontSize: 10,
     color: '#555',
-    lineHeight: 1.8,
+    lineHeight: 1.6,
     marginTop: 4,
     width: '100%',
     maxWidth: '100%',
   },
   // 技能
   skillsContainer: {
-    marginBottom: 10,
+    marginBottom: 8,
   },
   skillCategory: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: 'bold',
     color: '#1a1a1a',
-    marginBottom: 6,
-    lineHeight: 1.6,
+    marginBottom: 4,
+    lineHeight: 1.5,
   },
   skillsList: {
-    fontSize: 9,
+    fontSize: 10,
     color: '#444',
-    marginBottom: 10,
-    lineHeight: 1.8,
+    marginBottom: 8,
+    lineHeight: 1.6,
   },
 });
 
@@ -193,9 +194,7 @@ export const PDFDocument: React.FC<PDFDocumentProps> = ({ resume }) => {
           )}
         </View>
 
-        {personalInfo?.summary && (
-          <Text style={styles.summary}>{personalInfo.summary}</Text>
-        )}
+        {personalInfo?.summary && htmlToPdfNodes(personalInfo.summary, { baseStyle: styles.summary })}
 
         {/* 工作经历 */}
         {workExperiences && workExperiences.length > 0 && (
@@ -213,9 +212,7 @@ export const PDFDocument: React.FC<PDFDocumentProps> = ({ resume }) => {
                   {work.companyName}
                   {work.location && ` · ${work.location}`}
                 </Text>
-                {work.description && (
-                  <Text style={styles.itemDescription}>{work.description}</Text>
-                )}
+                {work.description && htmlToPdfNodes(work.description, { baseStyle: styles.itemDescription })}
               </View>
             ))}
           </View>
@@ -238,9 +235,7 @@ export const PDFDocument: React.FC<PDFDocumentProps> = ({ resume }) => {
                   {edu.fieldOfStudy && ` · ${edu.fieldOfStudy}`}
                   {edu.gpa && ` · GPA: ${edu.gpa}`}
                 </Text>
-                {edu.description && (
-                  <Text style={styles.itemDescription}>{edu.description}</Text>
-                )}
+                {edu.description && htmlToPdfNodes(edu.description, { baseStyle: styles.itemDescription })}
               </View>
             ))}
           </View>

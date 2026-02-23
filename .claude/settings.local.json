@@ -18,7 +18,9 @@
       "Bash(curl:*)",
       "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoidGVzdEBleGFtcGxlLmNvbSIsImV4cCI6MTc3MDg2NjU1NiwibmJmIjoxNzcwODY1NjU2LCJpYXQiOjE3NzA4NjU2NTZ9.TFAobvsdr7McSAzi9QELitJIHiZppLFh7OAZslTYsyI\")",
       "Bash(lsof:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

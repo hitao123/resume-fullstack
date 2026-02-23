@@ -97,7 +97,13 @@
       "classicShort": "Classic",
       "modernShort": "Modern",
       "downloadPdf": "Download PDF ({{template}})",
-      "previewPdf": "Preview PDF ({{template}})"
+      "previewPdf": "Preview PDF ({{template}})",
+      "exportMode": "Export mode",
+      "modeReactPdf": "React PDF (vector)",
+      "modeHtml2canvas": "Screenshot (preserves icons)",
+      "modeReactPdfDesc": "Vector PDF via @react-pdf/renderer, text is selectable",
+      "modeHtml2canvasDesc": "Captures preview as image, preserves SVG icons and styles",
+      "modeHtml2canvasShort": "Screenshot"
     }
   },
   "resume": {

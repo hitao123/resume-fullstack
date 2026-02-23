@@ -6,8 +6,9 @@ import dayjs from 'dayjs';
 import type { WorkExperience } from '@/types/resume.types';
 import resumeService from '@/services/resumeService';
 import { useTranslation } from 'react-i18next';
+import RichTextEditor from '@/components/common/RichTextEditor';
+import SafeHtmlRenderer from '@/components/common/SafeHtmlRenderer';
 
-const { TextArea } = Input;
 const { RangePicker } = DatePicker;
 
 interface WorkExperienceSectionProps {
@@ -172,9 +173,10 @@ export const WorkExperienceSection = ({ data, onChange }: WorkExperienceSectionP
                   {item.startDate} - {item.isCurrent ? '至今' : item.endDate || '至今'}
                 </div>
                 {item.description && (
-                  <div style={{ marginTop: 8, whiteSpace: 'pre-wrap' }}>
-                    {item.description}
-                  </div>
+                  <SafeHtmlRenderer
+                    content={item.description}
+                    style={{ marginTop: 8, fontSize: 13, color: '#555', lineHeight: 1.6 }}
+                  />
                 )}
               </div>
             </Card>
@@ -232,12 +234,7 @@ export const WorkExperienceSection = ({ data, onChange }: WorkExperienceSectionP
           </Form.Item>
 
           <Form.Item label={t('resume.work.descriptionLabel')} name="description">
-            <TextArea
-              rows={4}
-              placeholder={t('resume.work.descriptionPlaceholder')}
-              maxLength={1000}
-              showCount
-            />
+            <RichTextEditor placeholder={t('resume.work.descriptionPlaceholder')} />
           </Form.Item>
         </Form>
       </Modal>

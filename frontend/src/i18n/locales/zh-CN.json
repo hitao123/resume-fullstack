@@ -97,7 +97,13 @@
       "classicShort": "经典",
       "modernShort": "现代",
       "downloadPdf": "下载 PDF（{{template}}）",
-      "previewPdf": "预览 PDF（{{template}}）"
+      "previewPdf": "预览 PDF（{{template}}）",
+      "exportMode": "导出方式",
+      "modeReactPdf": "React PDF（矢量）",
+      "modeHtml2canvas": "截图导出（保留图标样式）",
+      "modeReactPdfDesc": "使用 @react-pdf/renderer 生成矢量 PDF，文字可选中",
+      "modeHtml2canvasDesc": "截取预览区域生成 PDF，完整保留 SVG 图标和样式",
+      "modeHtml2canvasShort": "截图"
     }
   },
   "resume": {

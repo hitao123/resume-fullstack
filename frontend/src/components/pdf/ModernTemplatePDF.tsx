@@ -8,6 +8,7 @@ import {
   Font,
 } from '@react-pdf/renderer';
 import type { Resume } from '@/types/resume.types';
+import { htmlToPdfNodes } from '@/utils/htmlToPdfNodes';
 
 // 注册中文字体
 Font.register({
@@ -240,7 +241,7 @@ export const ModernTemplatePDF: React.FC<ModernTemplatePDFProps> = ({ resume }) 
             {personalInfo?.summary && (
               <View style={styles.mainSection}>
                 <Text style={styles.mainSectionTitle}>个人简介</Text>
-                <Text style={styles.itemDescription}>{personalInfo.summary}</Text>
+                {htmlToPdfNodes(personalInfo.summary, { baseStyle: styles.itemDescription })}
               </View>
             )}
 
@@ -260,9 +261,7 @@ export const ModernTemplatePDF: React.FC<ModernTemplatePDFProps> = ({ resume }) 
                       {work.companyName}
                       {work.location && ` · ${work.location}`}
                     </Text>
-                    {work.description && (
-                      <Text style={styles.itemDescription}>{work.description}</Text>
-                    )}
+                    {work.description && htmlToPdfNodes(work.description, { baseStyle: styles.itemDescription })}
                   </View>
                 ))}
               </View>
@@ -285,9 +284,7 @@ export const ModernTemplatePDF: React.FC<ModernTemplatePDFProps> = ({ resume }) 
                       {edu.fieldOfStudy && ` · ${edu.fieldOfStudy}`}
                       {edu.gpa && ` · GPA: ${edu.gpa}`}
                     </Text>
-                    {edu.description && (
-                      <Text style={styles.itemDescription}>{edu.description}</Text>
-                    )}
+                    {edu.description && htmlToPdfNodes(edu.description, { baseStyle: styles.itemDescription })}
                   </View>
                 ))}
               </View>

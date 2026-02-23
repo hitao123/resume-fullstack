@@ -15,6 +15,7 @@ import {
 } from '@react-pdf/renderer';
 import type { Resume } from '@/types/resume.types';
 import { createColoredTagImage, getTagBackgroundColor, getTagTextColor } from '@/utils/pdfHelpers';
+import { htmlToPdfNodes } from '@/utils/htmlToPdfNodes';
 
 // 注册中文字体
 Font.register({
@@ -229,9 +230,7 @@ export const EnhancedPDFDocument: React.FC<EnhancedPDFDocumentProps> = ({ resume
           )}
         </View>
 
-        {personalInfo?.summary && (
-          <Text style={styles.summary}>{personalInfo.summary}</Text>
-        )}
+        {personalInfo?.summary && htmlToPdfNodes(personalInfo.summary, { baseStyle: styles.summary })}
 
         {/* 工作经历 */}
         {workExperiences && workExperiences.length > 0 && (
@@ -249,9 +248,7 @@ export const EnhancedPDFDocument: React.FC<EnhancedPDFDocumentProps> = ({ resume
                   {work.companyName}
                   {work.location && ` · ${work.location}`}
                 </Text>
-                {work.description && (
-                  <Text style={styles.itemDescription}>{work.description}</Text>
-                )}
+                {work.description && htmlToPdfNodes(work.description, { baseStyle: styles.itemDescription })}
               </View>
             ))}
           </View>
@@ -274,9 +271,7 @@ export const EnhancedPDFDocument: React.FC<EnhancedPDFDocumentProps> = ({ resume
                   {edu.fieldOfStudy && ` · ${edu.fieldOfStudy}`}
                   {edu.gpa && ` · GPA: ${edu.gpa}`}
                 </Text>
-                {edu.description && (
-                  <Text style={styles.itemDescription}>{edu.description}</Text>
-                )}
+                {edu.description && htmlToPdfNodes(edu.description, { baseStyle: styles.itemDescription })}
               </View>
             ))}
           </View>

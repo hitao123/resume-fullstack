@@ -6,8 +6,9 @@ import dayjs from 'dayjs';
 import type { Education } from '@/types/resume.types';
 import resumeService from '@/services/resumeService';
 import { useTranslation } from 'react-i18next';
+import RichTextEditor from '@/components/common/RichTextEditor';
+import SafeHtmlRenderer from '@/components/common/SafeHtmlRenderer';
 
-const { TextArea } = Input;
 const { RangePicker } = DatePicker;
 
 interface EducationSectionProps {
@@ -177,9 +178,10 @@ export const EducationSection = ({ data, onChange }: EducationSectionProps) => {
                   </div>
                 )}
                 {item.description && (
-                  <div style={{ marginTop: 8, whiteSpace: 'pre-wrap' }}>
-                    {item.description}
-                  </div>
+                  <SafeHtmlRenderer
+                    content={item.description}
+                    style={{ marginTop: 8, fontSize: 13, color: '#555', lineHeight: 1.6 }}
+                  />
                 )}
               </div>
             </Card>
@@ -245,12 +247,7 @@ export const EducationSection = ({ data, onChange }: EducationSectionProps) => {
           </Form.Item>
 
           <Form.Item label={t('resume.education.descriptionLabel')} name="description">
-            <TextArea
-              rows={3}
-              placeholder={t('resume.education.descriptionPlaceholder')}
-              maxLength={500}
-              showCount
-            />
+            <RichTextEditor placeholder={t('resume.education.descriptionPlaceholder')} />
           </Form.Item>
         </Form>
       </Modal>

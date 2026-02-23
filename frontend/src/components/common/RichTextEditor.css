@@ -1,0 +1,47 @@
+/* TipTap 编辑区 */
+.rich-text-editor .tiptap {
+  padding: 8px 12px;
+  min-height: 120px;
+  outline: none;
+  border: none;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.rich-text-editor .tiptap:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.rich-text-editor .tiptap p {
+  margin: 0 0 0.4em 0;
+}
+
+.rich-text-editor .tiptap p:last-child {
+  margin-bottom: 0;
+}
+
+.rich-text-editor .tiptap ul,
+.rich-text-editor .tiptap ol {
+  padding-left: 1.5em;
+  margin: 0.25em 0;
+}
+
+.rich-text-editor .tiptap li {
+  margin-bottom: 0.1em;
+}
+
+/* Placeholder（由 @tiptap/extension-placeholder 注入） */
+.rich-text-editor .tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #bfbfbf;
+  pointer-events: none;
+  height: 0;
+}
+
+/* Focus 边框 */
+.rich-text-editor:focus-within {
+  border-color: #1677ff !important;
+  box-shadow: 0 0 0 2px rgba(5, 145, 255, 0.1);
+}

@@ -2,8 +2,9 @@ import { Card, Typography, Space, Tag, Divider } from 'antd';
 import { MailOutlined, PhoneOutlined, EnvironmentOutlined, LinkOutlined } from '@ant-design/icons';
 import type { Resume } from '@/types/resume.types';
 import { useTranslation } from 'react-i18next';
+import SafeHtmlRenderer from '@/components/common/SafeHtmlRenderer';
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 
 interface ResumePreviewProps {
   resume: Resume;
@@ -51,7 +52,7 @@ export const ResumePreview = ({ resume }: ResumePreviewProps) => {
   }, {} as Record<string, typeof skills>);
 
   return (
-    <div style={{ padding: 24, background: '#fff' }}>
+    <div id="resume-preview" style={{ padding: 24, background: '#fff' }}>
       <Card bordered={false}>
         {/* 个人信息 */}
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
@@ -86,16 +87,15 @@ export const ResumePreview = ({ resume }: ResumePreviewProps) => {
             )}
           </Space>
           {personalInfo?.summary && (
-            <Paragraph
+            <SafeHtmlRenderer
+              content={personalInfo.summary}
               style={{
                 marginTop: 12,
                 textAlign: 'left',
                 fontSize: 13,
                 lineHeight: 1.6,
               }}
-            >
-              {personalInfo.summary}
-            </Paragraph>
+            />
           )}
         </div>
 
@@ -127,17 +127,15 @@ export const ResumePreview = ({ resume }: ResumePreviewProps) => {
                     )}
                   </div>
                   {work.description && (
-                    <Paragraph
+                    <SafeHtmlRenderer
+                      content={work.description}
                       style={{
                         fontSize: 13,
                         color: '#666',
                         lineHeight: 1.6,
                         marginTop: 8,
-                        whiteSpace: 'pre-wrap',
                       }}
-                    >
-                      {work.description}
-                    </Paragraph>
+                    />
                   )}
                 </div>
               ))}
@@ -178,16 +176,15 @@ export const ResumePreview = ({ resume }: ResumePreviewProps) => {
                     </div>
                   )}
                   {edu.description && (
-                    <Paragraph
+                    <SafeHtmlRenderer
+                      content={edu.description}
                       style={{
                         fontSize: 13,
                         color: '#666',
                         lineHeight: 1.6,
                         marginTop: 8,
                       }}
-                    >
-                      {edu.description}
-                    </Paragraph>
+                    />
                   )}
                 </div>
               ))}
@@ -252,17 +249,15 @@ export const ResumePreview = ({ resume }: ResumePreviewProps) => {
                     </div>
                   )}
                   {project.description && (
-                    <Paragraph
+                    <SafeHtmlRenderer
+                      content={project.description}
                       style={{
                         fontSize: 13,
                         color: '#666',
                         lineHeight: 1.6,
                         marginTop: 8,
-                        whiteSpace: 'pre-wrap',
                       }}
-                    >
-                      {project.description}
-                    </Paragraph>
+                    />
                   )}
                   {(project.url || project.githubUrl) && (
                     <div style={{ marginTop: 4, fontSize: 12 }}>
