@@ -303,6 +303,12 @@ cd backend && docker build -t resume-backend .
 cd frontend && docker build -t resume-frontend .
 ```
 
+
+## 页面
+
+![home](./imgs/home.png)
+![editor](./imgs/editor.png)
+![preview](./imgs/preview.png)
 ## 📄 License
 
 MIT
