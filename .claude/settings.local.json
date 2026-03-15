@@ -20,7 +20,9 @@
       "Bash(lsof:*)",
       "Bash(xargs:*)",
       "Bash(npm install:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(wc:*)",
+      "Bash(go build:*)"
     ]
   }
 }

@@ -9,15 +9,29 @@ import (
 type User struct {
 	ID           uint           `gorm:"primarykey" json:"id"`
 	Email        string         `gorm:"type:varchar(255);uniqueIndex;not null" json:"email"`
-	PasswordHash string         `gorm:"type:varchar(255);not null" json:"-"`
+	PasswordHash string         `gorm:"type:varchar(255)" json:"-"`
 	Name         string         `gorm:"type:varchar(255)" json:"name"`
 	CreatedAt    time.Time      `json:"createdAt"`
 	UpdatedAt    time.Time      `json:"updatedAt"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// Relationships
-	Resumes       []Resume       `gorm:"foreignKey:UserID" json:"resumes,omitempty"`
-	RefreshTokens []RefreshToken `gorm:"foreignKey:UserID" json:"-"`
+	Resumes        []Resume        `gorm:"foreignKey:UserID" json:"resumes,omitempty"`
+	RefreshTokens  []RefreshToken  `gorm:"foreignKey:UserID" json:"-"`
+	OAuthProviders []OAuthProvider `gorm:"foreignKey:UserID" json:"-"`
+}
+
+// OAuthProvider represents a third-party OAuth provider linked to a user
+type OAuthProvider struct {
+	ID             uint      `gorm:"primarykey" json:"id"`
+	UserID         uint      `gorm:"not null;index" json:"userId"`
+	Provider       string    `gorm:"type:varchar(50);not null;uniqueIndex:idx_provider_uid" json:"provider"`
+	ProviderUserID string    `gorm:"type:varchar(255);not null;uniqueIndex:idx_provider_uid" json:"providerUserId"`
+	Email          string    `gorm:"type:varchar(255)" json:"email"`
+	Name           string    `gorm:"type:varchar(255)" json:"name"`
+	AvatarURL      string    `gorm:"type:varchar(500)" json:"avatarUrl"`
+	CreatedAt      time.Time `json:"createdAt"`
+	UpdatedAt      time.Time `json:"updatedAt"`
 }
 
 // Resume represents a resume document

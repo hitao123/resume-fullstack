@@ -1,0 +1,66 @@
+.landing-layout {
+  min-height: 100vh;
+  display: flex;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.landing-marketing {
+  flex: 0 0 60%;
+  overflow-y: auto;
+  padding: 48px 56px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.landing-form {
+  flex: 0 0 40%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  position: relative;
+}
+
+.landing-form-inner {
+  width: 100%;
+  max-width: 420px;
+}
+
+.landing-footer {
+  margin-top: 24px;
+}
+
+.landing-footer .ant-layout-footer {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.45);
+  padding: 12px 0;
+  font-size: 13px;
+}
+
+.landing-lang-switcher {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+
+/* Mobile: single column, form on top */
+@media (max-width: 991px) {
+  .landing-layout {
+    flex-direction: column;
+  }
+
+  .landing-form {
+    flex: none;
+    padding: 32px 24px 24px;
+  }
+
+  .landing-marketing {
+    flex: none;
+    padding: 24px;
+    gap: 32px;
+  }
+}

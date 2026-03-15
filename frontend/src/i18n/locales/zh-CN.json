@@ -42,7 +42,72 @@
       "passwordRequired": "请输入密码",
       "confirmRequired": "请确认密码",
       "passwordMismatch": "两次输入的密码不一致"
+    },
+    "oauth": {
+      "divider": "或使用第三方账号",
+      "github": "使用 GitHub 登录",
+      "google": "使用 Google 登录",
+      "wechat": "使用微信登录",
+      "failed": "第三方登录失败"
     }
+  },
+  "landing": {
+    "hero": {
+      "title": "用 AI 打造专业简历，轻松拿下心仪 Offer",
+      "subtitle": "AI 驱动的简历生成器，帮你快速创建专业、优雅的简历，从模板选择到内容撰写，全程智能辅助。",
+      "aiWriting": "AI 智能写作，一键生成专业内容",
+      "fastCreate": "分钟级创建，多模板随心切换",
+      "pdfExport": "一键导出高质量 PDF，随时投递"
+    },
+    "features": {
+      "title": "核心功能",
+      "ai": {
+        "title": "AI 智能写作",
+        "desc": "基于你的经历自动生成个人简介，优化工作描述，让内容更专业、更有说服力"
+      },
+      "templates": {
+        "title": "多款精美模板",
+        "desc": "经典、现代、简约多种风格，适配不同行业和岗位需求"
+      },
+      "preview": {
+        "title": "实时预览",
+        "desc": "编辑内容即时呈现，所见即所得，调整到满意为止"
+      },
+      "export": {
+        "title": "PDF 一键导出",
+        "desc": "支持矢量 PDF 和截图导出两种方式，完美还原排版效果"
+      }
+    },
+    "templates": {
+      "title": "精选模板预览",
+      "classic": "经典模板",
+      "modern": "现代模板",
+      "minimal": "简约模板"
+    },
+    "stats": {
+      "users": "注册用户",
+      "resumes": "已创建简历",
+      "exports": "已导出 PDF"
+    },
+    "testimonials": {
+      "user1": {
+        "name": "李同学 · 应届毕业生",
+        "text": "AI 帮我把简历写得特别专业，面试邀约明显变多了，强烈推荐给找工作的同学！"
+      },
+      "user2": {
+        "name": "王工 · 3年经验开发者",
+        "text": "模板好看，导出的 PDF 排版很棒，用来更新简历效率很高，再也不用折腾 Word 了。"
+      }
+    }
+  },
+  "ai": {
+    "generateSummary": "AI 生成简介",
+    "enhanceDescription": "AI 优化描述",
+    "generating": "AI 生成中...",
+    "accept": "采用",
+    "discard": "放弃",
+    "error": "AI 生成失败：{{message}}",
+    "noContent": "请先填写相关内容后再使用 AI 辅助"
   },
   "dashboard": {
     "loadFailed": "加载简历失败：{{message}}",
@@ -266,4 +331,3 @@
     }
   }
 }
-

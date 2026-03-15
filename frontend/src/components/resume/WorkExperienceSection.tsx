@@ -8,6 +8,10 @@ import resumeService from '@/services/resumeService';
 import { useTranslation } from 'react-i18next';
 import RichTextEditor from '@/components/common/RichTextEditor';
 import SafeHtmlRenderer from '@/components/common/SafeHtmlRenderer';
+import AIAssistantButton from '@/components/ai/AIAssistantButton';
+import AIResultPanel from '@/components/ai/AIResultPanel';
+import { useAIAssistant } from '@/hooks/useAIAssistant';
+import { enhanceDescription } from '@/services/aiService';
 
 const { RangePicker } = DatePicker;
 
@@ -22,7 +26,8 @@ export const WorkExperienceSection = ({ data, onChange }: WorkExperienceSectionP
   const [editingItem, setEditingItem] = useState<WorkExperience | null>(null);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const ai = useAIAssistant();
 
   // Load data when component mounts
   useEffect(() => {
@@ -45,6 +50,7 @@ export const WorkExperienceSection = ({ data, onChange }: WorkExperienceSectionP
   const handleAdd = () => {
     form.resetFields();
     setEditingItem(null);
+    ai.reset();
     setIsModalOpen(true);
   };
 
@@ -58,6 +64,7 @@ export const WorkExperienceSection = ({ data, onChange }: WorkExperienceSectionP
         : null,
     });
     setEditingItem(item);
+    ai.reset();
     setIsModalOpen(true);
   };
 
@@ -113,6 +120,7 @@ export const WorkExperienceSection = ({ data, onChange }: WorkExperienceSectionP
       await loadWorkExperiences();
       setIsModalOpen(false);
       form.resetFields();
+      ai.reset();
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : String(error);
       message.error(
@@ -123,6 +131,25 @@ export const WorkExperienceSection = ({ data, onChange }: WorkExperienceSectionP
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleEnhanceDescription = () => {
+    const description = form.getFieldValue('description');
+    if (!description) {
+      message.warning(t('ai.noContent'));
+      return;
+    }
+    const language = i18n.language.startsWith('zh') ? 'zh' : 'en';
+    const position = form.getFieldValue('position') || '';
+    const company = form.getFieldValue('companyName') || '';
+    ai.startGeneration((callbacks, signal) => {
+      enhanceDescription(description, language, callbacks, signal, position, company);
+    });
+  };
+
+  const handleAcceptDescription = () => {
+    form.setFieldsValue({ description: ai.content });
+    ai.reset();
   };
 
   return (
@@ -189,7 +216,7 @@ export const WorkExperienceSection = ({ data, onChange }: WorkExperienceSectionP
         open={isModalOpen}
         onOk={handleSubmit}
         confirmLoading={saving}
-        onCancel={() => setIsModalOpen(false)}
+        onCancel={() => { setIsModalOpen(false); ai.reset(); }}
         width={600}
       >
         <Form form={form} layout="vertical">
@@ -233,9 +260,28 @@ export const WorkExperienceSection = ({ data, onChange }: WorkExperienceSectionP
             <Checkbox>{t('resume.work.isCurrentLabel')}</Checkbox>
           </Form.Item>
 
-          <Form.Item label={t('resume.work.descriptionLabel')} name="description">
+          <Form.Item
+            label={
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {t('resume.work.descriptionLabel')}
+                <AIAssistantButton
+                  onClick={handleEnhanceDescription}
+                  loading={ai.isGenerating}
+                />
+              </div>
+            }
+            name="description"
+          >
             <RichTextEditor placeholder={t('resume.work.descriptionPlaceholder')} />
           </Form.Item>
+
+          <AIResultPanel
+            content={ai.content}
+            isGenerating={ai.isGenerating}
+            error={ai.error}
+            onAccept={handleAcceptDescription}
+            onDiscard={ai.reset}
+          />
         </Form>
       </Modal>
     </div>

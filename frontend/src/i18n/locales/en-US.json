@@ -42,7 +42,72 @@
       "passwordRequired": "Please input your password",
       "confirmRequired": "Please confirm your password",
       "passwordMismatch": "Passwords do not match"
+    },
+    "oauth": {
+      "divider": "or continue with",
+      "github": "Continue with GitHub",
+      "google": "Continue with Google",
+      "wechat": "Continue with WeChat",
+      "failed": "Social login failed"
     }
+  },
+  "landing": {
+    "hero": {
+      "title": "Build Professional Resumes with AI, Land Your Dream Job",
+      "subtitle": "AI-powered resume builder that helps you create professional, elegant resumes in minutes — from template selection to content writing, with intelligent assistance every step of the way.",
+      "aiWriting": "AI-powered writing, generate professional content in one click",
+      "fastCreate": "Create in minutes, switch between multiple templates",
+      "pdfExport": "Export high-quality PDF, ready to submit anytime"
+    },
+    "features": {
+      "title": "Core Features",
+      "ai": {
+        "title": "AI Smart Writing",
+        "desc": "Auto-generate personal summaries based on your experience, enhance job descriptions to be more professional and compelling"
+      },
+      "templates": {
+        "title": "Beautiful Templates",
+        "desc": "Classic, modern, and minimal styles to match different industries and positions"
+      },
+      "preview": {
+        "title": "Live Preview",
+        "desc": "See changes instantly as you edit, what you see is what you get"
+      },
+      "export": {
+        "title": "One-Click PDF Export",
+        "desc": "Vector PDF and screenshot export options, perfectly preserving your layout"
+      }
+    },
+    "templates": {
+      "title": "Template Preview",
+      "classic": "Classic",
+      "modern": "Modern",
+      "minimal": "Minimal"
+    },
+    "stats": {
+      "users": "Registered Users",
+      "resumes": "Resumes Created",
+      "exports": "PDFs Exported"
+    },
+    "testimonials": {
+      "user1": {
+        "name": "Li · Fresh Graduate",
+        "text": "AI helped me write a much more professional resume. I started getting way more interview invitations. Highly recommended!"
+      },
+      "user2": {
+        "name": "Wang · 3yr Developer",
+        "text": "Great templates, beautiful PDF export. Super efficient for updating my resume — no more wrestling with Word!"
+      }
+    }
+  },
+  "ai": {
+    "generateSummary": "AI Generate Summary",
+    "enhanceDescription": "AI Enhance",
+    "generating": "AI generating...",
+    "accept": "Accept",
+    "discard": "Discard",
+    "error": "AI generation failed: {{message}}",
+    "noContent": "Please fill in relevant content before using AI assistant"
   },
   "dashboard": {
     "loadFailed": "Failed to load resumes: {{message}}",
@@ -266,4 +331,3 @@
     }
   }
 }
-

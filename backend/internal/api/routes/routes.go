@@ -28,6 +28,11 @@ func SetupRoutes(router *gin.Engine) {
 		auth.POST("/refresh", authHandler.Refresh)
 		auth.POST("/logout", authHandler.Logout)
 		auth.POST("/me", middleware.AuthMiddleware(), authHandler.Me)
+
+		// OAuth routes
+		oauthHandler := handlers.NewOAuthHandler()
+		auth.GET("/oauth/:provider", oauthHandler.Initiate)
+		auth.GET("/oauth/:provider/callback", oauthHandler.Callback)
 	}
 
 	// Resume handlers (protected)
@@ -77,5 +82,14 @@ func SetupRoutes(router *gin.Engine) {
 		// TODO: Add more resume section endpoints
 		// - Certifications
 		// - Languages
+	}
+
+	// AI handlers (protected)
+	aiHandler := handlers.NewAIHandler()
+	ai := v1.Group("/ai")
+	ai.Use(middleware.AuthMiddleware())
+	{
+		ai.POST("/generate-summary", aiHandler.GenerateSummary)
+		ai.POST("/enhance-description", aiHandler.EnhanceDescription)
 	}
 }

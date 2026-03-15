@@ -68,6 +68,7 @@ func Migrate() error {
 		&models.Certification{},
 		&models.Language{},
 		&models.RefreshToken{},
+		&models.OAuthProvider{},
 	)
 
 	if err != nil {
