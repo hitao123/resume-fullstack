@@ -22,7 +22,8 @@
       "Bash(npm install:*)",
       "Bash(npx tsc:*)",
       "Bash(wc:*)",
-      "Bash(go build:*)"
+      "Bash(go build:*)",
+      "Bash(ollama list:*)"
     ]
   }
 }

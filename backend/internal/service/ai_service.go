@@ -57,10 +57,6 @@ type chatChunk struct {
 // StreamChat sends a streaming chat completion request and returns the response body for SSE forwarding.
 // Caller is responsible for closing the returned body.
 func (s *AIService) StreamChat(systemPrompt, userPrompt string) (io.ReadCloser, error) {
-	if s.apiKey == "" {
-		return nil, fmt.Errorf("AI_API_KEY is not configured")
-	}
-
 	reqBody := chatRequest{
 		Model: s.model,
 		Messages: []chatMessage{
@@ -81,7 +77,9 @@ func (s *AIService) StreamChat(systemPrompt, userPrompt string) (io.ReadCloser, 
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+s.apiKey)
+	if s.apiKey != "" {
+		req.Header.Set("Authorization", "Bearer "+s.apiKey)
+	}
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
