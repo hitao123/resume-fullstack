@@ -1,0 +1,12 @@
+web:
+  url: http://localhost:5175/login
+ 
+tasks:
+  - name: 登录
+    flow:
+      - aiInput: 123456@qq.com
+        locate: 用户名或邮箱输入框
+      - aiInput: password
+        locate: 有一个锁形图标和"密码"的占位符文本
+      - aiTap: 登录按钮
+      - aiAssert: 进入页面，header 部分，左边显示简历生成器 和 我的简历，下面有 我的简历的 title 和 新建简历按钮
