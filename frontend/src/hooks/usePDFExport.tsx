@@ -4,20 +4,23 @@ import { message } from 'antd';
 import type { Resume } from '@/types/resume.types';
 import PDFDocument from '@/components/pdf/PDFDocument';
 import ModernTemplatePDF from '@/components/pdf/ModernTemplatePDF';
+import MinimalTemplatePDF from '@/components/pdf/MinimalTemplatePDF';
 
-type TemplateType = 'classic' | 'modern';
+type TemplateType = 'classic' | 'modern' | 'minimal';
 type ExportMode = 'react-pdf' | 'html2canvas';
 
 const PREVIEW_ELEMENT_ID = 'resume-preview';
 
 export const usePDFExport = () => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [exportMode, setExportMode] = useState<ExportMode>('react-pdf');
+  const [exportMode, setExportMode] = useState<ExportMode>('html2canvas');
 
   const getTemplate = (resume: Resume, templateType: TemplateType = 'classic') => {
     switch (templateType) {
       case 'modern':
         return <ModernTemplatePDF resume={resume} />;
+      case 'minimal':
+        return <MinimalTemplatePDF resume={resume} />;
       case 'classic':
       default:
         return <PDFDocument resume={resume} />;

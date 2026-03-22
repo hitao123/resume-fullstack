@@ -67,6 +67,12 @@ func Migrate() error {
 		&models.Project{},
 		&models.Certification{},
 		&models.Language{},
+		&models.Award{},
+		&models.CustomSection{},
+		&models.Plan{},
+		&models.UserSubscription{},
+		&models.UserUsageMonthly{},
+		&models.PaymentOrder{},
 		&models.RefreshToken{},
 		&models.OAuthProvider{},
 	)
@@ -76,6 +82,71 @@ func Migrate() error {
 	}
 
 	log.Println("Database migrations completed successfully")
+	if err := SeedPlans(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func SeedPlans() error {
+	plans := []models.Plan{
+		{
+			Code:           "FREE",
+			Name:           "免费版",
+			ResumeLimit:    1,
+			AIQuotaMonthly: 3,
+			TemplateLimit:  1,
+			PriceMonthly:   0,
+			PriceYearly:    0,
+		},
+		{
+			Code:                "STARTER",
+			Name:                "初级会员",
+			ResumeLimit:         5,
+			AIQuotaMonthly:      50,
+			TemplateLimit:       3,
+			PriceMonthly:        3900,
+			PriceYearly:         39900,
+			AllowDuplicate:      true,
+			AllowCustomSections: true,
+			AllowCertifications: true,
+			AllowLanguages:      true,
+			AllowAwards:         true,
+			AllowHdPdf:          true,
+		},
+		{
+			Code:                  "PRO",
+			Name:                  "高级会员",
+			ResumeLimit:           0,
+			AIQuotaMonthly:        300,
+			TemplateLimit:         99,
+			PriceMonthly:          9900,
+			PriceYearly:           99900,
+			AllowDuplicate:        true,
+			AllowCustomSections:   true,
+			AllowCertifications:   true,
+			AllowLanguages:        true,
+			AllowAwards:           true,
+			AllowHdPdf:            true,
+			AllowJdOptimization:   true,
+			AllowMultiLanguage:    true,
+			AllowPriorityFeatures: true,
+		},
+	}
+
+	for _, plan := range plans {
+		var existing models.Plan
+		if err := DB.Where("code = ?", plan.Code).First(&existing).Error; err == nil {
+			plan.ID = existing.ID
+			if err := DB.Model(&existing).Updates(plan).Error; err != nil {
+				return fmt.Errorf("failed to update seeded plan %s: %w", plan.Code, err)
+			}
+			continue
+		}
+		if err := DB.Create(&plan).Error; err != nil {
+			return fmt.Errorf("failed to seed plan %s: %w", plan.Code, err)
+		}
+	}
 	return nil
 }
 

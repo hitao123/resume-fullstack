@@ -3,8 +3,6 @@
  * 处理 @react-pdf/renderer 的限制（SVG、背景颜色等）
  */
 
-import { Image } from '@react-pdf/renderer';
-
 /**
  * SVG 转 Base64 PNG 图片
  * 用于在 PDF 中显示 SVG 图案
@@ -24,7 +22,7 @@ export const svgToImage = async (svgString: string): Promise<string> => {
     const url = URL.createObjectURL(blob);
 
     // 创建图片
-    const img = new Image();
+    const img = new window.Image();
     img.onload = () => {
       canvas.width = img.width || 100;
       canvas.height = img.height || 100;

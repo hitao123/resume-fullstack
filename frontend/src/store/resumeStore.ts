@@ -11,8 +11,8 @@ interface ResumeState {
   // Actions
   fetchResumes: () => Promise<void>;
   fetchResume: (id: number) => Promise<void>;
-  createResume: (title: string, templateId?: number) => Promise<Resume>;
-  updateResume: (id: number, data: { title?: string; templateId?: number }) => Promise<void>;
+  createResume: (title: string, templateId?: number, versionLabel?: string, targetRole?: string) => Promise<Resume>;
+  updateResume: (id: number, data: { title?: string; templateId?: number; versionLabel?: string; targetRole?: string; sectionConfig?: Resume['sectionConfig'] }) => Promise<void>;
   deleteResume: (id: number) => Promise<void>;
   duplicateResume: (id: number) => Promise<Resume>;
   setCurrentResume: (resume: Resume | null) => void;
@@ -53,10 +53,10 @@ export const useResumeStore = create<ResumeState>((set) => ({
     }
   },
 
-  createResume: async (title: string, templateId?: number) => {
+  createResume: async (title: string, templateId?: number, versionLabel?: string, targetRole?: string) => {
     set({ isLoading: true, error: null });
     try {
-      const resume = await resumeService.createResume({ title, templateId });
+      const resume = await resumeService.createResume({ title, templateId, versionLabel, targetRole });
       set((state) => ({
         resumes: [...state.resumes, resume],
         isLoading: false,

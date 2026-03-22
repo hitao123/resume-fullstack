@@ -72,7 +72,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
     const current = editor.isEmpty ? '' : editor.getHTML();
     const incoming = value ?? '';
     if (incoming !== current) {
-      editor.commands.setContent(incoming, false);
+      editor.commands.setContent(incoming);
     }
   }, [value, editor]);
 

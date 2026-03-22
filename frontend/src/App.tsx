@@ -5,6 +5,7 @@ import enUS from 'antd/locale/en_US';
 import { useTranslation } from 'react-i18next';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
+import Pricing from '@/pages/Pricing';
 import OAuthCallback from '@/pages/OAuthCallback';
 import Dashboard from '@/pages/Dashboard';
 import ResumeEditor from '@/pages/ResumeEditor';
@@ -30,6 +31,7 @@ function App() {
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/pricing" element={<Pricing />} />
           <Route path="/oauth/callback" element={<OAuthCallback />} />
 
           {/* Protected routes - 需要登录才能访问 */}

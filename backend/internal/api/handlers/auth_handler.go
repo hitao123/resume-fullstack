@@ -5,8 +5,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/henryhua/resume-backend/internal/api/response"
 	"github.com/henryhua/resume-backend/internal/domain/models"
 	"github.com/henryhua/resume-backend/internal/dto"
+	"github.com/henryhua/resume-backend/internal/service"
 	"github.com/henryhua/resume-backend/pkg/auth"
 	"github.com/henryhua/resume-backend/pkg/database"
 )
@@ -21,30 +23,21 @@ func NewAuthHandler() *AuthHandler {
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req dto.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
+		response.BadRequest(c, "INVALID_REQUEST", err.Error())
 		return
 	}
 
 	// Check if user already exists
 	var existingUser models.User
 	if err := database.DB.Where("email = ?", req.Email).First(&existingUser).Error; err == nil {
-		c.JSON(http.StatusConflict, gin.H{
-			"success": false,
-			"message": "User with this email already exists",
-		})
+		response.Error(c, http.StatusConflict, "EMAIL_ALREADY_EXISTS", "User with this email already exists", nil)
 		return
 	}
 
 	// Hash password
 	hashedPassword, err := auth.HashPassword(req.Password)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": "Failed to process password",
-		})
+		response.Internal(c, "PASSWORD_PROCESS_FAILED", "Failed to process password")
 		return
 	}
 
@@ -56,12 +49,11 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	if err := database.DB.Create(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": "Failed to create user",
-		})
+		response.Internal(c, "USER_CREATE_FAILED", "Failed to create user")
 		return
 	}
+
+	_ = service.NewBillingService().EnsureDefaultSubscription(user.ID)
 
 	// Create default resume with sample data
 	h.createDefaultResume(user.ID, user.Name)
@@ -69,19 +61,13 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	// Generate tokens
 	accessToken, err := auth.GenerateAccessToken(user.ID, user.Email)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": "Failed to generate access token",
-		})
+		response.Internal(c, "TOKEN_CREATE_FAILED", "Failed to generate access token")
 		return
 	}
 
 	refreshToken, expiresAt, err := auth.GenerateRefreshToken(user.ID, user.Email)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": "Failed to generate refresh token",
-		})
+		response.Internal(c, "TOKEN_CREATE_FAILED", "Failed to generate refresh token")
 		return
 	}
 
@@ -93,19 +79,16 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 	database.DB.Create(&tokenRecord)
 
-	c.JSON(http.StatusCreated, gin.H{
-		"success": true,
-		"data": dto.AuthResponse{
-			AccessToken:  accessToken,
-			RefreshToken: refreshToken,
-			User: &dto.UserInfo{
-				ID:        user.ID,
-				Email:     user.Email,
-				Name:      user.Name,
-				CreatedAt: user.CreatedAt.Format(time.RFC3339),
-				UpdatedAt: user.UpdatedAt.Format(time.RFC3339),
-			},
-		},
+	userInfo, err := service.BuildUserInfo(user)
+	if err != nil {
+		response.Internal(c, "PROFILE_BUILD_FAILED", "Failed to build user profile")
+		return
+	}
+
+	response.Success(c, http.StatusCreated, dto.AuthResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		User:         userInfo,
 	})
 }
 
@@ -113,48 +96,35 @@ func (h *AuthHandler) Register(c *gin.Context) {
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req dto.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
+		response.BadRequest(c, "INVALID_REQUEST", err.Error())
 		return
 	}
 
 	// Find user
 	var user models.User
 	if err := database.DB.Where("email = ?", req.Email).First(&user).Error; err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"success": false,
-			"message": "Invalid email or password",
-		})
+		response.Unauthorized(c, "INVALID_CREDENTIALS", "Invalid email or password")
 		return
 	}
 
 	// Check password
 	if err := auth.CheckPassword(user.PasswordHash, req.Password); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"success": false,
-			"message": "Invalid email or password",
-		})
+		response.Unauthorized(c, "INVALID_CREDENTIALS", "Invalid email or password")
 		return
 	}
+
+	_ = service.NewBillingService().EnsureDefaultSubscription(user.ID)
 
 	// Generate tokens
 	accessToken, err := auth.GenerateAccessToken(user.ID, user.Email)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": "Failed to generate access token",
-		})
+		response.Internal(c, "TOKEN_CREATE_FAILED", "Failed to generate access token")
 		return
 	}
 
 	refreshToken, expiresAt, err := auth.GenerateRefreshToken(user.ID, user.Email)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": "Failed to generate refresh token",
-		})
+		response.Internal(c, "TOKEN_CREATE_FAILED", "Failed to generate refresh token")
 		return
 	}
 
@@ -166,19 +136,16 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 	database.DB.Create(&tokenRecord)
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data": dto.AuthResponse{
-			AccessToken:  accessToken,
-			RefreshToken: refreshToken,
-			User: &dto.UserInfo{
-				ID:        user.ID,
-				Email:     user.Email,
-				Name:      user.Name,
-				CreatedAt: user.CreatedAt.Format(time.RFC3339),
-				UpdatedAt: user.UpdatedAt.Format(time.RFC3339),
-			},
-		},
+	userInfo, err := service.BuildUserInfo(user)
+	if err != nil {
+		response.Internal(c, "PROFILE_BUILD_FAILED", "Failed to build user profile")
+		return
+	}
+
+	response.Success(c, http.StatusOK, dto.AuthResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		User:         userInfo,
 	})
 }
 
@@ -186,59 +153,41 @@ func (h *AuthHandler) Login(c *gin.Context) {
 func (h *AuthHandler) Refresh(c *gin.Context) {
 	var req dto.RefreshTokenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
+		response.BadRequest(c, "INVALID_REQUEST", err.Error())
 		return
 	}
 
 	// Validate refresh token
 	claims, err := auth.ValidateRefreshToken(req.RefreshToken)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"success": false,
-			"message": "Invalid or expired refresh token",
-		})
+		response.Unauthorized(c, "INVALID_REFRESH_TOKEN", "Invalid or expired refresh token")
 		return
 	}
 
 	// Check if token exists in database
 	var tokenRecord models.RefreshToken
 	if err := database.DB.Where("token = ? AND user_id = ?", req.RefreshToken, claims.UserID).First(&tokenRecord).Error; err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"success": false,
-			"message": "Invalid refresh token",
-		})
+		response.Unauthorized(c, "INVALID_REFRESH_TOKEN", "Invalid refresh token")
 		return
 	}
 
 	// Check if token is expired
 	if time.Now().After(tokenRecord.ExpiresAt) {
 		database.DB.Delete(&tokenRecord)
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"success": false,
-			"message": "Refresh token expired",
-		})
+		response.Unauthorized(c, "REFRESH_TOKEN_EXPIRED", "Refresh token expired")
 		return
 	}
 
 	// Generate new tokens
 	accessToken, err := auth.GenerateAccessToken(claims.UserID, claims.Email)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": "Failed to generate access token",
-		})
+		response.Internal(c, "TOKEN_CREATE_FAILED", "Failed to generate access token")
 		return
 	}
 
 	newRefreshToken, expiresAt, err := auth.GenerateRefreshToken(claims.UserID, claims.Email)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": "Failed to generate refresh token",
-		})
+		response.Internal(c, "TOKEN_CREATE_FAILED", "Failed to generate refresh token")
 		return
 	}
 
@@ -251,12 +200,9 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 	}
 	database.DB.Create(&newTokenRecord)
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data": gin.H{
-			"accessToken":  accessToken,
-			"refreshToken": newRefreshToken,
-		},
+	response.Success(c, http.StatusOK, gin.H{
+		"accessToken":  accessToken,
+		"refreshToken": newRefreshToken,
 	})
 }
 
@@ -264,20 +210,14 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 func (h *AuthHandler) Logout(c *gin.Context) {
 	var req dto.RefreshTokenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
+		response.BadRequest(c, "INVALID_REQUEST", err.Error())
 		return
 	}
 
 	// Delete refresh token
 	database.DB.Where("token = ?", req.RefreshToken).Delete(&models.RefreshToken{})
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Logged out successfully",
-	})
+	response.Message(c, http.StatusOK, "Logged out successfully")
 }
 
 // Me returns current user info
@@ -286,23 +226,15 @@ func (h *AuthHandler) Me(c *gin.Context) {
 
 	var user models.User
 	if err := database.DB.First(&user, userID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"success": false,
-			"message": "User not found",
-		})
+		response.NotFound(c, "USER_NOT_FOUND", "User not found")
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data": dto.UserInfo{
-			ID:        user.ID,
-			Email:     user.Email,
-			Name:      user.Name,
-			CreatedAt: user.CreatedAt.Format(time.RFC3339),
-			UpdatedAt: user.UpdatedAt.Format(time.RFC3339),
-		},
-	})
+	userInfo, err := service.BuildUserInfo(user)
+	if err != nil {
+		response.Internal(c, "PROFILE_BUILD_FAILED", "Failed to build user profile")
+		return
+	}
+	response.Success(c, http.StatusOK, userInfo)
 }
 
 // createDefaultResume creates a default resume with sample data for new users
@@ -392,4 +324,3 @@ func (h *AuthHandler) createDefaultResume(userID uint, userName string) {
 	}
 	database.DB.Create(&project)
 }
-

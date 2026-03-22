@@ -12,6 +12,24 @@ export const TEMPLATE_NAMES: Record<number, string> = {
   [TEMPLATES.MINIMAL]: 'Minimal',
 };
 
+export const TEMPLATE_OPTIONS = [
+  { id: TEMPLATES.MODERN, name: 'Modern', description: '双栏展示，适合信息密度高的简历' },
+  { id: TEMPLATES.CLASSIC, name: 'Classic', description: '标准商务排版，适合大多数岗位' },
+  { id: TEMPLATES.MINIMAL, name: 'Minimal', description: '极简留白，更突出内容本身' },
+] as const;
+
+export const DEFAULT_SECTION_CONFIG = [
+  { key: 'summary', visible: true, order: 0 },
+  { key: 'workExperiences', visible: true, order: 1 },
+  { key: 'education', visible: true, order: 2 },
+  { key: 'skills', visible: true, order: 3 },
+  { key: 'projects', visible: true, order: 4 },
+  { key: 'certifications', visible: true, order: 5 },
+  { key: 'languages', visible: true, order: 6 },
+  { key: 'awards', visible: true, order: 7 },
+  { key: 'customSections', visible: true, order: 8 },
+] as const;
+
 // Proficiency levels for skills
 export const PROFICIENCY_LEVELS = [
   { value: 'beginner', label: 'Beginner' },

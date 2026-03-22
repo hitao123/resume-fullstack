@@ -6,6 +6,10 @@ import type {
   Education,
   Skill,
   Project,
+  Certification,
+  Language,
+  Award,
+  CustomSection,
   CreateResumeRequest,
   UpdateResumeRequest,
   ReorderRequest,
@@ -13,6 +17,10 @@ import type {
   WorkExperienceInput,
   EducationInput,
   SkillInput,
+  CertificationInput,
+  LanguageInput,
+  AwardInput,
+  CustomSectionInput,
 } from '@/types/resume.types';
 import type { ApiResponse } from '@/types/api.types';
 
@@ -154,6 +162,86 @@ export const resumeService = {
 
   async deleteProject(resumeId: number, id: number): Promise<void> {
     await api.delete(`/resumes/projects/${id}`, { data: { resumeId } });
+  },
+
+  // Certifications
+  async getCertifications(resumeId: number): Promise<Certification[]> {
+    const response = await api.post<ApiResponse<Certification[]>>('/resumes/certifications/list', { resumeId });
+    return response.data.data;
+  },
+
+  async createCertification(resumeId: number, data: CertificationInput): Promise<Certification> {
+    const response = await api.post<ApiResponse<Certification>>('/resumes/certifications', { resumeId, ...data });
+    return response.data.data;
+  },
+
+  async updateCertification(resumeId: number, id: number, data: Partial<CertificationInput>): Promise<Certification> {
+    const response = await api.post<ApiResponse<Certification>>('/resumes/certifications/update', { resumeId, id, ...data });
+    return response.data.data;
+  },
+
+  async deleteCertification(resumeId: number, id: number): Promise<void> {
+    await api.delete(`/resumes/certifications/${id}`, { data: { resumeId } });
+  },
+
+  // Languages
+  async getLanguages(resumeId: number): Promise<Language[]> {
+    const response = await api.post<ApiResponse<Language[]>>('/resumes/languages/list', { resumeId });
+    return response.data.data;
+  },
+
+  async createLanguage(resumeId: number, data: LanguageInput): Promise<Language> {
+    const response = await api.post<ApiResponse<Language>>('/resumes/languages', { resumeId, ...data });
+    return response.data.data;
+  },
+
+  async updateLanguage(resumeId: number, id: number, data: Partial<LanguageInput>): Promise<Language> {
+    const response = await api.post<ApiResponse<Language>>('/resumes/languages/update', { resumeId, id, ...data });
+    return response.data.data;
+  },
+
+  async deleteLanguage(resumeId: number, id: number): Promise<void> {
+    await api.delete(`/resumes/languages/${id}`, { data: { resumeId } });
+  },
+
+  // Awards
+  async getAwards(resumeId: number): Promise<Award[]> {
+    const response = await api.post<ApiResponse<Award[]>>('/resumes/awards/list', { resumeId });
+    return response.data.data;
+  },
+
+  async createAward(resumeId: number, data: AwardInput): Promise<Award> {
+    const response = await api.post<ApiResponse<Award>>('/resumes/awards', { resumeId, ...data });
+    return response.data.data;
+  },
+
+  async updateAward(resumeId: number, id: number, data: Partial<AwardInput>): Promise<Award> {
+    const response = await api.post<ApiResponse<Award>>('/resumes/awards/update', { resumeId, id, ...data });
+    return response.data.data;
+  },
+
+  async deleteAward(resumeId: number, id: number): Promise<void> {
+    await api.delete(`/resumes/awards/${id}`, { data: { resumeId } });
+  },
+
+  // Custom sections
+  async getCustomSections(resumeId: number): Promise<CustomSection[]> {
+    const response = await api.post<ApiResponse<CustomSection[]>>('/resumes/custom-sections/list', { resumeId });
+    return response.data.data;
+  },
+
+  async createCustomSection(resumeId: number, data: CustomSectionInput): Promise<CustomSection> {
+    const response = await api.post<ApiResponse<CustomSection>>('/resumes/custom-sections', { resumeId, ...data });
+    return response.data.data;
+  },
+
+  async updateCustomSection(resumeId: number, id: number, data: Partial<CustomSectionInput>): Promise<CustomSection> {
+    const response = await api.post<ApiResponse<CustomSection>>('/resumes/custom-sections/update', { resumeId, id, ...data });
+    return response.data.data;
+  },
+
+  async deleteCustomSection(resumeId: number, id: number): Promise<void> {
+    await api.delete(`/resumes/custom-sections/${id}`, { data: { resumeId } });
   },
 };
 

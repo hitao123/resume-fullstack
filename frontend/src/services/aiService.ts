@@ -32,8 +32,8 @@ async function streamRequest(
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Request failed' }));
-      callbacks.onError(errorData.error || `HTTP ${response.status}`);
+      const errorData = await response.json().catch(() => ({ message: 'Request failed' }));
+      callbacks.onError(errorData.message || errorData.error || `HTTP ${response.status}`);
       return;
     }
 

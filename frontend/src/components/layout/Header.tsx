@@ -1,5 +1,5 @@
-import { Layout as AntLayout, Menu, Dropdown, Avatar, theme } from 'antd';
-import { UserOutlined, FileTextOutlined, LogoutOutlined } from '@ant-design/icons';
+import { Layout as AntLayout, Menu, Dropdown, Avatar, theme, Tag, Space } from 'antd';
+import { UserOutlined, FileTextOutlined, LogoutOutlined, CrownFilled } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import type { MenuProps } from 'antd';
@@ -46,6 +46,12 @@ export const Header = () => {
       label: t('nav.myResumes'),
       onClick: () => navigate('/dashboard'),
     },
+    {
+      key: '/pricing',
+      icon: <CrownFilled />,
+      label: '会员中心',
+      onClick: () => navigate('/pricing'),
+    },
   ];
 
   return (
@@ -71,6 +77,13 @@ export const Header = () => {
       </div>
 
       <div className="right">
+        {user?.plan && (
+          <Space size="small">
+            <Tag color={user.plan.code === 'FREE' ? 'default' : user.plan.code === 'STARTER' ? 'blue' : 'gold'}>
+              {user.plan.name}
+            </Tag>
+          </Space>
+        )}
         <LanguageSwitcher />
         <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
           <Avatar

@@ -4,6 +4,9 @@ export interface Resume {
   userId: number;
   title: string;
   templateId: number;
+  versionLabel?: string;
+  targetRole?: string;
+  sectionConfig?: ResumeSectionConfig[];
   isDefault: boolean;
   createdAt: string;
   updatedAt: string;
@@ -14,6 +17,8 @@ export interface Resume {
   projects?: Project[];
   certifications?: Certification[];
   languages?: Language[];
+  awards?: Award[];
+  customSections?: CustomSection[];
 }
 
 export interface PersonalInfo {
@@ -26,7 +31,15 @@ export interface PersonalInfo {
   website?: string;
   linkedin?: string;
   github?: string;
+  avatarUrl?: string;
+  showAvatar?: boolean;
   summary?: string;
+}
+
+export interface ResumeSectionConfig {
+  key: string;
+  visible: boolean;
+  order: number;
 }
 
 export interface WorkExperience {
@@ -98,15 +111,38 @@ export interface Language {
   displayOrder: number;
 }
 
+export interface Award {
+  id: number;
+  resumeId: number;
+  title: string;
+  issuer?: string;
+  issueDate?: string;
+  description?: string;
+  displayOrder: number;
+}
+
+export interface CustomSection {
+  id: number;
+  resumeId: number;
+  title: string;
+  content?: string;
+  displayOrder: number;
+}
+
 // Request/Response types
 export interface CreateResumeRequest {
   title: string;
   templateId?: number;
+  versionLabel?: string;
+  targetRole?: string;
 }
 
 export interface UpdateResumeRequest {
   title?: string;
   templateId?: number;
+  versionLabel?: string;
+  targetRole?: string;
+  sectionConfig?: ResumeSectionConfig[];
   isDefault?: boolean;
 }
 
@@ -122,3 +158,5 @@ export type SkillInput = Omit<Skill, 'id' | 'resumeId'>;
 export type ProjectInput = Omit<Project, 'id' | 'resumeId'>;
 export type CertificationInput = Omit<Certification, 'id' | 'resumeId'>;
 export type LanguageInput = Omit<Language, 'id' | 'resumeId'>;
+export type AwardInput = Omit<Award, 'id' | 'resumeId'>;
+export type CustomSectionInput = Omit<CustomSection, 'id' | 'resumeId'>;

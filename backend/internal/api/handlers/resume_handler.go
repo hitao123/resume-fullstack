@@ -2,12 +2,15 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/henryhua/resume-backend/internal/api/middleware"
+	"github.com/henryhua/resume-backend/internal/api/response"
 	"github.com/henryhua/resume-backend/internal/domain/models"
 	"github.com/henryhua/resume-backend/internal/dto"
+	"github.com/henryhua/resume-backend/internal/service"
 	"github.com/henryhua/resume-backend/pkg/database"
 	"gorm.io/gorm"
 )
@@ -75,7 +78,15 @@ func (h *ResumeHandler) GetResume(c *gin.Context) {
 		Preload("Certifications", func(db *gorm.DB) *gorm.DB {
 			return db.Order("display_order ASC")
 		}).
-		Preload("Languages").
+		Preload("Languages", func(db *gorm.DB) *gorm.DB {
+			return db.Order("display_order ASC")
+		}).
+		Preload("Awards", func(db *gorm.DB) *gorm.DB {
+			return db.Order("display_order ASC")
+		}).
+		Preload("CustomSections", func(db *gorm.DB) *gorm.DB {
+			return db.Order("display_order ASC")
+		}).
 		First(&resume).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"success": false,
@@ -96,10 +107,7 @@ func (h *ResumeHandler) CreateResume(c *gin.Context) {
 
 	var req dto.CreateResumeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
+		response.BadRequest(c, "INVALID_REQUEST", err.Error())
 		return
 	}
 
@@ -107,25 +115,30 @@ func (h *ResumeHandler) CreateResume(c *gin.Context) {
 	if req.TemplateID != nil {
 		templateID = *req.TemplateID
 	}
-
-	resume := models.Resume{
-		UserID:     userID,
-		Title:      req.Title,
-		TemplateID: templateID,
+	billing := service.NewBillingService()
+	if _, err := billing.CheckResumeCreation(userID); err != nil {
+		h.handleLimitError(c, err)
+		return
 	}
-
-	if err := database.DB.Create(&resume).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": "Failed to create resume",
-		})
+	if err := billing.CheckTemplateAccess(userID, templateID); err != nil {
+		h.handleLimitError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"success": true,
-		"data":    resume,
-	})
+	resume := models.Resume{
+		UserID:       userID,
+		Title:        req.Title,
+		TemplateID:   templateID,
+		VersionLabel: req.VersionLabel,
+		TargetRole:   req.TargetRole,
+	}
+
+	if err := database.DB.Create(&resume).Error; err != nil {
+		response.Internal(c, "RESUME_CREATE_FAILED", "Failed to create resume")
+		return
+	}
+
+	response.Success(c, http.StatusCreated, resume)
 }
 
 // UpdateResume updates resume metadata
@@ -134,19 +147,13 @@ func (h *ResumeHandler) UpdateResume(c *gin.Context) {
 
 	var req dto.UpdateResumeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
+		response.BadRequest(c, "INVALID_REQUEST", err.Error())
 		return
 	}
 
 	var resume models.Resume
 	if err := database.DB.Where("id = ? AND user_id = ?", req.ID, userID).First(&resume).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"success": false,
-			"message": "Resume not found",
-		})
+		response.NotFound(c, "RESUME_NOT_FOUND", "Resume not found")
 		return
 	}
 
@@ -154,24 +161,38 @@ func (h *ResumeHandler) UpdateResume(c *gin.Context) {
 		resume.Title = *req.Title
 	}
 	if req.TemplateID != nil {
+		if err := service.NewBillingService().CheckTemplateAccess(userID, *req.TemplateID); err != nil {
+			h.handleLimitError(c, err)
+			return
+		}
 		resume.TemplateID = *req.TemplateID
+	}
+	if req.VersionLabel != nil {
+		resume.VersionLabel = *req.VersionLabel
+	}
+	if req.TargetRole != nil {
+		resume.TargetRole = *req.TargetRole
+	}
+	if req.SectionConfig != nil {
+		resume.SectionConfig = make([]models.ResumeSectionConfig, 0, len(*req.SectionConfig))
+		for _, item := range *req.SectionConfig {
+			resume.SectionConfig = append(resume.SectionConfig, models.ResumeSectionConfig{
+				Key:     item.Key,
+				Visible: item.Visible,
+				Order:   item.Order,
+			})
+		}
 	}
 	if req.IsDefault != nil {
 		resume.IsDefault = *req.IsDefault
 	}
 
 	if err := database.DB.Save(&resume).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": "Failed to update resume",
-		})
+		response.Internal(c, "RESUME_UPDATE_FAILED", "Failed to update resume")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data":    resume,
-	})
+	response.Success(c, http.StatusOK, resume)
 }
 
 // DeleteResume deletes a resume
@@ -207,20 +228,27 @@ func (h *ResumeHandler) DuplicateResume(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
 
 	var req dto.GetResumeRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
+	if err := c.ShouldBindJSON(&req); err != nil || req.ID == 0 {
+		if paramID, parseErr := strconv.ParseUint(c.Param("id"), 10, 64); parseErr == nil {
+			req.ID = uint(paramID)
+		} else {
+			response.BadRequest(c, "INVALID_REQUEST", "resume id is required")
+			return
+		}
+	}
+	billing := service.NewBillingService()
+	if err := billing.CheckFeature(userID, "duplicate"); err != nil {
+		h.handleLimitError(c, err)
+		return
+	}
+	if _, err := billing.CheckResumeCreation(userID); err != nil {
+		h.handleLimitError(c, err)
 		return
 	}
 
 	var originalResume models.Resume
 	if err := database.DB.Where("id = ? AND user_id = ?", req.ID, userID).First(&originalResume).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"success": false,
-			"message": "Resume not found",
-		})
+		response.NotFound(c, "RESUME_NOT_FOUND", "Resume not found")
 		return
 	}
 
@@ -233,20 +261,22 @@ func (h *ResumeHandler) DuplicateResume(c *gin.Context) {
 		Preload("Projects").
 		Preload("Certifications").
 		Preload("Languages").
+		Preload("Awards").
+		Preload("CustomSections").
 		First(&originalResume).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"success": false,
-			"message": "Resume not found",
-		})
+		response.NotFound(c, "RESUME_NOT_FOUND", "Resume not found")
 		return
 	}
 
 	// Create new resume
 	newResume := models.Resume{
-		UserID:     userID,
-		Title:      originalResume.Title + " - Copy",
-		TemplateID: originalResume.TemplateID,
-		IsDefault:  false,
+		UserID:        userID,
+		Title:         originalResume.Title + " - Copy",
+		TemplateID:    originalResume.TemplateID,
+		VersionLabel:  originalResume.VersionLabel,
+		TargetRole:    originalResume.TargetRole,
+		SectionConfig: originalResume.SectionConfig,
+		IsDefault:     false,
 	}
 
 	tx := database.DB.Begin()
@@ -366,12 +396,39 @@ func (h *ResumeHandler) DuplicateResume(c *gin.Context) {
 		}
 	}
 
+	// Copy awards
+	for _, award := range originalResume.Awards {
+		newAward := award
+		newAward.ID = 0
+		newAward.ResumeID = newResume.ID
+		if err := tx.Create(&newAward).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"success": false,
+				"message": "Failed to copy awards",
+			})
+			return
+		}
+	}
+
+	// Copy custom sections
+	for _, section := range originalResume.CustomSections {
+		newSection := section
+		newSection.ID = 0
+		newSection.ResumeID = newResume.ID
+		if err := tx.Create(&newSection).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"success": false,
+				"message": "Failed to copy custom sections",
+			})
+			return
+		}
+	}
+
 	tx.Commit()
 
-	c.JSON(http.StatusCreated, gin.H{
-		"success": true,
-		"data":    newResume,
-	})
+	response.Success(c, http.StatusCreated, newResume)
 }
 
 // GetPersonalInfo returns personal info for a resume
@@ -441,15 +498,17 @@ func (h *ResumeHandler) UpdatePersonalInfo(c *gin.Context) {
 	if err != nil {
 		// Create new personal info
 		personalInfo = models.PersonalInfo{
-			ResumeID: req.ResumeID,
-			FullName: req.FullName,
-			Email:    req.Email,
-			Phone:    req.Phone,
-			Location: req.Location,
-			Website:  req.Website,
-			LinkedIn: req.LinkedIn,
-			Github:   req.Github,
-			Summary:  req.Summary,
+			ResumeID:   req.ResumeID,
+			FullName:   req.FullName,
+			Email:      req.Email,
+			Phone:      req.Phone,
+			Location:   req.Location,
+			Website:    req.Website,
+			LinkedIn:   req.LinkedIn,
+			Github:     req.Github,
+			AvatarURL:  req.AvatarURL,
+			ShowAvatar: req.ShowAvatar,
+			Summary:    req.Summary,
 		}
 		if err := database.DB.Create(&personalInfo).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -467,6 +526,8 @@ func (h *ResumeHandler) UpdatePersonalInfo(c *gin.Context) {
 		personalInfo.Website = req.Website
 		personalInfo.LinkedIn = req.LinkedIn
 		personalInfo.Github = req.Github
+		personalInfo.AvatarURL = req.AvatarURL
+		personalInfo.ShowAvatar = req.ShowAvatar
 		personalInfo.Summary = req.Summary
 
 		if err := database.DB.Save(&personalInfo).Error; err != nil {
@@ -1599,4 +1660,429 @@ func (h *ResumeHandler) DeleteProject(c *gin.Context) {
 		"success": true,
 		"message": "Project deleted successfully",
 	})
+}
+
+func (h *ResumeHandler) ensureResumeOwner(resumeID uint, userID uint) error {
+	var resume models.Resume
+	return database.DB.Where("id = ? AND user_id = ?", resumeID, userID).First(&resume).Error
+}
+
+// ============ Certification Handlers ============
+
+func (h *ResumeHandler) GetCertifications(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+	var req dto.GetCertificationsRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	if err := h.ensureResumeOwner(req.ResumeID, userID); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Resume not found"})
+		return
+	}
+	var items []models.Certification
+	if err := database.DB.Where("resume_id = ?", req.ResumeID).Order("display_order ASC").Find(&items).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Failed to fetch certifications"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": items})
+}
+
+func (h *ResumeHandler) CreateCertification(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+	var req dto.CreateCertificationRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	if err := h.ensureResumeOwner(req.ResumeID, userID); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Resume not found"})
+		return
+	}
+	if err := service.NewBillingService().CheckFeature(userID, "certifications"); err != nil {
+		h.handleLimitError(c, err)
+		return
+	}
+	issueDate, err := parseDate(req.IssueDate)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": "Invalid issue date format"})
+		return
+	}
+	expiryDate, err := parseDate(req.ExpiryDate)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": "Invalid expiry date format"})
+		return
+	}
+	item := models.Certification{
+		ResumeID: req.ResumeID, Name: req.Name, IssuingOrganization: req.IssuingOrganization,
+		IssueDate: issueDate, ExpiryDate: expiryDate, CredentialID: req.CredentialID,
+		CredentialURL: req.CredentialURL, DisplayOrder: req.DisplayOrder,
+	}
+	if err := database.DB.Create(&item).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Failed to create certification"})
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{"success": true, "data": item})
+}
+
+func (h *ResumeHandler) UpdateCertification(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+	var req dto.UpdateCertificationRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	if err := h.ensureResumeOwner(req.ResumeID, userID); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Resume not found"})
+		return
+	}
+	var item models.Certification
+	if err := database.DB.Where("id = ? AND resume_id = ?", req.ID, req.ResumeID).First(&item).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Certification not found"})
+		return
+	}
+	issueDate, err := parseDate(req.IssueDate)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": "Invalid issue date format"})
+		return
+	}
+	expiryDate, err := parseDate(req.ExpiryDate)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": "Invalid expiry date format"})
+		return
+	}
+	item.Name = req.Name
+	item.IssuingOrganization = req.IssuingOrganization
+	item.IssueDate = issueDate
+	item.ExpiryDate = expiryDate
+	item.CredentialID = req.CredentialID
+	item.CredentialURL = req.CredentialURL
+	item.DisplayOrder = req.DisplayOrder
+	if err := database.DB.Save(&item).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Failed to update certification"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": item})
+}
+
+func (h *ResumeHandler) DeleteCertification(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+	var req dto.DeleteCertificationRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	if err := h.ensureResumeOwner(req.ResumeID, userID); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Resume not found"})
+		return
+	}
+	result := database.DB.Where("id = ? AND resume_id = ?", c.Param("id"), req.ResumeID).Delete(&models.Certification{})
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Failed to delete certification"})
+		return
+	}
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Certification not found"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Certification deleted successfully"})
+}
+
+// ============ Language Handlers ============
+
+func (h *ResumeHandler) GetLanguages(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+	var req dto.GetLanguagesRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	if err := h.ensureResumeOwner(req.ResumeID, userID); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Resume not found"})
+		return
+	}
+	var items []models.Language
+	if err := database.DB.Where("resume_id = ?", req.ResumeID).Order("display_order ASC").Find(&items).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Failed to fetch languages"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": items})
+}
+
+func (h *ResumeHandler) CreateLanguage(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+	var req dto.CreateLanguageRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	if err := h.ensureResumeOwner(req.ResumeID, userID); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Resume not found"})
+		return
+	}
+	if err := service.NewBillingService().CheckFeature(userID, "languages"); err != nil {
+		h.handleLimitError(c, err)
+		return
+	}
+	item := models.Language{ResumeID: req.ResumeID, Language: req.Language, Proficiency: req.Proficiency, DisplayOrder: req.DisplayOrder}
+	if err := database.DB.Create(&item).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Failed to create language"})
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{"success": true, "data": item})
+}
+
+func (h *ResumeHandler) UpdateLanguage(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+	var req dto.UpdateLanguageRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	if err := h.ensureResumeOwner(req.ResumeID, userID); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Resume not found"})
+		return
+	}
+	var item models.Language
+	if err := database.DB.Where("id = ? AND resume_id = ?", req.ID, req.ResumeID).First(&item).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Language not found"})
+		return
+	}
+	item.Language = req.Language
+	item.Proficiency = req.Proficiency
+	item.DisplayOrder = req.DisplayOrder
+	if err := database.DB.Save(&item).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Failed to update language"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": item})
+}
+
+func (h *ResumeHandler) DeleteLanguage(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+	var req dto.DeleteLanguageRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	if err := h.ensureResumeOwner(req.ResumeID, userID); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Resume not found"})
+		return
+	}
+	result := database.DB.Where("id = ? AND resume_id = ?", c.Param("id"), req.ResumeID).Delete(&models.Language{})
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Failed to delete language"})
+		return
+	}
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Language not found"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Language deleted successfully"})
+}
+
+// ============ Award Handlers ============
+
+func (h *ResumeHandler) GetAwards(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+	var req dto.GetAwardsRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	if err := h.ensureResumeOwner(req.ResumeID, userID); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Resume not found"})
+		return
+	}
+	var items []models.Award
+	if err := database.DB.Where("resume_id = ?", req.ResumeID).Order("display_order ASC").Find(&items).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Failed to fetch awards"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": items})
+}
+
+func (h *ResumeHandler) CreateAward(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+	var req dto.CreateAwardRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	if err := h.ensureResumeOwner(req.ResumeID, userID); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Resume not found"})
+		return
+	}
+	if err := service.NewBillingService().CheckFeature(userID, "awards"); err != nil {
+		h.handleLimitError(c, err)
+		return
+	}
+	issueDate, err := parseDate(req.IssueDate)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": "Invalid issue date format"})
+		return
+	}
+	item := models.Award{ResumeID: req.ResumeID, Title: req.Title, Issuer: req.Issuer, IssueDate: issueDate, Description: req.Description, DisplayOrder: req.DisplayOrder}
+	if err := database.DB.Create(&item).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Failed to create award"})
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{"success": true, "data": item})
+}
+
+func (h *ResumeHandler) UpdateAward(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+	var req dto.UpdateAwardRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	if err := h.ensureResumeOwner(req.ResumeID, userID); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Resume not found"})
+		return
+	}
+	var item models.Award
+	if err := database.DB.Where("id = ? AND resume_id = ?", req.ID, req.ResumeID).First(&item).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Award not found"})
+		return
+	}
+	issueDate, err := parseDate(req.IssueDate)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": "Invalid issue date format"})
+		return
+	}
+	item.Title = req.Title
+	item.Issuer = req.Issuer
+	item.IssueDate = issueDate
+	item.Description = req.Description
+	item.DisplayOrder = req.DisplayOrder
+	if err := database.DB.Save(&item).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Failed to update award"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": item})
+}
+
+func (h *ResumeHandler) DeleteAward(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+	var req dto.DeleteAwardRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	if err := h.ensureResumeOwner(req.ResumeID, userID); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Resume not found"})
+		return
+	}
+	result := database.DB.Where("id = ? AND resume_id = ?", c.Param("id"), req.ResumeID).Delete(&models.Award{})
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Failed to delete award"})
+		return
+	}
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Award not found"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Award deleted successfully"})
+}
+
+// ============ Custom Section Handlers ============
+
+func (h *ResumeHandler) GetCustomSections(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+	var req dto.GetCustomSectionsRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	if err := h.ensureResumeOwner(req.ResumeID, userID); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Resume not found"})
+		return
+	}
+	var items []models.CustomSection
+	if err := database.DB.Where("resume_id = ?", req.ResumeID).Order("display_order ASC").Find(&items).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Failed to fetch custom sections"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": items})
+}
+
+func (h *ResumeHandler) CreateCustomSection(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+	var req dto.CreateCustomSectionRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	if err := h.ensureResumeOwner(req.ResumeID, userID); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Resume not found"})
+		return
+	}
+	if err := service.NewBillingService().CheckFeature(userID, "custom_sections"); err != nil {
+		h.handleLimitError(c, err)
+		return
+	}
+	item := models.CustomSection{ResumeID: req.ResumeID, Title: req.Title, Content: req.Content, DisplayOrder: req.DisplayOrder}
+	if err := database.DB.Create(&item).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Failed to create custom section"})
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{"success": true, "data": item})
+}
+
+func (h *ResumeHandler) UpdateCustomSection(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+	var req dto.UpdateCustomSectionRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	if err := h.ensureResumeOwner(req.ResumeID, userID); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Resume not found"})
+		return
+	}
+	var item models.CustomSection
+	if err := database.DB.Where("id = ? AND resume_id = ?", req.ID, req.ResumeID).First(&item).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Custom section not found"})
+		return
+	}
+	item.Title = req.Title
+	item.Content = req.Content
+	item.DisplayOrder = req.DisplayOrder
+	if err := database.DB.Save(&item).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Failed to update custom section"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": item})
+}
+
+func (h *ResumeHandler) DeleteCustomSection(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+	var req dto.DeleteCustomSectionRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	if err := h.ensureResumeOwner(req.ResumeID, userID); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Resume not found"})
+		return
+	}
+	result := database.DB.Where("id = ? AND resume_id = ?", c.Param("id"), req.ResumeID).Delete(&models.CustomSection{})
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Failed to delete custom section"})
+		return
+	}
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Custom section not found"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Custom section deleted successfully"})
+}
+
+func (h *ResumeHandler) handleLimitError(c *gin.Context, err error) {
+	if limitErr, ok := err.(*service.LimitError); ok {
+		response.Forbidden(c, limitErr.Code, limitErr.Message, limitErr.Details)
+		return
+	}
+	response.Internal(c, "PLAN_VALIDATION_FAILED", err.Error())
 }

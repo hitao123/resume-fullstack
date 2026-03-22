@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Layout, Card, Tabs, Button, Space, message, Dropdown, Spin, Badge, Tag } from 'antd';
 import { DownloadOutlined, EyeOutlined, MoreOutlined, ArrowLeftOutlined, CheckCircleOutlined } from '@ant-design/icons';
@@ -7,6 +7,11 @@ import WorkExperienceSection from '@/components/resume/WorkExperienceSection';
 import EducationSection from '@/components/resume/EducationSection';
 import SkillsSection from '@/components/resume/SkillsSection';
 import ProjectsSection from '@/components/resume/ProjectsSection';
+import CertificationsSection from '@/components/resume/CertificationsSection';
+import LanguagesSection from '@/components/resume/LanguagesSection';
+import AwardsSection from '@/components/resume/AwardsSection';
+import CustomSectionsSection from '@/components/resume/CustomSectionsSection';
+import ResumeSettingsSection from '@/components/resume/ResumeSettingsSection';
 import ResumePreview from '@/components/resume/ResumePreview';
 import { usePDFExport } from '@/hooks/usePDFExport';
 import { useResumeStore } from '@/store/resumeStore';
@@ -24,8 +29,11 @@ export const ResumeEditor = () => {
   const [resume, setResume] = useState<Resume | null>(null);
   const [activeTab, setActiveTab] = useState('personal');
   const [previewVisible, setPreviewVisible] = useState(true);
-  const [pdfTemplate, setPdfTemplate] = useState<'classic' | 'modern'>('classic');
+  const [previewWidth, setPreviewWidth] = useState(560);
+  const [previewTemplateId, setPreviewTemplateId] = useState<number | null>(null);
+  const [pdfTemplate, setPdfTemplate] = useState<'classic' | 'modern' | 'minimal'>('classic');
   const { generatePDF, previewPDF, isGenerating, exportMode, switchExportMode } = usePDFExport();
+  const resizeStateRef = useRef<{ startX: number; startWidth: number } | null>(null);
 
   // Load resume on mount
   useEffect(() => {
@@ -47,22 +55,56 @@ export const ResumeEditor = () => {
   useEffect(() => {
     if (currentResume && currentResume.id === Number(id)) {
       setResume(currentResume);
+      setPreviewTemplateId(null);
+      if (currentResume.templateId === 1) setPdfTemplate('modern');
+      if (currentResume.templateId === 2) setPdfTemplate('classic');
+      if (currentResume.templateId === 3) setPdfTemplate('minimal');
     }
   }, [currentResume, id]);
 
   const handleExport = async () => {
     if (!resume) return;
-    await generatePDF(resume, pdfTemplate);
+    await generatePDF({ ...resume, templateId: previewTemplateId ?? resume.templateId }, pdfTemplate);
   };
 
   const handlePreviewPDF = async () => {
     if (!resume) return;
-    await previewPDF(resume, pdfTemplate);
+    await previewPDF({ ...resume, templateId: previewTemplateId ?? resume.templateId }, pdfTemplate);
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      if (!resizeStateRef.current) return;
+      const delta = resizeStateRef.current.startX - event.clientX;
+      setPreviewWidth(Math.max(420, Math.min(980, resizeStateRef.current.startWidth + delta)));
+    };
+
+    const handleMouseUp = () => {
+      resizeStateRef.current = null;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
+  const startResize = (event: React.MouseEvent<HTMLDivElement>) => {
+    resizeStateRef.current = {
+      startX: event.clientX,
+      startWidth: previewWidth,
+    };
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
   };
 
   const modeLabel = exportMode === 'html2canvas'
     ? t('resumeEditor.export.modeHtml2canvasShort')
-    : (pdfTemplate === 'classic' ? t('resumeEditor.export.classicShort') : t('resumeEditor.export.modernShort'));
+    : (pdfTemplate === 'classic' ? t('resumeEditor.export.classicShort') : pdfTemplate === 'modern' ? t('resumeEditor.export.modernShort') : '极简');
 
   const exportMenuItems: MenuProps['items'] = [
     {
@@ -114,6 +156,16 @@ export const ResumeEditor = () => {
             </Space>
           ),
           onClick: () => setPdfTemplate('modern'),
+        },
+        {
+          key: 'minimal',
+          label: (
+            <Space>
+              极简模板
+              {pdfTemplate === 'minimal' && <CheckCircleOutlined style={{ color: '#52c41a' }} />}
+            </Space>
+          ),
+          onClick: () => setPdfTemplate('minimal'),
         },
       ],
     }] : []),
@@ -184,6 +236,22 @@ export const ResumeEditor = () => {
     });
   };
 
+  const updateCertifications = (data: any[]) => {
+    setResume((prev) => (prev ? { ...prev, certifications: data } : prev));
+  };
+
+  const updateLanguages = (data: any[]) => {
+    setResume((prev) => (prev ? { ...prev, languages: data } : prev));
+  };
+
+  const updateAwards = (data: any[]) => {
+    setResume((prev) => (prev ? { ...prev, awards: data } : prev));
+  };
+
+  const updateCustomSections = (data: any[]) => {
+    setResume((prev) => (prev ? { ...prev, customSections: data } : prev));
+  };
+
   if (isLoading || !resume) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
@@ -240,6 +308,58 @@ export const ResumeEditor = () => {
         <ProjectsSection
           data={resume.projects || []}
           onChange={updateProjects}
+        />
+      ),
+    },
+    {
+      key: 'certifications',
+      label: '证书',
+      children: (
+        <CertificationsSection
+          data={resume.certifications || []}
+          onChange={updateCertifications}
+        />
+      ),
+    },
+    {
+      key: 'languages',
+      label: '语言',
+      children: (
+        <LanguagesSection
+          data={resume.languages || []}
+          onChange={updateLanguages}
+        />
+      ),
+    },
+    {
+      key: 'awards',
+      label: '奖项',
+      children: (
+        <AwardsSection
+          data={resume.awards || []}
+          onChange={updateAwards}
+        />
+      ),
+    },
+    {
+      key: 'custom',
+      label: '自定义模块',
+      children: (
+        <CustomSectionsSection
+          data={resume.customSections || []}
+          onChange={updateCustomSections}
+        />
+      ),
+    },
+    {
+      key: 'layout',
+      label: '布局与版本',
+      children: (
+        <ResumeSettingsSection
+          resume={resume}
+          onResumeChange={setResume}
+          previewTemplateId={previewTemplateId}
+          onPreviewTemplateChange={setPreviewTemplateId}
         />
       ),
     },
@@ -301,20 +421,46 @@ export const ResumeEditor = () => {
 
       {/* 右侧预览区 */}
       {previewVisible && (
-        <Sider
-          width={450}
-          style={{
-            background: '#fff',
-            overflow: 'auto',
-            height: 'calc(100vh - 64px)',
-            position: 'sticky',
-            top: 64,
-            right: 0,
-            borderLeft: '1px solid #f0f0f0',
-          }}
-        >
-          <ResumePreview resume={resume} />
-        </Sider>
+        <>
+          <div
+            onMouseDown={startResize}
+            style={{
+              width: 14,
+              cursor: 'col-resize',
+              position: 'relative',
+              background: 'transparent',
+              flex: '0 0 14px',
+            }}
+            title="拖拽调整预览宽度"
+          >
+            <div
+              style={{
+                position: 'absolute',
+                left: 5,
+                top: 24,
+                bottom: 24,
+                width: 4,
+                borderRadius: 999,
+                background: '#cbd5e1',
+              }}
+            />
+          </div>
+          <Sider
+            width={previewWidth}
+            style={{
+              background: '#fff',
+              overflow: 'auto',
+              height: 'calc(100vh - 64px)',
+              position: 'sticky',
+              top: 64,
+              right: 0,
+              borderLeft: '1px solid #f0f0f0',
+              maxWidth: '75vw',
+            }}
+          >
+            <ResumePreview resume={{ ...resume, templateId: previewTemplateId ?? resume.templateId }} />
+          </Sider>
+        </>
       )}
     </Layout>
   );

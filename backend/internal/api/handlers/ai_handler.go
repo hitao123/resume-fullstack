@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/henryhua/resume-backend/internal/api/middleware"
+	"github.com/henryhua/resume-backend/internal/api/response"
 	"github.com/henryhua/resume-backend/internal/domain/models"
 	"github.com/henryhua/resume-backend/internal/dto"
 	"github.com/henryhua/resume-backend/internal/service"
@@ -34,14 +35,23 @@ func (h *AIHandler) GenerateSummary(c *gin.Context) {
 
 	var req dto.GenerateSummaryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.BadRequest(c, "INVALID_REQUEST", err.Error())
+		return
+	}
+
+	if _, _, err := service.NewBillingService().ConsumeAIQuota(userID); err != nil {
+		if limitErr, ok := err.(*service.LimitError); ok {
+			response.Forbidden(c, limitErr.Code, limitErr.Message, limitErr.Details)
+			return
+		}
+		response.Internal(c, "AI_USAGE_TRACK_FAILED", "Failed to verify AI quota")
 		return
 	}
 
 	// Verify resume belongs to user
 	var resume models.Resume
 	if err := database.DB.Where("id = ? AND user_id = ?", req.ResumeID, userID).First(&resume).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "resume not found"})
+		response.NotFound(c, "RESUME_NOT_FOUND", "Resume not found")
 		return
 	}
 
@@ -91,13 +101,23 @@ func (h *AIHandler) EnhanceDescription(c *gin.Context) {
 	// Verify user is authenticated
 	_, ok := middleware.GetUserID(c)
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		response.Unauthorized(c, "UNAUTHORIZED", "Unauthorized")
 		return
 	}
+	userID, _ := middleware.GetUserID(c)
 
 	var req dto.EnhanceDescriptionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.BadRequest(c, "INVALID_REQUEST", err.Error())
+		return
+	}
+
+	if _, _, err := service.NewBillingService().ConsumeAIQuota(userID); err != nil {
+		if limitErr, ok := err.(*service.LimitError); ok {
+			response.Forbidden(c, limitErr.Code, limitErr.Message, limitErr.Details)
+			return
+		}
+		response.Internal(c, "AI_USAGE_TRACK_FAILED", "Failed to verify AI quota")
 		return
 	}
 
@@ -118,7 +138,7 @@ func (h *AIHandler) EnhanceDescription(c *gin.Context) {
 func (h *AIHandler) streamResponse(c *gin.Context, systemPrompt, userPrompt string) {
 	respBody, err := h.aiService.StreamChat(systemPrompt, userPrompt)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.Internal(c, "AI_REQUEST_FAILED", err.Error())
 		return
 	}
 	defer respBody.Close()
@@ -131,7 +151,7 @@ func (h *AIHandler) streamResponse(c *gin.Context, systemPrompt, userPrompt stri
 
 	flusher, ok := c.Writer.(http.Flusher)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "streaming not supported"})
+		response.Internal(c, "STREAMING_NOT_SUPPORTED", "streaming not supported")
 		return
 	}
 

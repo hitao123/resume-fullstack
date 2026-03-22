@@ -79,9 +79,29 @@ func SetupRoutes(router *gin.Engine) {
 		resumes.POST("/projects/update", resumeHandler.UpdateProject)
 		resumes.DELETE("/projects/:id", resumeHandler.DeleteProject)
 
-		// TODO: Add more resume section endpoints
-		// - Certifications
-		// - Languages
+		// Certifications
+		resumes.POST("/certifications/list", resumeHandler.GetCertifications)
+		resumes.POST("/certifications", resumeHandler.CreateCertification)
+		resumes.POST("/certifications/update", resumeHandler.UpdateCertification)
+		resumes.DELETE("/certifications/:id", resumeHandler.DeleteCertification)
+
+		// Languages
+		resumes.POST("/languages/list", resumeHandler.GetLanguages)
+		resumes.POST("/languages", resumeHandler.CreateLanguage)
+		resumes.POST("/languages/update", resumeHandler.UpdateLanguage)
+		resumes.DELETE("/languages/:id", resumeHandler.DeleteLanguage)
+
+		// Awards
+		resumes.POST("/awards/list", resumeHandler.GetAwards)
+		resumes.POST("/awards", resumeHandler.CreateAward)
+		resumes.POST("/awards/update", resumeHandler.UpdateAward)
+		resumes.DELETE("/awards/:id", resumeHandler.DeleteAward)
+
+		// Custom sections
+		resumes.POST("/custom-sections/list", resumeHandler.GetCustomSections)
+		resumes.POST("/custom-sections", resumeHandler.CreateCustomSection)
+		resumes.POST("/custom-sections/update", resumeHandler.UpdateCustomSection)
+		resumes.DELETE("/custom-sections/:id", resumeHandler.DeleteCustomSection)
 	}
 
 	// AI handlers (protected)
@@ -91,5 +111,19 @@ func SetupRoutes(router *gin.Engine) {
 	{
 		ai.POST("/generate-summary", aiHandler.GenerateSummary)
 		ai.POST("/enhance-description", aiHandler.EnhanceDescription)
+	}
+
+	billingHandler := handlers.NewBillingHandler()
+	billing := v1.Group("/billing")
+	{
+		billing.GET("/plans", billingHandler.GetPlans)
+	}
+
+	billingProtected := v1.Group("/billing")
+	billingProtected.Use(middleware.AuthMiddleware())
+	{
+		billingProtected.GET("/orders", billingHandler.GetOrders)
+		billingProtected.POST("/checkout", billingHandler.Checkout)
+		billingProtected.POST("/orders/:id/pay", billingHandler.PayOrder)
 	}
 }

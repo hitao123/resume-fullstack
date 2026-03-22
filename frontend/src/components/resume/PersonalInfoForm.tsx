@@ -19,7 +19,7 @@ export const PersonalInfoForm = ({ data, onChange }: PersonalInfoFormProps) => {
   const { id } = useParams<{ id: string }>();
   const [form] = Form.useForm();
   const isSavingRef = useRef(false);
-  const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { t, i18n } = useTranslation();
   const ai = useAIAssistant();
 
@@ -50,6 +50,8 @@ export const PersonalInfoForm = ({ data, onChange }: PersonalInfoFormProps) => {
           website: values.website || '',
           linkedin: values.linkedin || '',
           github: values.github || '',
+          avatarUrl: values.avatarUrl || '',
+          showAvatar: values.showAvatar || false,
           summary: values.summary || '',
         });
         message.success(t('resume.personal.autoSaveSuccess'), 0.5);
@@ -155,6 +157,10 @@ export const PersonalInfoForm = ({ data, onChange }: PersonalInfoFormProps) => {
 
       <Form.Item label={t('resume.personal.githubLabel')} name="github">
         <Input placeholder={t('resume.personal.githubPlaceholder')} size="large" />
+      </Form.Item>
+
+      <Form.Item label="头像链接" name="avatarUrl">
+        <Input placeholder="https://example.com/avatar.jpg" size="large" />
       </Form.Item>
 
       <Form.Item

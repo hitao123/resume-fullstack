@@ -2,16 +2,27 @@ package dto
 
 // CreateResumeRequest represents create resume request
 type CreateResumeRequest struct {
-	Title      string `json:"title" binding:"required,max=255"`
-	TemplateID *int   `json:"templateId"`
+	Title        string `json:"title" binding:"required,max=255"`
+	TemplateID   *int   `json:"templateId"`
+	VersionLabel string `json:"versionLabel"`
+	TargetRole   string `json:"targetRole"`
 }
 
 // UpdateResumeRequest represents update resume request
 type UpdateResumeRequest struct {
-	ID         uint    `json:"id" binding:"required"`
-	Title      *string `json:"title" binding:"omitempty,max=255"`
-	TemplateID *int    `json:"templateId"`
-	IsDefault  *bool   `json:"isDefault"`
+	ID            uint                        `json:"id" binding:"required"`
+	Title         *string                     `json:"title" binding:"omitempty,max=255"`
+	TemplateID    *int                        `json:"templateId"`
+	VersionLabel  *string                     `json:"versionLabel"`
+	TargetRole    *string                     `json:"targetRole"`
+	SectionConfig *[]ResumeSectionConfigInput `json:"sectionConfig"`
+	IsDefault     *bool                       `json:"isDefault"`
+}
+
+type ResumeSectionConfigInput struct {
+	Key     string `json:"key" binding:"required"`
+	Visible bool   `json:"visible"`
+	Order   int    `json:"order"`
 }
 
 // GetResumeRequest represents get resume request
@@ -37,14 +48,16 @@ type ReorderItem struct {
 
 // PersonalInfoInput represents personal info input
 type PersonalInfoInput struct {
-	FullName string `json:"fullName"`
-	Email    string `json:"email" binding:"omitempty,email"`
-	Phone    string `json:"phone"`
-	Location string `json:"location"`
-	Website  string `json:"website" binding:"omitempty,url"`
-	LinkedIn string `json:"linkedin"`
-	Github   string `json:"github"`
-	Summary  string `json:"summary"`
+	FullName   string `json:"fullName"`
+	Email      string `json:"email" binding:"omitempty,email"`
+	Phone      string `json:"phone"`
+	Location   string `json:"location"`
+	Website    string `json:"website" binding:"omitempty,url"`
+	LinkedIn   string `json:"linkedin"`
+	Github     string `json:"github"`
+	AvatarURL  string `json:"avatarUrl" binding:"omitempty,url"`
+	ShowAvatar bool   `json:"showAvatar"`
+	Summary    string `json:"summary"`
 }
 
 // WorkExperienceInput represents work experience input
@@ -89,6 +102,40 @@ type ProjectInput struct {
 	GithubURL    string `json:"githubUrl" binding:"omitempty,url"`
 	StartDate    string `json:"startDate"`
 	EndDate      string `json:"endDate"`
+	DisplayOrder int    `json:"displayOrder"`
+}
+
+// CertificationInput represents certification input
+type CertificationInput struct {
+	Name                string `json:"name" binding:"required"`
+	IssuingOrganization string `json:"issuingOrganization"`
+	IssueDate           string `json:"issueDate"`
+	ExpiryDate          string `json:"expiryDate"`
+	CredentialID        string `json:"credentialId"`
+	CredentialURL       string `json:"credentialUrl" binding:"omitempty,url"`
+	DisplayOrder        int    `json:"displayOrder"`
+}
+
+// LanguageInput represents language input
+type LanguageInput struct {
+	Language     string `json:"language" binding:"required"`
+	Proficiency  string `json:"proficiency"`
+	DisplayOrder int    `json:"displayOrder"`
+}
+
+// AwardInput represents award input
+type AwardInput struct {
+	Title        string `json:"title" binding:"required"`
+	Issuer       string `json:"issuer"`
+	IssueDate    string `json:"issueDate"`
+	Description  string `json:"description"`
+	DisplayOrder int    `json:"displayOrder"`
+}
+
+// CustomSectionInput represents custom section input
+type CustomSectionInput struct {
+	Title        string `json:"title" binding:"required"`
+	Content      string `json:"content"`
 	DisplayOrder int    `json:"displayOrder"`
 }
 
@@ -191,7 +238,7 @@ type DeleteSkillRequest struct {
 
 // BulkUpdateSkillsRequest represents bulk update skills request
 type BulkUpdateSkillsRequest struct {
-	ResumeID uint       `json:"resumeId" binding:"required"`
+	ResumeID uint         `json:"resumeId" binding:"required"`
 	Skills   []SkillInput `json:"skills" binding:"required"`
 }
 
@@ -215,6 +262,86 @@ type UpdateProjectRequest struct {
 
 // DeleteProjectRequest represents delete project request
 type DeleteProjectRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	ID       uint `json:"id" binding:"required"`
+}
+
+type GetCertificationsRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+}
+
+type CreateCertificationRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	CertificationInput
+}
+
+type UpdateCertificationRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	ID       uint `json:"id" binding:"required"`
+	CertificationInput
+}
+
+type DeleteCertificationRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	ID       uint `json:"id" binding:"required"`
+}
+
+type GetLanguagesRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+}
+
+type CreateLanguageRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	LanguageInput
+}
+
+type UpdateLanguageRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	ID       uint `json:"id" binding:"required"`
+	LanguageInput
+}
+
+type DeleteLanguageRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	ID       uint `json:"id" binding:"required"`
+}
+
+type GetAwardsRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+}
+
+type CreateAwardRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	AwardInput
+}
+
+type UpdateAwardRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	ID       uint `json:"id" binding:"required"`
+	AwardInput
+}
+
+type DeleteAwardRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	ID       uint `json:"id" binding:"required"`
+}
+
+type GetCustomSectionsRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+}
+
+type CreateCustomSectionRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	CustomSectionInput
+}
+
+type UpdateCustomSectionRequest struct {
+	ResumeID uint `json:"resumeId" binding:"required"`
+	ID       uint `json:"id" binding:"required"`
+	CustomSectionInput
+}
+
+type DeleteCustomSectionRequest struct {
 	ResumeID uint `json:"resumeId" binding:"required"`
 	ID       uint `json:"id" binding:"required"`
 }

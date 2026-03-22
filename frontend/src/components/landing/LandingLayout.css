@@ -1,13 +1,16 @@
 .landing-layout {
   min-height: 100vh;
   display: flex;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background:
+    radial-gradient(circle at top left, rgba(255, 196, 132, 0.28), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(107, 167, 255, 0.22), transparent 26%),
+    linear-gradient(135deg, #0f172a 0%, #16324f 48%, #1d4b52 100%);
 }
 
 .landing-marketing {
   flex: 0 0 60%;
   overflow-y: auto;
-  padding: 48px 56px;
+  padding: 56px 64px;
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -20,14 +23,15 @@
   align-items: center;
   justify-content: center;
   padding: 32px;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
+  background: rgba(248, 250, 252, 0.92);
+  backdrop-filter: blur(14px);
   position: relative;
+  box-shadow: -24px 0 80px rgba(15, 23, 42, 0.18);
 }
 
 .landing-form-inner {
   width: 100%;
-  max-width: 420px;
+  max-width: 470px;
 }
 
 .landing-footer {
@@ -36,7 +40,7 @@
 
 .landing-footer .ant-layout-footer {
   background: transparent;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(15, 23, 42, 0.5);
   padding: 12px 0;
   font-size: 13px;
 }
