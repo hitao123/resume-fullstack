@@ -9,11 +9,11 @@
   align-items: center;
   justify-content: space-between;
 
-  background: rgba(255, 255, 255, 0.78);
+  background: rgba(251, 248, 242, 0.82);
   backdrop-filter: saturate(180%) blur(14px);
   -webkit-backdrop-filter: saturate(180%) blur(14px);
 
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  border-bottom: 1px solid rgba(201, 163, 95, 0.22);
 }
 
 .left {
@@ -41,7 +41,7 @@
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.2px;
-  color: rgba(15, 23, 42, 0.92);
+  color: rgba(42, 34, 24, 0.92);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -61,7 +61,7 @@
 
 .avatar {
   cursor: pointer;
-  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.06);
+  box-shadow: 0 1px 0 rgba(157, 107, 33, 0.08);
 }
 
 @media (max-width: 560px) {
@@ -77,4 +77,3 @@
     min-width: unset;
   }
 }
-

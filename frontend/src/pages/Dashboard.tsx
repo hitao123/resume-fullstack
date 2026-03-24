@@ -221,7 +221,7 @@ export const Dashboard = () => {
                   size="large"
                   icon={<PlusOutlined />}
                   onClick={() => setCreateModalOpen(true)}
-                  style={{ minWidth: 150, borderRadius: 14, fontWeight: 600, background: '#fff', color: '#102a43', border: 'none' }}
+                  style={{ minWidth: 150, borderRadius: 14, fontWeight: 600, background: '#9d6b21', color: '#fffdf8', border: 'none' }}
                 >
                   创建新简历
                 </Button>
@@ -231,7 +231,7 @@ export const Dashboard = () => {
                     icon={<ArrowRightOutlined />}
                     iconPosition="end"
                     onClick={() => navigate(`/editor/${latestResume.id}`)}
-                    style={{ minWidth: 160, borderRadius: 14, fontWeight: 600, background: 'rgba(255,255,255,0.08)', color: '#fff', borderColor: 'rgba(255,255,255,0.22)' }}
+                    style={{ minWidth: 160, borderRadius: 14, fontWeight: 600, background: 'rgba(255,255,255,0.56)', color: '#5e4a30', borderColor: 'rgba(157,107,33,0.14)' }}
                   >
                     继续最近编辑
                   </Button>
@@ -277,7 +277,7 @@ export const Dashboard = () => {
                       <span className="commerce-meter-hint">{resumes.length} / {resumeLimit === 0 ? '不限' : resumeLimit}</span>
                     </div>
                     {resumeLimit > 0 && (
-                      <Progress percent={Math.min(100, Math.round((resumes.length / resumeLimit) * 100))} showInfo={false} strokeColor="#0f6cbd" />
+                      <Progress percent={Math.min(100, Math.round((resumes.length / resumeLimit) * 100))} showInfo={false} strokeColor="#c9a35f" />
                     )}
                   </div>
                 </Col>
@@ -402,16 +402,16 @@ export const Dashboard = () => {
                     >
                       <div className="resume-card-top">
                         <div className="resume-card-icon">
-                          <FileTextOutlined style={{ fontSize: 24, color: '#0f6cbd' }} />
+                          <FileTextOutlined style={{ fontSize: 24, color: '#9d6b21' }} />
                         </div>
-                        <Tag color="blue">{TEMPLATE_NAMES[resume.templateId] || 'Template'}</Tag>
+                        <Tag color="gold">{TEMPLATE_NAMES[resume.templateId] || 'Template'}</Tag>
                       </div>
                       <Title level={5} ellipsis={{ rows: 2 }} style={{ minHeight: 46, marginBottom: 10 }}>
                         {resume.title}
                       </Title>
                       <Space wrap size={[8, 8]} style={{ marginBottom: 12 }}>
                         {resume.versionLabel && <Tag>{resume.versionLabel}</Tag>}
-                        {resume.targetRole && <Tag color="cyan">{resume.targetRole}</Tag>}
+                        {resume.targetRole && <Tag color="gold">{resume.targetRole}</Tag>}
                         {resume.isDefault && <Tag color="gold">默认版本</Tag>}
                       </Space>
                       <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
@@ -438,7 +438,7 @@ export const Dashboard = () => {
                 dataSource={planComparisons}
                 renderItem={(item) => (
                   <div className="plan-list-item">
-                    <Text style={{ display: 'block', fontWeight: 700, color: '#102a43' }}>{item.plan}</Text>
+                    <Text style={{ display: 'block', fontWeight: 700, color: '#2a2218' }}>{item.plan}</Text>
                     <Text style={{ color: '#64748b', lineHeight: 1.7 }}>{item.points}</Text>
                   </div>
                 )}

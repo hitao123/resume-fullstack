@@ -287,7 +287,7 @@ export const EnhancedPDFDocument: React.FC<EnhancedPDFDocumentProps> = ({ resume
                 <View style={styles.skillsRow}>
                   {(categorySkills || []).map((skill) => (
                     <View key={skill.id} style={styles.skillTag}>
-                      <SkillTagImage skill={skill.name} colorType="blue" />
+                      <SkillTagImage skill={skill.name} colorType="gold" />
                     </View>
                   ))}
                 </View>

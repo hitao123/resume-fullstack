@@ -62,7 +62,7 @@ export const ResumePreview = ({ resume }: ResumePreviewProps) => {
     const headingStyle =
       mode === 'minimal'
         ? { fontSize: 11, letterSpacing: 1.6, textTransform: 'uppercase' as const, color: '#6b7280' }
-        : { fontSize: 18, color: mode === 'modern' ? '#0f4c81' : '#132238' };
+        : { fontSize: 18, color: mode === 'modern' ? '#8d6630' : '#4a3822' };
 
     const sectionTitle = (
       <div style={{ marginBottom: mode === 'minimal' ? 10 : 14 }}>
@@ -71,7 +71,7 @@ export const ResumePreview = ({ resume }: ResumePreviewProps) => {
         ) : (
           <>
             <Title level={5} style={{ margin: 0, ...headingStyle }}>{sectionTitleMap[key] || key}</Title>
-            <div style={{ width: mode === 'modern' ? 54 : 42, height: 3, borderRadius: 999, marginTop: 8, background: mode === 'modern' ? '#50a5d8' : '#132238' }} />
+            <div style={{ width: mode === 'modern' ? 54 : 42, height: 3, borderRadius: 999, marginTop: 8, background: mode === 'modern' ? '#c9a35f' : '#7a5419' }} />
           </>
         )}
       </div>
@@ -139,8 +139,8 @@ export const ResumePreview = ({ resume }: ResumePreviewProps) => {
                         style={{
                           borderRadius: 999,
                           paddingInline: 10,
-                          background: mode === 'modern' ? '#e9f5ff' : '#f4f4f5',
-                          borderColor: mode === 'modern' ? '#cbe8fb' : '#e5e7eb',
+                          background: mode === 'modern' ? '#f6ead0' : '#f4efe6',
+                          borderColor: mode === 'modern' ? '#ead9b6' : '#e7decf',
                         }}
                       >
                         {skill.name}
@@ -261,7 +261,7 @@ export const ResumePreview = ({ resume }: ResumePreviewProps) => {
         level={mode === 'minimal' ? 2 : 3}
         style={{
           marginBottom: 8,
-          color: mode === 'modern' ? '#ffffff' : mode === 'classic' ? '#132238' : '#0f172a',
+          color: mode === 'modern' ? '#fffaf2' : mode === 'classic' ? '#4a3822' : '#2a2218',
           letterSpacing: mode === 'minimal' ? 0.6 : 0,
         }}
       >
@@ -269,8 +269,8 @@ export const ResumePreview = ({ resume }: ResumePreviewProps) => {
       </Title>
       {(resume.versionLabel || resume.targetRole) && (
         <div style={{ marginBottom: 12 }}>
-          {resume.versionLabel && <Tag color={mode === 'modern' ? 'cyan' : 'blue'}>{resume.versionLabel}</Tag>}
-          {resume.targetRole && <Tag>{resume.targetRole}</Tag>}
+          {resume.versionLabel && <Tag color="gold">{resume.versionLabel}</Tag>}
+          {resume.targetRole && <Tag color="warning">{resume.targetRole}</Tag>}
         </div>
       )}
       <Space direction="vertical" size="small" style={{ width: '100%' }}>
@@ -298,8 +298,8 @@ export const ResumePreview = ({ resume }: ResumePreviewProps) => {
     const mainSections = visibleSections.filter((section) => !sidebarKeys.has(section.key));
 
     return (
-      <div style={{ display: 'grid', gridTemplateColumns: '1.02fr 1.45fr', borderRadius: 24, overflow: 'hidden', boxShadow: '0 20px 44px rgba(15, 76, 129, 0.14)' }}>
-        <div style={{ background: 'linear-gradient(180deg, #0f4c81 0%, #17659f 100%)', padding: 24, color: '#fff' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.02fr 1.45fr', borderRadius: 24, overflow: 'hidden', boxShadow: '0 20px 44px rgba(141, 102, 48, 0.14)' }}>
+        <div style={{ background: 'linear-gradient(180deg, #8d6630 0%, #b88a47 100%)', padding: 24, color: '#fff' }}>
           {renderHeader('modern')}
           {sidebarSections.map((section) => (
             <div key={section.key} style={{ marginTop: 22 }}>
@@ -337,10 +337,10 @@ export const ResumePreview = ({ resume }: ResumePreviewProps) => {
         padding: 24,
         background:
           resume.templateId === TEMPLATES.MODERN
-            ? 'linear-gradient(180deg, #eef7ff 0%, #f8fbff 100%)'
+            ? 'linear-gradient(180deg, #faf4e7 0%, #fffaf2 100%)'
             : resume.templateId === TEMPLATES.MINIMAL
-              ? '#fafafa'
-              : '#f5f7fb',
+              ? '#f8f5ef'
+              : '#f7f1e7',
       }}
     >
       {resume.templateId === TEMPLATES.MODERN && renderModern()}

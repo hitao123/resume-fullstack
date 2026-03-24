@@ -1,8 +1,8 @@
 .resume-editor-layout {
   min-height: calc(100vh - 64px);
   background:
-    radial-gradient(circle at top right, rgba(255, 209, 102, 0.14), transparent 22%),
-    linear-gradient(180deg, #f4f8fc 0%, #eef4fa 100%);
+    radial-gradient(circle at top right, rgba(224, 191, 131, 0.16), transparent 22%),
+    linear-gradient(180deg, #fbf8f2 0%, #f5ede1 100%);
 }
 
 .resume-editor-content {
@@ -12,13 +12,13 @@
 
 .resume-editor-shell {
   border-radius: 28px !important;
-  border: 1px solid #dde6f0;
-  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
-  box-shadow: 0 26px 70px rgba(15, 23, 42, 0.08);
+  border: 1px solid #ead9b6;
+  background: linear-gradient(180deg, #ffffff 0%, #fbf8f2 100%);
+  box-shadow: 0 26px 70px rgba(86, 63, 33, 0.08);
 }
 
 .resume-editor-shell .ant-card-head {
-  border-bottom: 1px solid #ecf2f8;
+  border-bottom: 1px solid #eee3cf;
   padding: 0 24px;
 }
 
@@ -39,12 +39,12 @@
 }
 
 .resume-editor-title strong {
-  color: #102a43;
+  color: #2a2218;
   font-size: 20px;
 }
 
 .resume-editor-title span {
-  color: #64748b;
+  color: #7a7063;
   font-size: 13px;
 }
 
@@ -54,8 +54,8 @@
   gap: 6px;
   padding: 6px 10px;
   border-radius: 999px;
-  background: #edfdf5;
-  color: #166534;
+  background: #edf8f2;
+  color: #2f7d57;
   font-size: 12px;
   font-weight: 600;
 }
@@ -82,12 +82,12 @@
   bottom: 24px;
   width: 4px;
   border-radius: 999px;
-  background: #cbd5e1;
+  background: #d8c39a;
   transition: background 0.2s ease;
 }
 
 .resume-preview-handle:hover .resume-preview-handle-line {
-  background: #94a3b8;
+  background: #c9a35f;
 }
 
 .resume-preview-sider {
@@ -96,8 +96,8 @@
   position: sticky !important;
   top: 64px;
   right: 0;
-  border-left: 1px solid #e2e8f0;
-  background: linear-gradient(180deg, #f6f9fd 0%, #edf3f9 100%) !important;
+  border-left: 1px solid #ead9b6;
+  background: linear-gradient(180deg, #fbf8f2 0%, #f5ede1 100%) !important;
   max-width: 75vw;
 }
 
@@ -107,8 +107,8 @@
   justify-content: space-between;
   gap: 12px;
   padding: 16px 18px;
-  border-bottom: 1px solid #e2e8f0;
-  background: rgba(255, 255, 255, 0.82);
+  border-bottom: 1px solid #ead9b6;
+  background: rgba(255, 251, 245, 0.84);
   backdrop-filter: blur(12px);
 }
 
@@ -119,12 +119,12 @@
 }
 
 .resume-preview-toolbar-title strong {
-  color: #102a43;
+  color: #2a2218;
   font-size: 15px;
 }
 
 .resume-preview-toolbar-title span {
-  color: #64748b;
+  color: #7a7063;
   font-size: 12px;
 }
 
@@ -139,8 +139,9 @@
 
 .settings-card {
   border-radius: 24px !important;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 14px 44px rgba(15, 23, 42, 0.05);
+  border: 1px solid #ead9b6;
+  background: linear-gradient(180deg, #ffffff 0%, #fbf8f2 100%);
+  box-shadow: 0 14px 44px rgba(86, 63, 33, 0.05);
 }
 
 .template-grid {
@@ -151,24 +152,24 @@
 
 .template-card {
   border-radius: 22px !important;
-  border: 1px solid #e2e8f0;
-  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.05);
+  border: 1px solid #ead9b6;
+  background: linear-gradient(180deg, #ffffff 0%, #fbf8f2 100%);
+  box-shadow: 0 16px 40px rgba(86, 63, 33, 0.05);
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .template-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 22px 56px rgba(15, 23, 42, 0.1);
+  box-shadow: 0 22px 56px rgba(86, 63, 33, 0.1);
 }
 
 .template-card--active {
-  border-color: #0f6cbd;
-  background: linear-gradient(180deg, #f2f8ff 0%, #ffffff 100%);
+  border-color: #c9a35f;
+  background: linear-gradient(180deg, #fff8eb 0%, #ffffff 100%);
 }
 
 .template-card--preview {
-  border-color: #38bdf8;
+  border-color: #d8b477;
 }
 
 .template-card--locked {
@@ -188,7 +189,7 @@
 }
 
 .template-card-copy {
-  color: #64748b;
+  color: #7a7063;
   font-size: 13px;
   line-height: 1.7;
 }
@@ -199,8 +200,8 @@
   overflow: hidden;
   margin-bottom: 14px;
   border-radius: 18px;
-  border: 1px solid #e2e8f0;
-  background: #f8fbff;
+  border: 1px solid #ead9b6;
+  background: #fbf8f2;
 }
 
 .template-thumbnail-page {
@@ -209,13 +210,13 @@
   border-radius: 14px;
   overflow: hidden;
   background: #fff;
-  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 10px 26px rgba(86, 63, 33, 0.08);
 }
 
 .template-thumb-row {
   height: 10px;
   border-radius: 999px;
-  background: #d8e4f0;
+  background: #e5d3b0;
 }
 
 .template-thumb-row + .template-thumb-row {
@@ -230,36 +231,36 @@
 
 .template-thumb-modern-sidebar {
   padding: 12px 10px;
-  background: linear-gradient(180deg, #0f4c81 0%, #17659f 100%);
+  background: linear-gradient(180deg, #8d6630 0%, #b88a47 100%);
 }
 
 .template-thumb-modern-main {
   padding: 12px;
-  background: #ffffff;
+  background: #fffdf8;
 }
 
 .template-thumb-classic {
   height: 100%;
   padding: 14px 12px;
-  background: #fff;
+  background: #fffdf8;
 }
 
 .template-thumb-classic-header {
   padding-bottom: 12px;
   margin-bottom: 12px;
-  border-bottom: 1px solid #e5edf6;
+  border-bottom: 1px solid #ece1cc;
 }
 
 .template-thumb-minimal {
   height: 100%;
   padding: 16px 14px;
-  background: linear-gradient(180deg, #ffffff 0%, #fcfcfc 100%);
+  background: linear-gradient(180deg, #fffdf8 0%, #fbf8f2 100%);
 }
 
 .template-thumb-minimal-header {
   padding-bottom: 12px;
   margin-bottom: 14px;
-  border-bottom: 1px solid #eceff3;
+  border-bottom: 1px solid #eee3cf;
 }
 
 .template-card-meta {

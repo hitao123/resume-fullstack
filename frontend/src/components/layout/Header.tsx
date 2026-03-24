@@ -79,7 +79,15 @@ export const Header = () => {
       <div className="right">
         {user?.plan && (
           <Space size="small">
-            <Tag color={user.plan.code === 'FREE' ? 'default' : user.plan.code === 'STARTER' ? 'blue' : 'gold'}>
+            <Tag
+              style={{
+                borderRadius: 999,
+                borderColor: user.plan.code === 'FREE' ? '#d9c7a4' : user.plan.code === 'STARTER' ? '#d7b77a' : '#c9a35f',
+                background: user.plan.code === 'FREE' ? '#f5efe4' : user.plan.code === 'STARTER' ? '#fbf2df' : '#f6ead0',
+                color: user.plan.code === 'FREE' ? '#6f6558' : user.plan.code === 'STARTER' ? '#9d6b21' : '#7a5419',
+                fontWeight: 600,
+              }}
+            >
               {user.plan.name}
             </Tag>
           </Space>

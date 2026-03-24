@@ -53,11 +53,11 @@ const TemplateThumbnail = ({ templateId }: { templateId: number }) => {
             <div className="template-thumb-row" style={{ width: '64%', background: 'rgba(255,255,255,0.38)' }} />
           </div>
           <div className="template-thumb-modern-main">
-            <div className="template-thumb-row" style={{ width: '60%', background: '#90cdf4' }} />
+            <div className="template-thumb-row" style={{ width: '60%', background: '#d6b274' }} />
             <div className="template-thumb-row" style={{ width: '88%', marginTop: 16 }} />
             <div className="template-thumb-row" style={{ width: '94%' }} />
             <div className="template-thumb-row" style={{ width: '82%' }} />
-            <div className="template-thumb-row" style={{ width: '56%', marginTop: 16, background: '#90cdf4' }} />
+            <div className="template-thumb-row" style={{ width: '56%', marginTop: 16, background: '#d6b274' }} />
             <div className="template-thumb-row" style={{ width: '92%' }} />
             <div className="template-thumb-row" style={{ width: '74%' }} />
           </div>
@@ -71,13 +71,13 @@ const TemplateThumbnail = ({ templateId }: { templateId: number }) => {
       <div className="template-thumbnail">
         <div className="template-thumbnail-page template-thumb-classic">
           <div className="template-thumb-classic-header">
-            <div className="template-thumb-row" style={{ width: '56%', background: '#9db4c9', height: 12 }} />
+            <div className="template-thumb-row" style={{ width: '56%', background: '#cbb189', height: 12 }} />
             <div className="template-thumb-row" style={{ width: '82%', marginTop: 10, height: 8 }} />
           </div>
-          <div className="template-thumb-row" style={{ width: '38%', background: '#17324d' }} />
+          <div className="template-thumb-row" style={{ width: '38%', background: '#7a5419' }} />
           <div className="template-thumb-row" style={{ width: '100%', marginTop: 14 }} />
           <div className="template-thumb-row" style={{ width: '90%' }} />
-          <div className="template-thumb-row" style={{ width: '42%', marginTop: 14, background: '#17324d' }} />
+          <div className="template-thumb-row" style={{ width: '42%', marginTop: 14, background: '#7a5419' }} />
           <div className="template-thumb-row" style={{ width: '96%', marginTop: 14 }} />
           <div className="template-thumb-row" style={{ width: '72%' }} />
         </div>
@@ -89,13 +89,13 @@ const TemplateThumbnail = ({ templateId }: { templateId: number }) => {
     <div className="template-thumbnail">
       <div className="template-thumbnail-page template-thumb-minimal">
         <div className="template-thumb-minimal-header">
-          <div className="template-thumb-row" style={{ width: '52%', height: 12, background: '#111827' }} />
+          <div className="template-thumb-row" style={{ width: '52%', height: 12, background: '#4a3822' }} />
           <div className="template-thumb-row" style={{ width: '74%', marginTop: 10, height: 8 }} />
         </div>
-        <div className="template-thumb-row" style={{ width: '30%', background: '#94a3b8' }} />
+        <div className="template-thumb-row" style={{ width: '30%', background: '#a48d67' }} />
         <div className="template-thumb-row" style={{ width: '96%', marginTop: 14 }} />
         <div className="template-thumb-row" style={{ width: '84%' }} />
-        <div className="template-thumb-row" style={{ width: '30%', marginTop: 16, background: '#94a3b8' }} />
+        <div className="template-thumb-row" style={{ width: '30%', marginTop: 16, background: '#a48d67' }} />
         <div className="template-thumb-row" style={{ width: '94%', marginTop: 14 }} />
         <div className="template-thumb-row" style={{ width: '68%' }} />
       </div>
@@ -225,10 +225,10 @@ const ResumeSettingsSection = ({ resume, onResumeChange, onPreviewTemplateChange
                 ].join(' ')}
               >
                 <div className="template-card-header">
-                  <div style={{ fontWeight: 700, color: '#102a43' }}>{template.name}</div>
+                  <div style={{ fontWeight: 700, color: '#2a2218' }}>{template.name}</div>
                   <Space size={6} wrap>
-                    {isApplied && <Tag color="blue">已应用</Tag>}
-                    {!isApplied && isPreviewing && <Tag color="processing">预览中</Tag>}
+                    {isApplied && <Tag color="gold">已应用</Tag>}
+                    {!isApplied && isPreviewing && <Tag color="warning">预览中</Tag>}
                     {isLocked && <Tag color="default" icon={<LockOutlined />}>需升级</Tag>}
                   </Space>
                 </div>
@@ -271,8 +271,8 @@ const ResumeSettingsSection = ({ resume, onResumeChange, onPreviewTemplateChange
         </div>
         {previewTemplateId && previewTemplateId !== resume.templateId && (
           <div style={{ marginTop: 16 }}>
-            <Tag color="processing">正在预览未应用模板</Tag>
-            <Button type="link" onClick={() => onPreviewTemplateChange?.(null)} style={{ paddingInline: 8 }}>
+            <Tag color="warning">正在预览未应用模板</Tag>
+            <Button type="link" onClick={() => onPreviewTemplateChange?.(null)} style={{ paddingInline: 8, color: '#9d6b21' }}>
               返回当前模板
             </Button>
           </div>

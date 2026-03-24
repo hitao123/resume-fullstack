@@ -316,7 +316,7 @@ export const ResumeEditor = () => {
           }
           extra={
             <Space wrap>
-              <Tag color={exportMode === 'html2canvas' ? 'green' : 'blue'}>
+              <Tag color={exportMode === 'html2canvas' ? 'green' : 'gold'}>
                 {exportMode === 'html2canvas' ? 'HTML 预览导出' : 'React PDF'}
               </Tag>
               {previewVisible && (
@@ -370,8 +370,8 @@ export const ResumeEditor = () => {
                 </span>
               </div>
               <Space size={[8, 8]} wrap>
-                <Tag color="blue">{previewFitMode === 'a4' ? 'A4 视图' : '屏幕视图'}</Tag>
-                {previewTemplateId && previewTemplateId !== resume.templateId && <Tag color="processing">临时预览</Tag>}
+                <Tag color="gold">{previewFitMode === 'a4' ? 'A4 视图' : '屏幕视图'}</Tag>
+                {previewTemplateId && previewTemplateId !== resume.templateId && <Tag color="warning">临时预览</Tag>}
               </Space>
             </div>
             <div className="resume-preview-stage">

@@ -1,3 +1,14 @@
+:root {
+  --rs-gold: #c9a35f;
+  --rs-gold-deep: #9d6b21;
+  --rs-gold-soft: #ead9b6;
+  --rs-cream: #f7f1e7;
+  --rs-cream-soft: #fbf8f2;
+  --rs-ink: #2a2218;
+  --rs-ink-soft: #6f6558;
+  --rs-success: #2f7d57;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -6,8 +17,10 @@
 
 body {
   margin: 0;
-  background: linear-gradient(180deg, #f4f8fc 0%, #eef4fa 100%);
-  color: #102a43;
+  background:
+    radial-gradient(circle at top left, rgba(219, 190, 133, 0.18), transparent 20%),
+    linear-gradient(180deg, #fbf8f2 0%, #f5ede1 100%);
+  color: var(--rs-ink);
   font-family: 'Segoe UI', 'PingFang SC', 'Noto Sans SC', -apple-system, BlinkMacSystemFont,
     sans-serif;
   -webkit-font-smoothing: antialiased;

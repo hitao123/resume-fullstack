@@ -47,7 +47,7 @@ export const Register = () => {
     <LandingLayout>
       <div className="auth-intro">
         <Space direction="vertical" size={10} style={{ width: '100%' }}>
-          <div className="auth-eyebrow" style={{ background: 'rgba(29, 143, 111, 0.1)', color: '#166534' }}>
+          <div className="auth-eyebrow">
             <RocketFilled />
             简历工坊增长路径
           </div>
@@ -174,7 +174,7 @@ export const Register = () => {
               style={{
                 minHeight: 50,
                 borderRadius: 14,
-                background: 'linear-gradient(135deg, #0f6cbd 0%, #1d8f6f 100%)',
+                background: 'linear-gradient(135deg, #c9a35f 0%, #9d6b21 100%)',
                 border: 'none',
                 fontWeight: 600,
               }}
@@ -186,13 +186,13 @@ export const Register = () => {
           <div style={{ textAlign: 'center', marginBottom: 8 }}>
             <Text style={{ color: '#64748b' }}>
               {t('auth.register.hasAccount')}{' '}
-              <Link to="/login" style={{ color: '#0f6cbd', fontWeight: 700 }}>
+              <Link to="/login" style={{ color: '#9d6b21', fontWeight: 700 }}>
                 {t('auth.register.signIn')}
               </Link>
             </Text>
           </div>
           <div style={{ textAlign: 'center', marginBottom: 8 }}>
-            <Link to="/pricing" style={{ color: '#1d8f6f', fontWeight: 700 }}>
+            <Link to="/pricing" style={{ color: '#c9a35f', fontWeight: 700 }}>
               先看会员方案
             </Link>
           </div>
@@ -205,14 +205,14 @@ export const Register = () => {
         {benefits.map((item) => (
           <Col span={24} key={item}>
             <div className="auth-list-item">
-              <CheckCircleFilled style={{ color: '#1d8f6f', marginTop: 3 }} />
+              <CheckCircleFilled style={{ color: '#c9a35f', marginTop: 3 }} />
               <span>{item}</span>
             </div>
           </Col>
         ))}
       </Row>
 
-      <Card className="auth-plan-card" bordered={false} style={{ background: 'linear-gradient(135deg, #102a43 0%, #16324f 100%)' }}>
+      <Card className="auth-plan-card" bordered={false} style={{ background: 'linear-gradient(135deg, #2a2218 0%, #4a3822 100%)' }}>
         <Title level={4} style={{ color: '#fff', marginTop: 0, marginBottom: 14 }}>
           套餐成长路径
         </Title>

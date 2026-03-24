@@ -2,10 +2,10 @@
   min-height: 100vh;
   display: flex;
   background:
-    radial-gradient(circle at top left, rgba(255, 196, 132, 0.28), transparent 28%),
-    radial-gradient(circle at 80% 20%, rgba(107, 167, 255, 0.22), transparent 24%),
-    radial-gradient(circle at bottom right, rgba(77, 190, 168, 0.18), transparent 26%),
-    linear-gradient(135deg, #0f172a 0%, #13314d 48%, #165a61 100%);
+    radial-gradient(circle at top left, rgba(224, 191, 131, 0.26), transparent 28%),
+    radial-gradient(circle at 80% 18%, rgba(255, 241, 220, 0.18), transparent 22%),
+    radial-gradient(circle at bottom right, rgba(186, 146, 88, 0.2), transparent 26%),
+    linear-gradient(135deg, #221c15 0%, #3a2c1d 48%, #74562d 100%);
 }
 
 .landing-marketing {
@@ -24,10 +24,10 @@
   align-items: center;
   justify-content: center;
   padding: 32px;
-  background: rgba(248, 250, 252, 0.94);
+  background: rgba(251, 248, 242, 0.94);
   backdrop-filter: blur(18px);
   position: relative;
-  box-shadow: -24px 0 80px rgba(15, 23, 42, 0.16);
+  box-shadow: -24px 0 80px rgba(58, 44, 29, 0.12);
 }
 
 .landing-form-inner {
@@ -41,7 +41,7 @@
 
 .landing-footer .ant-layout-footer {
   background: transparent;
-  color: rgba(15, 23, 42, 0.5);
+  color: rgba(42, 34, 24, 0.56);
   padding: 12px 0;
   font-size: 13px;
 }

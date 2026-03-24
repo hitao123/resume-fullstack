@@ -117,7 +117,7 @@ export const Login = () => {
               style={{
                 minHeight: 50,
                 borderRadius: 14,
-                background: 'linear-gradient(135deg, #0f6cbd 0%, #1d8f6f 100%)',
+                background: 'linear-gradient(135deg, #c9a35f 0%, #9d6b21 100%)',
                 border: 'none',
                 fontWeight: 600,
               }}
@@ -129,13 +129,13 @@ export const Login = () => {
           <div style={{ textAlign: 'center', marginBottom: 8 }}>
             <Text style={{ color: '#64748b' }}>
               {t('auth.login.noAccount')}{' '}
-              <Link to="/register" style={{ color: '#0f6cbd', fontWeight: 700 }}>
+              <Link to="/register" style={{ color: '#9d6b21', fontWeight: 700 }}>
                 {t('auth.login.signUp')}
               </Link>
             </Text>
           </div>
           <div style={{ textAlign: 'center', marginBottom: 8 }}>
-            <Link to="/pricing" style={{ color: '#1d8f6f', fontWeight: 700 }}>
+            <Link to="/pricing" style={{ color: '#c9a35f', fontWeight: 700 }}>
               查看会员方案
             </Link>
           </div>
@@ -148,14 +148,14 @@ export const Login = () => {
         {outcomeHighlights.map((item) => (
           <Col span={24} key={item}>
             <div className="auth-list-item">
-              <CheckCircleFilled style={{ color: '#1d8f6f', marginTop: 3 }} />
+              <CheckCircleFilled style={{ color: '#c9a35f', marginTop: 3 }} />
               <span>{item}</span>
             </div>
           </Col>
         ))}
       </Row>
 
-      <Card className="auth-plan-card" bordered={false} style={{ background: '#0f172a', color: '#fff' }}>
+      <Card className="auth-plan-card" bordered={false} style={{ background: 'linear-gradient(135deg, #2a2218 0%, #4a3822 100%)', color: '#fff' }}>
         <Title level={4} style={{ color: '#fff', marginTop: 0, marginBottom: 14 }}>
           登录后你会立即看到
         </Title>

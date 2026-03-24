@@ -13,7 +13,7 @@ interface SkillsSectionProps {
 
 const PROFICIENCY_LEVELS = [
   { key: 'basic', color: 'default' },
-  { key: 'familiar', color: 'blue' },
+  { key: 'familiar', color: 'gold' },
   { key: 'proficient', color: 'green' },
   { key: 'expert', color: 'gold' },
 ];

@@ -21,12 +21,12 @@ function App() {
       locale={antdLocale}
       theme={{
         token: {
-          colorPrimary: '#0f6cbd',
-          colorInfo: '#0f6cbd',
-          colorSuccess: '#1d8f6f',
-          colorWarning: '#d97706',
-          colorTextBase: '#102a43',
-          colorBgLayout: '#f4f8fc',
+          colorPrimary: '#c9a35f',
+          colorInfo: '#c9a35f',
+          colorSuccess: '#2f7d57',
+          colorWarning: '#9d6b21',
+          colorTextBase: '#2a2218',
+          colorBgLayout: '#f7f1e7',
           borderRadius: 10,
           fontSize: 14,
           fontFamily: '"Segoe UI", "PingFang SC", "Noto Sans SC", sans-serif',

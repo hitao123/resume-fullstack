@@ -144,7 +144,7 @@ export const Pricing = () => {
                 { label: 'Mock', value: 'mock' },
               ]}
             />
-            {user?.plan && <Tag color="blue">当前套餐：{user.plan.name}</Tag>}
+            {user?.plan && <Tag color="gold">当前套餐：{user.plan.name}</Tag>}
           </div>
         </Space>
       </Card>
@@ -154,9 +154,9 @@ export const Pricing = () => {
           <Spin size="large" />
         </div>
       ) : (
-        <Row gutter={[20, 20]}>
-          <Col xs={24} xl={17}>
-            <Row gutter={[20, 20]}>
+        <Row gutter={[20, 20]} align="stretch" className="pricing-main-grid">
+          <Col xs={24} xl={17} className="pricing-main-col">
+            <Row gutter={[20, 20]} align="stretch">
               {sortedPlans.map((plan) => {
                 const isCurrent = user?.plan?.code === plan.code;
                 const isPopular = plan.code === 'PRO';
@@ -168,7 +168,7 @@ export const Pricing = () => {
                     : <CrownFilled />;
 
                 return (
-                  <Col xs={24} md={12} xxl={8} key={plan.code}>
+                  <Col xs={24} md={12} xxl={8} key={plan.code} className="pricing-plan-col">
                     <Card className={`pricing-card ${isPopular ? 'pricing-card--featured' : ''}`} bordered={false}>
                       <Space direction="vertical" size={12} style={{ width: '100%' }}>
                         <div className="pricing-card-header">
@@ -179,7 +179,7 @@ export const Pricing = () => {
                             <Title level={3} style={{ margin: 0 }}>{plan.name}</Title>
                             <Space size={[8, 8]} wrap style={{ marginTop: 6 }}>
                               {isPopular && <Tag color="gold">推荐购买</Tag>}
-                              {isCurrent && <Tag color="blue">当前套餐</Tag>}
+                              {isCurrent && <Tag color="gold">当前套餐</Tag>}
                             </Space>
                           </div>
                         </div>
@@ -190,7 +190,7 @@ export const Pricing = () => {
                         <div className="pricing-feature-list">
                           {featureList(plan).map((item) => (
                             <div key={item} className="pricing-feature-item">
-                              <CheckCircleFilled style={{ color: '#1d8f6f', marginTop: 3 }} />
+                              <CheckCircleFilled style={{ color: '#c9a35f', marginTop: 3 }} />
                               <Text style={{ color: '#334155' }}>{item}</Text>
                             </div>
                           ))}
@@ -216,21 +216,21 @@ export const Pricing = () => {
             </Row>
           </Col>
 
-          <Col xs={24} xl={7}>
-            <Space direction="vertical" size="large" style={{ width: '100%' }}>
+          <Col xs={24} xl={7} className="pricing-side-col">
+            <Space direction="vertical" size="large" style={{ width: '100%' }} className="pricing-side-stack">
               <Card className="side-rail-card pricing-side-card">
                 <Title level={4} style={{ marginTop: 0 }}>当前账号状态</Title>
                 <Space direction="vertical" size={14} style={{ width: '100%' }}>
                   <div className="pricing-provider-note">
-                    <Text strong style={{ display: 'block', color: '#102a43' }}>当前套餐</Text>
+                    <Text strong style={{ display: 'block', color: '#2a2218' }}>当前套餐</Text>
                     <Text type="secondary">{user?.plan?.name || '未登录'}</Text>
                   </div>
                   <div className="pricing-provider-note">
-                    <Text strong style={{ display: 'block', color: '#102a43' }}>AI 用量</Text>
+                    <Text strong style={{ display: 'block', color: '#2a2218' }}>AI 用量</Text>
                     <Text type="secondary">{user?.usage?.aiUsed ?? 0} / {user?.plan?.aiQuotaMonthly ?? '-'}</Text>
                   </div>
                   <div className="pricing-provider-note">
-                    <Text strong style={{ display: 'block', color: '#102a43' }}>支付方式</Text>
+                    <Text strong style={{ display: 'block', color: '#2a2218' }}>支付方式</Text>
                     <Text type="secondary">当前支持 Stripe Checkout、微信 Native、支付宝 Page Pay 和本地 Mock 测试。</Text>
                   </div>
                 </Space>
@@ -244,26 +244,28 @@ export const Pricing = () => {
                 </Space>
               </Card>
 
-              <Card className="side-rail-card pricing-side-card">
+              <Card className="side-rail-card pricing-side-card pricing-orders-card">
                 <Title level={4} style={{ marginTop: 0 }}>最近订单</Title>
                 {isAuthenticated ? (
-                  <List
-                    dataSource={orders}
-                    locale={{ emptyText: '还没有订单记录' }}
-                    renderItem={(item) => (
-                      <List.Item style={{ paddingLeft: 0, paddingRight: 0 }}>
-                        <List.Item.Meta
-                          title={<span style={{ fontWeight: 600 }}>{item.planName}</span>}
-                          description={
-                            <Space direction="vertical" size={2}>
-                              <Text type="secondary">{priceLabel(item.amount)} · {item.billingCycle === 'yearly' ? '年付' : '月付'}</Text>
-                              <Text type="secondary">{item.status === 'paid' ? '已支付' : '待支付'} · {new Date(item.createdAt).toLocaleDateString('zh-CN')}</Text>
-                            </Space>
-                          }
-                        />
-                      </List.Item>
-                    )}
-                  />
+                  <div className="pricing-orders-scroll">
+                    <List
+                      dataSource={orders}
+                      locale={{ emptyText: '还没有订单记录' }}
+                      renderItem={(item) => (
+                        <List.Item style={{ paddingLeft: 0, paddingRight: 0 }}>
+                          <List.Item.Meta
+                            title={<span style={{ fontWeight: 600 }}>{item.planName}</span>}
+                            description={
+                              <Space direction="vertical" size={2}>
+                                <Text type="secondary">{priceLabel(item.amount)} · {item.billingCycle === 'yearly' ? '年付' : '月付'}</Text>
+                                <Text type="secondary">{item.status === 'paid' ? '已支付' : '待支付'} · {new Date(item.createdAt).toLocaleDateString('zh-CN')}</Text>
+                              </Space>
+                            }
+                          />
+                        </List.Item>
+                      )}
+                    />
+                  </div>
                 ) : (
                   <Text type="secondary">登录后可查看你的购买记录和当前会员状态。</Text>
                 )}
