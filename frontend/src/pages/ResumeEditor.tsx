@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Layout, Card, Tabs, Button, Space, message, Dropdown, Spin, Badge, Tag } from 'antd';
+import { Layout, Card, Tabs, Button, Space, message, Dropdown, Spin, Tag, Segmented } from 'antd';
 import { DownloadOutlined, EyeOutlined, MoreOutlined, ArrowLeftOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import PersonalInfoForm from '@/components/resume/PersonalInfoForm';
 import WorkExperienceSection from '@/components/resume/WorkExperienceSection';
@@ -16,11 +16,12 @@ import ResumePreview from '@/components/resume/ResumePreview';
 import { usePDFExport } from '@/hooks/usePDFExport';
 import { useResumeStore } from '@/store/resumeStore';
 import type { Resume } from '@/types/resume.types';
+import { TEMPLATE_NAMES } from '@/utils/constants';
 import type { MenuProps } from 'antd';
 import { useTranslation } from 'react-i18next';
+import '@/components/resume/ResumeWorkspace.css';
 
 const { Content, Sider } = Layout;
-
 export const ResumeEditor = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -29,29 +30,26 @@ export const ResumeEditor = () => {
   const [resume, setResume] = useState<Resume | null>(null);
   const [activeTab, setActiveTab] = useState('personal');
   const [previewVisible, setPreviewVisible] = useState(true);
-  const [previewWidth, setPreviewWidth] = useState(560);
+  const [previewWidth, setPreviewWidth] = useState(620);
   const [previewTemplateId, setPreviewTemplateId] = useState<number | null>(null);
+  const [previewFitMode, setPreviewFitMode] = useState<'a4' | 'screen'>('screen');
   const [pdfTemplate, setPdfTemplate] = useState<'classic' | 'modern' | 'minimal'>('classic');
   const { generatePDF, previewPDF, isGenerating, exportMode, switchExportMode } = usePDFExport();
   const resizeStateRef = useRef<{ startX: number; startWidth: number } | null>(null);
 
-  // Load resume on mount
   useEffect(() => {
     if (id) {
       fetchResume(Number(id))
-        .then(() => {
-          if (currentResume) {
-            setResume(currentResume);
-          }
+        .then((loadedResume) => {
+          setResume(loadedResume);
         })
         .catch((error) => {
           message.error(t('resumeEditor.loadFailed', { message: error.message }));
           navigate('/dashboard');
         });
     }
-  }, [id, fetchResume, navigate]);
+  }, [id, fetchResume, navigate, t]);
 
-  // Update local state when currentResume changes
   useEffect(() => {
     if (currentResume && currentResume.id === Number(id)) {
       setResume(currentResume);
@@ -76,7 +74,7 @@ export const ResumeEditor = () => {
     const handleMouseMove = (event: MouseEvent) => {
       if (!resizeStateRef.current) return;
       const delta = resizeStateRef.current.startX - event.clientX;
-      setPreviewWidth(Math.max(420, Math.min(980, resizeStateRef.current.startWidth + delta)));
+      setPreviewWidth(Math.max(460, Math.min(1020, resizeStateRef.current.startWidth + delta)));
     };
 
     const handleMouseUp = () => {
@@ -101,6 +99,8 @@ export const ResumeEditor = () => {
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
   };
+
+  const effectivePreviewWidth = previewFitMode === 'a4' ? 860 : previewWidth;
 
   const modeLabel = exportMode === 'html2canvas'
     ? t('resumeEditor.export.modeHtml2canvasShort')
@@ -187,53 +187,23 @@ export const ResumeEditor = () => {
   ];
 
   const updatePersonalInfo = (data: any) => {
-    setResume((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        personalInfo: { ...prev.personalInfo!, ...data },
-      };
-    });
+    setResume((prev) => (prev ? { ...prev, personalInfo: { ...prev.personalInfo!, ...data } } : prev));
   };
 
   const updateWorkExperiences = (data: any[]) => {
-    setResume((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        workExperiences: data,
-      };
-    });
+    setResume((prev) => (prev ? { ...prev, workExperiences: data } : prev));
   };
 
   const updateEducation = (data: any[]) => {
-    setResume((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        education: data,
-      };
-    });
+    setResume((prev) => (prev ? { ...prev, education: data } : prev));
   };
 
   const updateSkills = (data: any[]) => {
-    setResume((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        skills: data,
-      };
-    });
+    setResume((prev) => (prev ? { ...prev, skills: data } : prev));
   };
 
   const updateProjects = (data: any[]) => {
-    setResume((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        projects: data,
-      };
-    });
+    setResume((prev) => (prev ? { ...prev, projects: data } : prev));
   };
 
   const updateCertifications = (data: any[]) => {
@@ -260,96 +230,54 @@ export const ResumeEditor = () => {
     );
   }
 
+  const currentTemplateName = TEMPLATE_NAMES[resume.templateId] || 'Template';
+  const previewTemplateName = previewTemplateId ? TEMPLATE_NAMES[previewTemplateId] : currentTemplateName;
+
   const tabItems = [
     {
       key: 'personal',
       label: t('resumeEditor.tabs.personal'),
-      children: (
-        <PersonalInfoForm
-          data={resume.personalInfo}
-          onChange={updatePersonalInfo}
-        />
-      ),
+      children: <PersonalInfoForm data={resume.personalInfo} onChange={updatePersonalInfo} />,
     },
     {
       key: 'experience',
       label: t('resumeEditor.tabs.experience'),
-      children: (
-        <WorkExperienceSection
-          data={resume.workExperiences || []}
-          onChange={updateWorkExperiences}
-        />
-      ),
+      children: <WorkExperienceSection data={resume.workExperiences || []} onChange={updateWorkExperiences} />,
     },
     {
       key: 'education',
       label: t('resumeEditor.tabs.education'),
-      children: (
-        <EducationSection
-          data={resume.education || []}
-          onChange={updateEducation}
-        />
-      ),
+      children: <EducationSection data={resume.education || []} onChange={updateEducation} />,
     },
     {
       key: 'skills',
       label: t('resumeEditor.tabs.skills'),
-      children: (
-        <SkillsSection
-          data={resume.skills || []}
-          onChange={updateSkills}
-        />
-      ),
+      children: <SkillsSection data={resume.skills || []} onChange={updateSkills} />,
     },
     {
       key: 'projects',
       label: t('resumeEditor.tabs.projects'),
-      children: (
-        <ProjectsSection
-          data={resume.projects || []}
-          onChange={updateProjects}
-        />
-      ),
+      children: <ProjectsSection data={resume.projects || []} onChange={updateProjects} />,
     },
     {
       key: 'certifications',
       label: '证书',
-      children: (
-        <CertificationsSection
-          data={resume.certifications || []}
-          onChange={updateCertifications}
-        />
-      ),
+      children: <CertificationsSection data={resume.certifications || []} onChange={updateCertifications} />,
     },
     {
       key: 'languages',
       label: '语言',
-      children: (
-        <LanguagesSection
-          data={resume.languages || []}
-          onChange={updateLanguages}
-        />
-      ),
+      children: <LanguagesSection data={resume.languages || []} onChange={updateLanguages} />,
     },
     {
       key: 'awards',
       label: '奖项',
-      children: (
-        <AwardsSection
-          data={resume.awards || []}
-          onChange={updateAwards}
-        />
-      ),
+      children: <AwardsSection data={resume.awards || []} onChange={updateAwards} />,
     },
     {
       key: 'custom',
       label: '自定义模块',
-      children: (
-        <CustomSectionsSection
-          data={resume.customSections || []}
-          onChange={updateCustomSections}
-        />
-      ),
+      children: <CustomSectionsSection data={resume.customSections || []} onChange={updateCustomSections} />,
     },
     {
       key: 'layout',
@@ -366,99 +294,89 @@ export const ResumeEditor = () => {
   ];
 
   return (
-    <Layout style={{ minHeight: 'calc(100vh - 64px)', background: '#f0f2f5' }}>
-      {/* 左侧编辑区 */}
-      <Content style={{ padding: '16px', overflow: 'auto' }}>
+    <Layout className="resume-editor-layout">
+      <Content className="resume-editor-content">
         <Card
+          className="resume-editor-shell"
           title={
-            <Space>
-              <Button
-                icon={<ArrowLeftOutlined />}
-                onClick={() => navigate('/dashboard')}
-              />
-              <span>{resume.title}</span>
-              <Badge
-                status="success"
-                text={
-                  <span style={{ fontSize: '12px', color: '#52c41a' }}>
-                    <CheckCircleOutlined /> {t('resumeEditor.autoSave')}
-                  </span>
-                }
-              />
-            </Space>
+            <div className="resume-editor-titlebar">
+              <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/dashboard')} />
+              <div className="resume-editor-title">
+                <strong>{resume.title}</strong>
+                <span>
+                  {resume.versionLabel || '当前编辑版本'}
+                  {resume.targetRole ? ` · ${resume.targetRole}` : ''}
+                </span>
+              </div>
+              <span className="resume-editor-status">
+                <CheckCircleOutlined />
+                {t('resumeEditor.autoSave')}
+              </span>
+            </div>
           }
           extra={
-            <Space>
+            <Space wrap>
               <Tag color={exportMode === 'html2canvas' ? 'green' : 'blue'}>
-                {exportMode === 'html2canvas' ? 'HTML' : 'PDF'}
+                {exportMode === 'html2canvas' ? 'HTML 预览导出' : 'React PDF'}
               </Tag>
-              <Button
-                icon={<EyeOutlined />}
-                onClick={() => setPreviewVisible(!previewVisible)}
-              >
+              {previewVisible && (
+                <Segmented
+                  size="middle"
+                  value={previewFitMode}
+                  onChange={(value) => setPreviewFitMode(value as 'a4' | 'screen')}
+                  options={[
+                    { label: '适配 A4', value: 'a4' },
+                    { label: '适配屏幕', value: 'screen' },
+                  ]}
+                />
+              )}
+              <Button icon={<EyeOutlined />} onClick={() => setPreviewVisible(!previewVisible)}>
                 {previewVisible ? t('resumeEditor.hidePreview') : t('resumeEditor.showPreview')}
               </Button>
               <Dropdown menu={{ items: exportMenuItems }} placement="bottomRight">
-                <Button
-                  icon={<DownloadOutlined />}
-                  loading={isGenerating}
-                  type="primary"
-                >
+                <Button icon={<DownloadOutlined />} loading={isGenerating} type="primary">
                   {t('resumeEditor.export.button')} <MoreOutlined />
                 </Button>
               </Dropdown>
             </Space>
           }
         >
-          <Tabs
-            activeKey={activeTab}
-            onChange={setActiveTab}
-            items={tabItems}
-            size="large"
-          />
+          <Tabs className="resume-editor-tabs" activeKey={activeTab} onChange={setActiveTab} items={tabItems} size="large" />
         </Card>
       </Content>
 
-      {/* 右侧预览区 */}
       {previewVisible && (
         <>
           <div
-            onMouseDown={startResize}
+            onMouseDown={previewFitMode === 'screen' ? startResize : undefined}
+            className="resume-preview-handle"
             style={{
-              width: 14,
-              cursor: 'col-resize',
-              position: 'relative',
-              background: 'transparent',
-              flex: '0 0 14px',
+              cursor: previewFitMode === 'screen' ? 'col-resize' : 'default',
+              opacity: previewFitMode === 'screen' ? 1 : 0.45,
+              pointerEvents: previewFitMode === 'screen' ? 'auto' : 'none',
             }}
             title="拖拽调整预览宽度"
           >
-            <div
-              style={{
-                position: 'absolute',
-                left: 5,
-                top: 24,
-                bottom: 24,
-                width: 4,
-                borderRadius: 999,
-                background: '#cbd5e1',
-              }}
-            />
+            <div className="resume-preview-handle-line" />
           </div>
-          <Sider
-            width={previewWidth}
-            style={{
-              background: '#fff',
-              overflow: 'auto',
-              height: 'calc(100vh - 64px)',
-              position: 'sticky',
-              top: 64,
-              right: 0,
-              borderLeft: '1px solid #f0f0f0',
-              maxWidth: '75vw',
-            }}
-          >
-            <ResumePreview resume={{ ...resume, templateId: previewTemplateId ?? resume.templateId }} />
+          <Sider width={effectivePreviewWidth} className="resume-preview-sider">
+            <div className="resume-preview-toolbar">
+              <div className="resume-preview-toolbar-title">
+                <strong>{previewTemplateName} 预览</strong>
+                <span>
+                  {previewTemplateId && previewTemplateId !== resume.templateId
+                    ? `正在预览未应用模板，当前保存模板为 ${currentTemplateName}`
+                    : `当前模板：${currentTemplateName}`}
+                </span>
+              </div>
+              <Space size={[8, 8]} wrap>
+                <Tag color="blue">{previewFitMode === 'a4' ? 'A4 视图' : '屏幕视图'}</Tag>
+                {previewTemplateId && previewTemplateId !== resume.templateId && <Tag color="processing">临时预览</Tag>}
+              </Space>
+            </div>
+            <div className="resume-preview-stage">
+              <ResumePreview resume={{ ...resume, templateId: previewTemplateId ?? resume.templateId }} />
+            </div>
           </Sider>
         </>
       )}

@@ -1,6 +1,6 @@
 # Resume Backend API
 
-Go + Gin backend for the Resume Builder application.
+Go + Gin backend for the Resume Studio application.
 
 ## Prerequisites
 

@@ -15,7 +15,6 @@ import {
   Spin,
   Progress,
   Tag,
-  Statistic,
   Divider,
   List,
 } from 'antd';
@@ -40,6 +39,7 @@ import { useTranslation } from 'react-i18next';
 import type { ApiError } from '@/types/api.types';
 import { openUpgradePrompt } from '@/utils/planMessages';
 import { TEMPLATE_NAMES } from '@/utils/constants';
+import './CommercialPages.css';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -48,21 +48,21 @@ const actionCards = [
     key: 'new',
     icon: <PlusOutlined />,
     title: '新建简历',
-    description: '从空白版本开始，快速创建新的投递版本',
+    description: '从空白版本开始，快速创建新的投递版本。',
     cta: '立即创建',
   },
   {
     key: 'optimize',
     icon: <ThunderboltOutlined />,
     title: 'AI 优化内容',
-    description: '把工作经历、项目亮点优化成更适合投递的表达',
+    description: '把工作经历和项目亮点改写成更适合投递的表达。',
     cta: '去优化',
   },
   {
     key: 'export',
     icon: <ExportOutlined />,
     title: '导出 PDF',
-    description: '导出你最近修改过的版本，用于投递或存档',
+    description: '导出最近版本，直接用于投递或发送给招聘方。',
     cta: '去导出',
   },
 ];
@@ -185,6 +185,11 @@ export const Dashboard = () => {
   const resumeLimit = user?.plan?.resumeLimit ?? 0;
   const aiLimit = user?.plan?.aiQuotaMonthly ?? 0;
   const aiUsed = user?.usage?.aiUsed ?? 0;
+  const remainingResumeCount = resumeLimit === 0 ? '不限' : Math.max(resumeLimit - resumes.length, 0);
+  const remainingAiCount = aiLimit === 0 ? '不限' : Math.max(aiLimit - aiUsed, 0);
+  const templateSummary = user?.plan?.templateLimit && user.plan.templateLimit >= 99
+    ? '全部模板'
+    : `${user?.plan?.templateLimit ?? 1} 个模板`;
 
   if (isLoading && resumes.length === 0) {
     return (
@@ -195,29 +200,20 @@ export const Dashboard = () => {
   }
 
   return (
-    <div style={{ maxWidth: 1320, margin: '0 auto' }}>
-      <Card
-        bordered={false}
-        style={{
-          marginBottom: 24,
-          borderRadius: 28,
-          background:
-            'radial-gradient(circle at top right, rgba(255,209,102,0.25), transparent 24%), linear-gradient(135deg, #102a43 0%, #16324f 46%, #1f6f78 100%)',
-          boxShadow: '0 30px 80px rgba(15, 23, 42, 0.18)',
-        }}
-        bodyStyle={{ padding: 30 }}
-      >
+    <div className="commerce-page">
+      <Card className="commerce-hero" bordered={false} style={{ marginBottom: 24 }}>
         <Row gutter={[24, 24]} align="middle">
           <Col xs={24} lg={15}>
             <Space direction="vertical" size={14} style={{ width: '100%' }}>
-              <Tag color="gold" style={{ width: 'fit-content', border: 'none', fontWeight: 600 }}>
-                {user?.plan?.name || '简历工作台'}
-              </Tag>
-              <Title level={1} style={{ color: '#fff', margin: 0, fontSize: 42, lineHeight: 1.05 }}>
-                把每一份简历都变成可复制、可升级、可投递的资产
+              <div className="commerce-hero-badge">
+                <StarOutlined />
+                {user?.plan?.name || '简历工坊工作台'}
+              </div>
+              <Title level={1} className="commerce-hero-title">
+                用一个工作台，持续打磨每一份更接近 Offer 的简历版本
               </Title>
-              <Paragraph style={{ color: 'rgba(255,255,255,0.78)', fontSize: 16, maxWidth: 720, marginBottom: 0 }}>
-                在这里管理模板、岗位版本、AI 优化和导出节奏。你的工作台不该只是一堆文件，而是一个持续提高投递效率的系统。
+              <Paragraph className="commerce-hero-copy">
+                在简历工坊里管理模板、岗位版本、AI 优化和导出节奏。这里不只是存放文件，而是把每一次修改都沉淀成可复用的投递资产。
               </Paragraph>
               <Space wrap size={[12, 12]}>
                 <Button
@@ -241,32 +237,58 @@ export const Dashboard = () => {
                   </Button>
                 )}
               </Space>
+              <div className="commerce-chip-row">
+                <div className="commerce-chip">
+                  <ProfileOutlined />
+                  可继续创建 <strong>{remainingResumeCount}</strong> 份版本
+                </div>
+                <div className="commerce-chip">
+                  <ThunderboltOutlined />
+                  本月剩余 <strong>{remainingAiCount}</strong> 次 AI
+                </div>
+                <div className="commerce-chip">
+                  <StarOutlined />
+                  当前可用 <strong>{templateSummary}</strong>
+                </div>
+              </div>
             </Space>
           </Col>
           <Col xs={24} lg={9}>
-            <Card bordered={false} style={{ borderRadius: 22, background: 'rgba(255,255,255,0.92)' }}>
+            <Card bordered={false} className="commerce-hero-panel">
               <Row gutter={[16, 16]}>
                 <Col span={12}>
-                  <Statistic title="已创建简历" value={resumes.length} prefix={<ProfileOutlined />} />
+                  <div className="commerce-metric-card">
+                    <span className="commerce-metric-label">已创建简历</span>
+                    <div className="commerce-metric-value">{resumes.length}</div>
+                  </div>
                 </Col>
                 <Col span={12}>
-                  <Statistic title="当前套餐" value={user?.plan?.name || '免费版'} prefix={<StarOutlined />} />
+                  <div className="commerce-metric-card">
+                    <span className="commerce-metric-label">当前套餐</span>
+                    <div className="commerce-metric-value" style={{ fontSize: 18 }}>
+                      {user?.plan?.name || '免费版'}
+                    </div>
+                  </div>
                 </Col>
                 <Col span={24}>
-                  <Text strong>简历额度</Text>
-                  <div style={{ marginTop: 8 }}>
-                    <Text>{resumes.length} / {resumeLimit === 0 ? '不限' : resumeLimit}</Text>
+                  <div className="commerce-meter">
+                    <div className="commerce-meter-top">
+                      <span className="commerce-meter-label">简历额度</span>
+                      <span className="commerce-meter-hint">{resumes.length} / {resumeLimit === 0 ? '不限' : resumeLimit}</span>
+                    </div>
                     {resumeLimit > 0 && (
-                      <Progress percent={Math.min(100, Math.round((resumes.length / resumeLimit) * 100))} showInfo={false} style={{ marginTop: 8 }} strokeColor="#0f6cbd" />
+                      <Progress percent={Math.min(100, Math.round((resumes.length / resumeLimit) * 100))} showInfo={false} strokeColor="#0f6cbd" />
                     )}
                   </div>
                 </Col>
                 <Col span={24}>
-                  <Text strong>本月 AI 用量</Text>
-                  <div style={{ marginTop: 8 }}>
-                    <Text>{aiUsed} / {aiLimit || '-'}</Text>
+                  <div className="commerce-meter">
+                    <div className="commerce-meter-top">
+                      <span className="commerce-meter-label">本月 AI 用量</span>
+                      <span className="commerce-meter-hint">{aiUsed} / {aiLimit || '-'}</span>
+                    </div>
                     {aiLimit > 0 && (
-                      <Progress percent={Math.min(100, Math.round((aiUsed / aiLimit) * 100))} showInfo={false} style={{ marginTop: 8 }} strokeColor="#1d8f6f" />
+                      <Progress percent={Math.min(100, Math.round((aiUsed / aiLimit) * 100))} showInfo={false} strokeColor="#1d8f6f" />
                     )}
                   </div>
                 </Col>
@@ -279,12 +301,8 @@ export const Dashboard = () => {
       <Row gutter={[20, 20]} style={{ marginBottom: 24 }}>
         {actionCards.map((item) => (
           <Col xs={24} md={8} key={item.key}>
-            <Card
-              hoverable
-              style={{ borderRadius: 22, minHeight: 220 }}
-              bodyStyle={{ padding: 24, display: 'flex', flexDirection: 'column', height: '100%' }}
-            >
-              <div style={{ width: 52, height: 52, borderRadius: 16, background: 'linear-gradient(135deg, #dbeafe 0%, #dcfce7 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#102a43', fontSize: 20, marginBottom: 18 }}>
+            <Card className="action-tile" hoverable>
+              <div className="action-tile-icon">
                 {item.icon}
               </div>
               <Title level={4} style={{ marginTop: 0 }}>{item.title}</Title>
@@ -296,8 +314,9 @@ export const Dashboard = () => {
                   type={item.key === 'new' ? 'primary' : 'default'}
                   onClick={() => {
                     if (item.key === 'new') setCreateModalOpen(true);
-                    if (item.key === 'optimize' && latestResume) navigate(`/editor/${latestResume.id}`);
-                    if (item.key === 'export' && latestResume) navigate(`/editor/${latestResume.id}`);
+                    if ((item.key === 'optimize' || item.key === 'export') && latestResume) {
+                      navigate(`/editor/${latestResume.id}`);
+                    }
                   }}
                   style={{ borderRadius: 12 }}
                 >
@@ -312,13 +331,20 @@ export const Dashboard = () => {
       <Row gutter={[20, 20]}>
         <Col xs={24} xl={17}>
           <Card
-            title={<span style={{ fontWeight: 700, fontSize: 20 }}>我的简历版本</span>}
+            className="workspace-panel"
+            title={
+              <div className="workspace-panel-header">
+                <div>
+                  <Title level={3} className="workspace-panel-title">我的简历版本</Title>
+                  <Text className="workspace-panel-subtitle">围绕目标岗位持续复制、优化和导出不同版本。</Text>
+                </div>
+              </div>
+            }
             extra={
               <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalOpen(true)}>
                 新建版本
               </Button>
             }
-            style={{ borderRadius: 24 }}
             bodyStyle={{ paddingTop: 12 }}
           >
             {resumes.length === 0 ? (
@@ -329,7 +355,7 @@ export const Dashboard = () => {
                     <Space direction="vertical">
                       <Text style={{ fontSize: 16, fontWeight: 600 }}>你的工作台还没有简历版本</Text>
                       <Text type="secondary" style={{ maxWidth: 460 }}>
-                        从一个基础版本开始，然后为不同岗位复制出专门版本，再用 AI 和模板把它们完善成可投递状态。
+                        先创建一份母版，再为不同岗位复制出专门版本，最后用 AI 和模板把它们完善成可投递状态。
                       </Text>
                     </Space>
                   }
@@ -338,11 +364,13 @@ export const Dashboard = () => {
                     <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalOpen(true)}>
                       创建第一份简历
                     </Button>
-                    <Button onClick={() => Modal.info({
-                      title: '前往会员中心',
-                      content: '你可以在会员中心查看套餐并完成高级会员购买。',
-                      onOk: () => navigate('/pricing'),
-                    })}>
+                    <Button
+                      onClick={() => Modal.info({
+                        title: '前往会员中心',
+                        content: '你可以在会员中心查看套餐并完成高级会员购买。',
+                        onOk: () => navigate('/pricing'),
+                      })}
+                    >
                       查看套餐差异
                     </Button>
                   </Space>
@@ -353,9 +381,10 @@ export const Dashboard = () => {
                 {resumes.map((resume) => (
                   <Col xs={24} md={12} xxl={8} key={resume.id}>
                     <Card
+                      className="resume-grid-card"
                       hoverable
                       onClick={() => navigate(`/editor/${resume.id}`)}
-                      style={{ borderRadius: 20, minHeight: 250 }}
+                      style={{ minHeight: 250 }}
                       bodyStyle={{ padding: 20 }}
                       actions={[
                         <Dropdown
@@ -371,8 +400,8 @@ export const Dashboard = () => {
                         </Dropdown>,
                       ]}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
-                        <div style={{ width: 56, height: 56, borderRadius: 18, background: 'linear-gradient(135deg, #eff6ff 0%, #fef3c7 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div className="resume-card-top">
+                        <div className="resume-card-icon">
                           <FileTextOutlined style={{ fontSize: 24, color: '#0f6cbd' }} />
                         </div>
                         <Tag color="blue">{TEMPLATE_NAMES[resume.templateId] || 'Template'}</Tag>
@@ -389,7 +418,7 @@ export const Dashboard = () => {
                         {formatRelativeTime(resume.updatedAt)}
                       </Text>
                       <Divider style={{ margin: '12px 0' }} />
-                      <Space direction="vertical" size={6} style={{ width: '100%' }}>
+                      <Space direction="vertical" size={6} style={{ width: '100%' }} className="resume-card-footer">
                         <Text style={{ color: '#475569' }}>适合继续做什么</Text>
                         <Text type="secondary">优化描述、调整模板、导出投递版 PDF</Text>
                       </Space>
@@ -403,17 +432,15 @@ export const Dashboard = () => {
 
         <Col xs={24} xl={7}>
           <Space direction="vertical" size="large" style={{ width: '100%' }}>
-            <Card style={{ borderRadius: 24 }}>
+            <Card className="side-rail-card">
               <Title level={4} style={{ marginTop: 0 }}>升级路线</Title>
               <List
                 dataSource={planComparisons}
                 renderItem={(item) => (
-                  <List.Item style={{ paddingLeft: 0, paddingRight: 0 }}>
-                    <List.Item.Meta
-                      title={<span style={{ fontWeight: 700 }}>{item.plan}</span>}
-                      description={<span style={{ color: '#64748b', lineHeight: 1.7 }}>{item.points}</span>}
-                    />
-                  </List.Item>
+                  <div className="plan-list-item">
+                    <Text style={{ display: 'block', fontWeight: 700, color: '#102a43' }}>{item.plan}</Text>
+                    <Text style={{ color: '#64748b', lineHeight: 1.7 }}>{item.points}</Text>
+                  </div>
                 )}
               />
               <Button
@@ -422,11 +449,11 @@ export const Dashboard = () => {
                 style={{ marginTop: 8, borderRadius: 12 }}
                 onClick={() => navigate('/pricing')}
               >
-                购买会员
+                前往会员中心
               </Button>
             </Card>
 
-            <Card style={{ borderRadius: 24, background: 'linear-gradient(180deg, #f8fafc 0%, #eef6ff 100%)' }}>
+            <Card className="side-rail-card side-rail-card--accent">
               <Title level={4} style={{ marginTop: 0 }}>下一步建议</Title>
               <Space direction="vertical" size={14} style={{ width: '100%' }}>
                 <div>
@@ -444,7 +471,7 @@ export const Dashboard = () => {
                 <div>
                   <Text strong>3. 导出前最后做一轮 AI 优化</Text>
                   <Text type="secondary" style={{ display: 'block', marginTop: 4 }}>
-                    特别是工作成果和项目描述，最影响转化。
+                    特别是工作成果和项目描述，最影响投递转化。
                   </Text>
                 </div>
               </Space>

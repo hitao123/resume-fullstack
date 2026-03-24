@@ -1,4 +1,4 @@
-# Online Resume Editor
+# Resume Studio
 
 一个现代化的全栈在线简历编辑器，支持实时预览、富文本编辑、AI 智能辅助、OAuth 三方登录和多种 PDF 导出方式。
 

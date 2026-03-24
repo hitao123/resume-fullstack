@@ -10,7 +10,7 @@ interface ResumeState {
 
   // Actions
   fetchResumes: () => Promise<void>;
-  fetchResume: (id: number) => Promise<void>;
+  fetchResume: (id: number) => Promise<Resume>;
   createResume: (title: string, templateId?: number, versionLabel?: string, targetRole?: string) => Promise<Resume>;
   updateResume: (id: number, data: { title?: string; templateId?: number; versionLabel?: string; targetRole?: string; sectionConfig?: Resume['sectionConfig'] }) => Promise<void>;
   deleteResume: (id: number) => Promise<void>;
@@ -44,6 +44,7 @@ export const useResumeStore = create<ResumeState>((set) => ({
     try {
       const resume = await resumeService.getResume(id);
       set({ currentResume: resume, isLoading: false });
+      return resume;
     } catch (error: any) {
       set({
         error: error.message || 'Failed to fetch resume',

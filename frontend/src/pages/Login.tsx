@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useTranslation } from 'react-i18next';
 import LandingLayout from '@/components/landing/LandingLayout';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
+import './CommercialPages.css';
 
 const { Title, Text } = Typography;
 
@@ -43,30 +44,36 @@ export const Login = () => {
 
   return (
     <LandingLayout>
-      <div style={{ marginBottom: 28 }}>
+      <div className="auth-intro">
         <Space direction="vertical" size={10} style={{ width: '100%' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 12px', borderRadius: 999, background: 'rgba(22, 50, 79, 0.08)', color: '#16324f', fontSize: 12, fontWeight: 600, width: 'fit-content' }}>
+          <div className="auth-eyebrow">
             <ThunderboltFilled />
-            AI 简历工作台
+            Resume Studio 工作台
           </div>
-          <Title level={1} style={{ margin: 0, fontSize: 36, lineHeight: 1.15, color: '#0f172a' }}>
-            登录后继续打磨你的下一份 Offer 简历
+          <Title level={1} className="auth-title">
+            登录后继续把你的下一份简历，打磨成真正可投递的版本
           </Title>
-          <Text style={{ color: '#516074', fontSize: 15, lineHeight: 1.7 }}>
-            从模板选择、岗位多版本到 AI 优化和 PDF 导出，所有进度都会保存在你的工作台里。
+          <Text className="auth-copy">
+            从模板选择、岗位多版本到 AI 优化和 PDF 导出，所有进度都会保存在你的简历工坊工作台里。
           </Text>
         </Space>
+        <div className="auth-stats">
+          <div className="auth-stat">
+            <span className="auth-stat-value">1 个</span>
+            <span className="auth-stat-label">统一工作台</span>
+          </div>
+          <div className="auth-stat">
+            <span className="auth-stat-value">3 档</span>
+            <span className="auth-stat-label">成长型套餐</span>
+          </div>
+          <div className="auth-stat">
+            <span className="auth-stat-value">多版本</span>
+            <span className="auth-stat-label">岗位定制能力</span>
+          </div>
+        </div>
       </div>
 
-      <Card
-        bordered={false}
-        style={{
-          borderRadius: 24,
-          boxShadow: '0 24px 60px rgba(15, 23, 42, 0.12)',
-          background: 'linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)',
-        }}
-        bodyStyle={{ padding: 24 }}
-      >
+      <Card className="auth-form-card" bordered={false}>
         <Form name="login" onFinish={onFinish} autoComplete="off" layout="vertical">
           <Form.Item
             name="email"
@@ -137,10 +144,10 @@ export const Login = () => {
         <SocialLoginButtons />
       </Card>
 
-      <Row gutter={[14, 14]} style={{ marginTop: 18 }}>
+      <Row gutter={[14, 14]} className="auth-list">
         {outcomeHighlights.map((item) => (
           <Col span={24} key={item}>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', color: '#334155', fontSize: 14 }}>
+            <div className="auth-list-item">
               <CheckCircleFilled style={{ color: '#1d8f6f', marginTop: 3 }} />
               <span>{item}</span>
             </div>
@@ -148,17 +155,13 @@ export const Login = () => {
         ))}
       </Row>
 
-      <Card
-        bordered={false}
-        style={{ marginTop: 22, borderRadius: 24, background: '#0f172a', color: '#fff' }}
-        bodyStyle={{ padding: 22 }}
-      >
+      <Card className="auth-plan-card" bordered={false} style={{ background: '#0f172a', color: '#fff' }}>
         <Title level={4} style={{ color: '#fff', marginTop: 0, marginBottom: 14 }}>
           登录后你会立即看到
         </Title>
         <Space direction="vertical" size={12} style={{ width: '100%' }}>
           {planHighlights.map((item) => (
-            <div key={item.name} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 10, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+            <div key={item.name} className="auth-plan-row">
               <Text style={{ color: '#fff', fontWeight: 600 }}>{item.name}</Text>
               <Text style={{ color: 'rgba(255,255,255,0.72)', textAlign: 'right' }}>{item.detail}</Text>
             </div>

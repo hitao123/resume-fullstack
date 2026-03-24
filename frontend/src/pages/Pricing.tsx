@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Card, Col, Modal, Row, Segmented, Space, Spin, Tag, Typography, message, List, Radio } from 'antd';
-import { CheckCircleFilled, CrownFilled, RocketFilled } from '@ant-design/icons';
+import { CheckCircleFilled, CrownFilled, RocketFilled, SafetyCertificateOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import billingService from '@/services/billingService';
 import type { BillingOrder, BillingPlan } from '@/types/billing.types';
 import { useAuthStore } from '@/store/authStore';
+import './CommercialPages.css';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -109,28 +110,20 @@ export const Pricing = () => {
   };
 
   return (
-    <div style={{ maxWidth: 1240, margin: '0 auto' }}>
-      <Card
-        bordered={false}
-        style={{
-          marginBottom: 24,
-          borderRadius: 28,
-          background: 'linear-gradient(135deg, #102a43 0%, #16324f 45%, #1d8f6f 100%)',
-          boxShadow: '0 30px 80px rgba(15, 23, 42, 0.18)',
-        }}
-        bodyStyle={{ padding: 32 }}
-      >
+    <div className="pricing-shell">
+      <Card className="commerce-hero" bordered={false} style={{ marginBottom: 24 }}>
         <Space direction="vertical" size={14} style={{ width: '100%' }}>
-          <Tag color="gold" style={{ width: 'fit-content', border: 'none' }}>
-            会员中心
-          </Tag>
-          <Title level={1} style={{ color: '#fff', margin: 0, fontSize: 42, lineHeight: 1.08 }}>
-            购买高级会员，把简历工作台升级成完整的求职系统
+          <div className="commerce-hero-badge">
+            <SafetyCertificateOutlined />
+            简历工坊会员中心
+          </div>
+          <Title level={1} className="commerce-hero-title">
+            选择适合你的会员方案，把简历制作升级成稳定的求职系统
           </Title>
-          <Paragraph style={{ color: 'rgba(255,255,255,0.78)', maxWidth: 760, marginBottom: 0, fontSize: 16 }}>
-            当前实现的是可跑通的支付闭环：下单、模拟支付、升级套餐、立即刷新账号状态。后续可以再接真实微信支付或 Stripe。
+          <Paragraph className="commerce-hero-copy">
+            根据你的投递密度选择不同层级的模板、AI 配额和导出能力。升级后会立即刷新账号状态，继续在当前工作台里完成求职流程。
           </Paragraph>
-          <Space wrap>
+          <div className="pricing-topbar">
             <Segmented
               value={billingCycle}
               onChange={(value) => setBillingCycle(value as 'monthly' | 'yearly')}
@@ -152,7 +145,7 @@ export const Pricing = () => {
               ]}
             />
             {user?.plan && <Tag color="blue">当前套餐：{user.plan.name}</Tag>}
-          </Space>
+          </div>
         </Space>
       </Card>
 
@@ -167,40 +160,36 @@ export const Pricing = () => {
               {sortedPlans.map((plan) => {
                 const isCurrent = user?.plan?.code === plan.code;
                 const isPopular = plan.code === 'PRO';
-                const icon = plan.code === 'FREE' ? <RocketFilled /> : plan.code === 'STARTER' ? <CheckCircleFilled /> : <CrownFilled />;
                 const amount = billingCycle === 'yearly' ? plan.priceYearly : plan.priceMonthly;
+                const icon = plan.code === 'FREE'
+                  ? <RocketFilled />
+                  : plan.code === 'STARTER'
+                    ? <CheckCircleFilled />
+                    : <CrownFilled />;
 
                 return (
                   <Col xs={24} md={12} xxl={8} key={plan.code}>
-                    <Card
-                      bordered={false}
-                      style={{
-                        borderRadius: 24,
-                        minHeight: 540,
-                        boxShadow: isPopular ? '0 24px 60px rgba(15, 23, 42, 0.16)' : '0 12px 32px rgba(15, 23, 42, 0.08)',
-                        background: isPopular ? 'linear-gradient(180deg, #fef7e8 0%, #ffffff 35%)' : '#fff',
-                        border: isPopular ? '1px solid #f59e0b' : '1px solid #edf2f7',
-                      }}
-                      bodyStyle={{ padding: 24, display: 'flex', flexDirection: 'column', height: '100%' }}
-                    >
+                    <Card className={`pricing-card ${isPopular ? 'pricing-card--featured' : ''}`} bordered={false}>
                       <Space direction="vertical" size={12} style={{ width: '100%' }}>
-                        <Space align="center">
-                          <div style={{ width: 48, height: 48, borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isPopular ? '#fff3c4' : '#eef6ff', color: isPopular ? '#b45309' : '#0f6cbd', fontSize: 20 }}>
+                        <div className="pricing-card-header">
+                          <div className={`pricing-icon ${isPopular ? 'pricing-icon--featured' : 'pricing-icon--default'}`}>
                             {icon}
                           </div>
                           <div>
                             <Title level={3} style={{ margin: 0 }}>{plan.name}</Title>
-                            {isPopular && <Tag color="gold">推荐购买</Tag>}
-                            {isCurrent && <Tag color="blue">当前套餐</Tag>}
+                            <Space size={[8, 8]} wrap style={{ marginTop: 6 }}>
+                              {isPopular && <Tag color="gold">推荐购买</Tag>}
+                              {isCurrent && <Tag color="blue">当前套餐</Tag>}
+                            </Space>
                           </div>
-                        </Space>
+                        </div>
                         <div>
                           <Title level={2} style={{ marginBottom: 0 }}>{amount === 0 ? '免费' : priceLabel(amount)}</Title>
                           <Text type="secondary">{amount === 0 ? '立即开始体验' : billingCycle === 'yearly' ? '按年结算' : '按月结算'}</Text>
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 10 }}>
+                        <div className="pricing-feature-list">
                           {featureList(plan).map((item) => (
-                            <div key={item} style={{ display: 'flex', gap: 10 }}>
+                            <div key={item} className="pricing-feature-item">
                               <CheckCircleFilled style={{ color: '#1d8f6f', marginTop: 3 }} />
                               <Text style={{ color: '#334155' }}>{item}</Text>
                             </div>
@@ -229,31 +218,33 @@ export const Pricing = () => {
 
           <Col xs={24} xl={7}>
             <Space direction="vertical" size="large" style={{ width: '100%' }}>
-              <Card style={{ borderRadius: 24 }}>
+              <Card className="side-rail-card pricing-side-card">
                 <Title level={4} style={{ marginTop: 0 }}>当前账号状态</Title>
-                <Space direction="vertical" size={10} style={{ width: '100%' }}>
-                  <div>
-                    <Text strong>当前套餐</Text>
-                    <div style={{ marginTop: 4 }}>
-                      <Tag color="blue">{user?.plan?.name || '未登录'}</Tag>
-                    </div>
+                <Space direction="vertical" size={14} style={{ width: '100%' }}>
+                  <div className="pricing-provider-note">
+                    <Text strong style={{ display: 'block', color: '#102a43' }}>当前套餐</Text>
+                    <Text type="secondary">{user?.plan?.name || '未登录'}</Text>
                   </div>
-                  <div>
-                    <Text strong>AI 配额</Text>
-                    <div style={{ marginTop: 4 }}>
-                      <Text type="secondary">{user?.usage?.aiUsed ?? 0} / {user?.plan?.aiQuotaMonthly ?? '-'}</Text>
-                    </div>
+                  <div className="pricing-provider-note">
+                    <Text strong style={{ display: 'block', color: '#102a43' }}>AI 用量</Text>
+                    <Text type="secondary">{user?.usage?.aiUsed ?? 0} / {user?.plan?.aiQuotaMonthly ?? '-'}</Text>
                   </div>
-                  <div>
-                    <Text strong>升级后会立即生效</Text>
-                    <div style={{ marginTop: 4 }}>
-                      <Text type="secondary">支付完成后会直接刷新当前账号套餐和可用权益。</Text>
-                    </div>
+                  <div className="pricing-provider-note">
+                    <Text strong style={{ display: 'block', color: '#102a43' }}>支付方式</Text>
+                    <Text type="secondary">当前支持 Stripe Checkout、微信 Native、支付宝 Page Pay 和本地 Mock 测试。</Text>
                   </div>
                 </Space>
               </Card>
 
-              <Card style={{ borderRadius: 24 }}>
+              <Card className="side-rail-card side-rail-card--accent pricing-side-card">
+                <Title level={4} style={{ marginTop: 0 }}>购买说明</Title>
+                <Space direction="vertical" size={12} style={{ width: '100%' }}>
+                  <Text type="secondary">升级后会立即生效，当前账号的套餐状态和权益会同步刷新。</Text>
+                  <Text type="secondary">如果你暂时只想体验流程，可以先选择 Mock 支付完成本地验证。</Text>
+                </Space>
+              </Card>
+
+              <Card className="side-rail-card pricing-side-card">
                 <Title level={4} style={{ marginTop: 0 }}>最近订单</Title>
                 {isAuthenticated ? (
                   <List

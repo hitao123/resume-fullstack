@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Resume Builder",
+    "appName": "Resume Studio",
     "language": "Language",
     "chinese": "中文",
     "english": "English"
@@ -54,7 +54,7 @@
   "landing": {
     "hero": {
       "title": "Build Professional Resumes with AI, Land Your Dream Job",
-      "subtitle": "AI-powered resume builder that helps you create professional, elegant resumes in minutes — from template selection to content writing, with intelligent assistance every step of the way.",
+      "subtitle": "Resume Studio is an AI-powered resume workspace that helps you create professional, elegant resumes in minutes, from template selection to content writing with intelligent assistance every step of the way.",
       "aiWriting": "AI-powered writing, generate professional content in one click",
       "fastCreate": "Create in minutes, switch between multiple templates",
       "pdfExport": "Export high-quality PDF, ready to submit anytime"

@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "简历生成器",
+    "appName": "简历工坊",
     "language": "语言",
     "chinese": "中文",
     "english": "English"
@@ -54,7 +54,7 @@
   "landing": {
     "hero": {
       "title": "用 AI 打造专业简历，轻松拿下心仪 Offer",
-      "subtitle": "AI 驱动的简历生成器，帮你快速创建专业、优雅的简历，从模板选择到内容撰写，全程智能辅助。",
+      "subtitle": "简历工坊是一款 AI 驱动的简历工作台，帮你快速创建专业、优雅的简历，从模板选择到内容撰写，全程智能辅助。",
       "aiWriting": "AI 智能写作，一键生成专业内容",
       "fastCreate": "分钟级创建，多模板随心切换",
       "pdfExport": "一键导出高质量 PDF，随时投递"

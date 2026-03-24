@@ -7,11 +7,12 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import LandingLayout from '@/components/landing/LandingLayout';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
+import './CommercialPages.css';
 
 const { Title, Text } = Typography;
 
 const benefits = [
-  '注册后自动创建一份默认简历',
+  '注册后就能开始整理你的第一份基础母版',
   '立即体验模板、AI 优化与导出流程',
   '后续可升级解锁更多模板与岗位版本',
 ];
@@ -44,30 +45,36 @@ export const Register = () => {
 
   return (
     <LandingLayout>
-      <div style={{ marginBottom: 28 }}>
+      <div className="auth-intro">
         <Space direction="vertical" size={10} style={{ width: '100%' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 12px', borderRadius: 999, background: 'rgba(29, 143, 111, 0.1)', color: '#166534', fontSize: 12, fontWeight: 600, width: 'fit-content' }}>
+          <div className="auth-eyebrow" style={{ background: 'rgba(29, 143, 111, 0.1)', color: '#166534' }}>
             <RocketFilled />
-            开始你的简历增长系统
+            简历工坊增长路径
           </div>
-          <Title level={1} style={{ margin: 0, fontSize: 36, lineHeight: 1.15, color: '#0f172a' }}>
-            创建账号，把简历制作变成可复用的工作流
+          <Title level={1} className="auth-title">
+            创建账号，把简历制作从一次性操作变成可复用的工作流
           </Title>
-          <Text style={{ color: '#516074', fontSize: 15, lineHeight: 1.7 }}>
+          <Text className="auth-copy">
             一次录入经历，持续产出多个岗位版本，配合 AI 和模板导出，把更新简历这件事从“折腾”变成“复用”。
           </Text>
         </Space>
+        <div className="auth-stats">
+          <div className="auth-stat">
+            <span className="auth-stat-value">1 份</span>
+            <span className="auth-stat-label">默认起步简历</span>
+          </div>
+          <div className="auth-stat">
+            <span className="auth-stat-value">模板 + AI</span>
+            <span className="auth-stat-label">立即开始体验</span>
+          </div>
+          <div className="auth-stat">
+            <span className="auth-stat-value">可升级</span>
+            <span className="auth-stat-label">解锁更多投递版本</span>
+          </div>
+        </div>
       </div>
 
-      <Card
-        bordered={false}
-        style={{
-          borderRadius: 24,
-          boxShadow: '0 24px 60px rgba(15, 23, 42, 0.12)',
-          background: 'linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)',
-        }}
-        bodyStyle={{ padding: 24 }}
-      >
+      <Card className="auth-form-card" bordered={false}>
         <Form name="register" onFinish={onFinish} autoComplete="off" layout="vertical">
           <Form.Item
             name="name"
@@ -194,10 +201,10 @@ export const Register = () => {
         <SocialLoginButtons />
       </Card>
 
-      <Row gutter={[14, 14]} style={{ marginTop: 18 }}>
+      <Row gutter={[14, 14]} className="auth-list">
         {benefits.map((item) => (
           <Col span={24} key={item}>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', color: '#334155', fontSize: 14 }}>
+            <div className="auth-list-item">
               <CheckCircleFilled style={{ color: '#1d8f6f', marginTop: 3 }} />
               <span>{item}</span>
             </div>
@@ -205,19 +212,15 @@ export const Register = () => {
         ))}
       </Row>
 
-      <Card
-        bordered={false}
-        style={{ marginTop: 22, borderRadius: 24, background: 'linear-gradient(135deg, #102a43 0%, #16324f 100%)' }}
-        bodyStyle={{ padding: 22 }}
-      >
+      <Card className="auth-plan-card" bordered={false} style={{ background: 'linear-gradient(135deg, #102a43 0%, #16324f 100%)' }}>
         <Title level={4} style={{ color: '#fff', marginTop: 0, marginBottom: 14 }}>
           套餐成长路径
         </Title>
         <Space direction="vertical" size={12} style={{ width: '100%' }}>
           {plans.map((item) => (
-            <div key={item.name} style={{ paddingBottom: 10, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+            <div key={item.name} className="auth-plan-row">
               <Text style={{ display: 'block', color: '#fff', fontWeight: 600 }}>{item.name}</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.72)' }}>{item.detail}</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.72)', textAlign: 'right' }}>{item.detail}</Text>
             </div>
           ))}
         </Space>

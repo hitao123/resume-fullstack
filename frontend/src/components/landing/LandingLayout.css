@@ -3,8 +3,9 @@
   display: flex;
   background:
     radial-gradient(circle at top left, rgba(255, 196, 132, 0.28), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(107, 167, 255, 0.22), transparent 26%),
-    linear-gradient(135deg, #0f172a 0%, #16324f 48%, #1d4b52 100%);
+    radial-gradient(circle at 80% 20%, rgba(107, 167, 255, 0.22), transparent 24%),
+    radial-gradient(circle at bottom right, rgba(77, 190, 168, 0.18), transparent 26%),
+    linear-gradient(135deg, #0f172a 0%, #13314d 48%, #165a61 100%);
 }
 
 .landing-marketing {
@@ -23,10 +24,10 @@
   align-items: center;
   justify-content: center;
   padding: 32px;
-  background: rgba(248, 250, 252, 0.92);
-  backdrop-filter: blur(14px);
+  background: rgba(248, 250, 252, 0.94);
+  backdrop-filter: blur(18px);
   position: relative;
-  box-shadow: -24px 0 80px rgba(15, 23, 42, 0.18);
+  box-shadow: -24px 0 80px rgba(15, 23, 42, 0.16);
 }
 
 .landing-form-inner {
