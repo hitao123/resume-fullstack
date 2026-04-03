@@ -49,7 +49,7 @@ export const Header = () => {
     {
       key: '/pricing',
       icon: <CrownFilled />,
-      label: '会员中心',
+      label: t('nav.membership'),
       onClick: () => navigate('/pricing'),
     },
   ];

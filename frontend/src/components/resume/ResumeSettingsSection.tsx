@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Avatar, Button, Card, Form, Input, List, Modal, Space, Switch, Tag, message } from 'antd';
 import { ArrowDownOutlined, ArrowUpOutlined, CopyOutlined, EyeOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { PersonalInfo, Resume, ResumeSectionConfig } from '@/types/resume.types';
 import resumeService from '@/services/resumeService';
 import { DEFAULT_SECTION_CONFIG, TEMPLATE_OPTIONS } from '@/utils/constants';
@@ -17,22 +18,10 @@ interface ResumeSettingsSectionProps {
   previewTemplateId?: number | null;
 }
 
-const sectionLabels: Record<string, string> = {
-  summary: '个人简介',
-  workExperiences: '工作经历',
-  education: '教育背景',
-  skills: '专业技能',
-  projects: '项目经历',
-  certifications: '证书',
-  languages: '语言',
-  awards: '奖项',
-  customSections: '自定义模块',
-};
-
-const templateMetaMap: Record<number, string[]> = {
-  1: ['双栏信息密度', '适合经历丰富', '视觉更现代'],
-  2: ['标准商务排版', '适配大多数岗位', '阅读成本低'],
-  3: ['极简留白', '突出内容本身', '适合内容精炼'],
+const templateMetaKeys: Record<number, [string, string, string]> = {
+  1: ['settings.templateMetaModern.0', 'settings.templateMetaModern.1', 'settings.templateMetaModern.2'],
+  2: ['settings.templateMetaClassic.0', 'settings.templateMetaClassic.1', 'settings.templateMetaClassic.2'],
+  3: ['settings.templateMetaMinimal.0', 'settings.templateMetaMinimal.1', 'settings.templateMetaMinimal.2'],
 };
 
 const mergeSectionConfig = (resume: Resume): ResumeSectionConfig[] => {
@@ -107,6 +96,7 @@ const ResumeSettingsSection = ({ resume, onResumeChange, onPreviewTemplateChange
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [resumeForm] = Form.useForm();
   const [avatarForm] = Form.useForm();
   const [duplicateOpen, setDuplicateOpen] = useState(false);
@@ -198,7 +188,7 @@ const ResumeSettingsSection = ({ resume, onResumeChange, onPreviewTemplateChange
       navigate(`/editor/${updated.id}`);
     } catch (error) {
       showUpgradeGuide(error as ApiError);
-      message.error(`创建岗位版本失败：${error instanceof Error ? error.message : String(error)}`);
+      message.error(t('settings.createVersionFailed', { message: error instanceof Error ? error.message : String(error) }));
     } finally {
       setDuplicating(false);
     }
@@ -206,12 +196,13 @@ const ResumeSettingsSection = ({ resume, onResumeChange, onPreviewTemplateChange
 
   return (
     <Space direction="vertical" size="large" className="settings-stack">
-      <Card className="settings-card" title="模板选择页">
+      <Card className="settings-card" title={t('settings.templateSelect')}>
         <div className="template-grid">
           {TEMPLATE_OPTIONS.map((template) => {
             const isApplied = resume.templateId === template.id;
             const isPreviewing = previewTemplateId === template.id;
             const isLocked = template.id > templateLimit;
+            const metaKeys = templateMetaKeys[template.id] || [];
 
             return (
               <Card
@@ -225,27 +216,27 @@ const ResumeSettingsSection = ({ resume, onResumeChange, onPreviewTemplateChange
                 ].join(' ')}
               >
                 <div className="template-card-header">
-                  <div style={{ fontWeight: 700, color: '#2a2218' }}>{template.name}</div>
+                  <div style={{ fontWeight: 700, color: '#2a2218' }}>{t(template.nameKey)}</div>
                   <Space size={6} wrap>
-                    {isApplied && <Tag color="gold">已应用</Tag>}
-                    {!isApplied && isPreviewing && <Tag color="warning">预览中</Tag>}
-                    {isLocked && <Tag color="default" icon={<LockOutlined />}>需升级</Tag>}
+                    {isApplied && <Tag color="gold">{t('settings.templateApplied')}</Tag>}
+                    {!isApplied && isPreviewing && <Tag color="warning">{t('settings.templatePreviewing')}</Tag>}
+                    {isLocked && <Tag color="default" icon={<LockOutlined />}>{t('settings.templateLocked')}</Tag>}
                   </Space>
                 </div>
 
                 <TemplateThumbnail templateId={template.id} />
 
-                <div className="template-card-copy">{template.description}</div>
+                <div className="template-card-copy">{t(template.descriptionKey)}</div>
 
                 <div className="template-card-meta">
-                  {(templateMetaMap[template.id] || []).map((item) => (
-                    <Tag key={item} style={{ borderRadius: 999 }}>{item}</Tag>
+                  {metaKeys.map((key) => (
+                    <Tag key={key} style={{ borderRadius: 999 }}>{t(key)}</Tag>
                   ))}
                 </div>
 
                 <Space style={{ marginTop: 16 }} wrap>
                   <Button icon={<EyeOutlined />} onClick={() => onPreviewTemplateChange?.(template.id)}>
-                    查看效果
+                    {t('settings.templatePreviewBtn')}
                   </Button>
                   <Button
                     type="primary"
@@ -253,7 +244,7 @@ const ResumeSettingsSection = ({ resume, onResumeChange, onPreviewTemplateChange
                     onClick={() => {
                       if (isLocked) {
                         openUpgradePrompt({
-                          message: '当前套餐模板数量不足',
+                          message: t('upgrade.templateUnavailableTitle'),
                           code: 'TEMPLATE_NOT_AVAILABLE',
                         });
                         return;
@@ -262,7 +253,7 @@ const ResumeSettingsSection = ({ resume, onResumeChange, onPreviewTemplateChange
                       void saveResumeMeta({ templateId: template.id });
                     }}
                   >
-                    {isLocked ? '升级解锁' : isApplied ? '当前模板' : '应用模板'}
+                    {isLocked ? t('settings.templateUpgradeBtn') : isApplied ? t('settings.templateCurrentBtn') : t('settings.templateApplyBtn')}
                   </Button>
                 </Space>
               </Card>
@@ -271,57 +262,57 @@ const ResumeSettingsSection = ({ resume, onResumeChange, onPreviewTemplateChange
         </div>
         {previewTemplateId && previewTemplateId !== resume.templateId && (
           <div style={{ marginTop: 16 }}>
-            <Tag color="warning">正在预览未应用模板</Tag>
+            <Tag color="warning">{t('settings.templatePreviewingUnApplied')}</Tag>
             <Button type="link" onClick={() => onPreviewTemplateChange?.(null)} style={{ paddingInline: 8, color: '#9d6b21' }}>
-              返回当前模板
+              {t('settings.templateBackToCurrent')}
             </Button>
           </div>
         )}
       </Card>
 
-      <Card className="settings-card" title="岗位版本">
+      <Card className="settings-card" title={t('settings.positionVersion')}>
         <Form form={resumeForm} layout="vertical" onValuesChange={(_, allValues) => { void saveResumeMeta(allValues); }}>
-          <Form.Item label="简历标题" name="title">
-            <Input placeholder="例如：前端工程师简历" />
+          <Form.Item label={t('settings.resumeTitleLabel')} name="title">
+            <Input placeholder={t('settings.resumeTitlePlaceholder')} />
           </Form.Item>
-          <Form.Item label="版本标签" name="versionLabel">
-            <Input placeholder="例如：校招版 / 海外版 / 技术岗版" />
+          <Form.Item label={t('settings.versionLabelLabel')} name="versionLabel">
+            <Input placeholder={t('settings.versionLabelPlaceholder')} />
           </Form.Item>
-          <Form.Item label="目标岗位" name="targetRole">
-            <Input placeholder="例如：高级前端工程师" />
+          <Form.Item label={t('settings.targetRoleLabel')} name="targetRole">
+            <Input placeholder={t('settings.targetRolePlaceholder')} />
           </Form.Item>
         </Form>
         <Button
           icon={<CopyOutlined />}
           onClick={() => {
             duplicateForm.setFieldsValue({
-              title: `${resume.title} - ${resume.targetRole || '新版本'}`,
-              versionLabel: resume.versionLabel || '岗位定制版',
+              title: `${resume.title} - ${resume.targetRole || t('settings.defaultVersionLabel')}`,
+              versionLabel: resume.versionLabel || t('settings.defaultVersionLabelValue'),
               targetRole: resume.targetRole || '',
             });
             setDuplicateOpen(true);
           }}
         >
-          针对岗位生成多个版本
+          {t('settings.createVersionBtn')}
         </Button>
       </Card>
 
-      <Card className="settings-card" title="头像开关">
+      <Card className="settings-card" title={t('settings.avatarSettings')}>
         <Form form={avatarForm} layout="vertical" onValuesChange={(_, allValues) => { void savePersonalInfo(allValues); }}>
-          <Form.Item label="头像链接" name="avatarUrl">
+          <Form.Item label={t('settings.avatarUrlLabel')} name="avatarUrl">
             <Input placeholder="https://example.com/avatar.jpg" />
           </Form.Item>
-          <Form.Item label="在简历中显示头像" name="showAvatar" valuePropName="checked">
+          <Form.Item label={t('settings.showAvatarLabel')} name="showAvatar" valuePropName="checked">
             <Switch />
           </Form.Item>
         </Form>
         <Space>
           <Avatar size={64} src={resume.personalInfo?.showAvatar ? resume.personalInfo?.avatarUrl : undefined} icon={<UserOutlined />} />
-          <span style={{ color: '#666' }}>预览会根据这里的开关决定是否显示头像</span>
+          <span style={{ color: '#666' }}>{t('settings.avatarPreviewHint')}</span>
         </Space>
       </Card>
 
-      <Card className="settings-card" title="模块排序和隐藏">
+      <Card className="settings-card" title={t('settings.sectionOrder')}>
         <List
           className="settings-section-list"
           dataSource={sectionConfig}
@@ -333,21 +324,24 @@ const ResumeSettingsSection = ({ resume, onResumeChange, onPreviewTemplateChange
                 <Button key="down" icon={<ArrowDownOutlined />} disabled={index === sectionConfig.length - 1} onClick={() => { void moveSection(item.key, 1); }} />,
               ]}
             >
-              <List.Item.Meta title={sectionLabels[item.key] || item.key} description={item.visible ? '显示中' : '已隐藏'} />
+              <List.Item.Meta
+                title={t(`settings.sectionLabels.${item.key}`, { defaultValue: item.key })}
+                description={item.visible ? t('settings.sectionVisible') : t('settings.sectionHidden')}
+              />
             </List.Item>
           )}
         />
       </Card>
 
-      <Modal title="创建岗位版本" open={duplicateOpen} onOk={handleDuplicate} confirmLoading={duplicating} onCancel={() => setDuplicateOpen(false)}>
+      <Modal title={t('settings.createVersionModal')} open={duplicateOpen} onOk={handleDuplicate} confirmLoading={duplicating} onCancel={() => setDuplicateOpen(false)}>
         <Form form={duplicateForm} layout="vertical">
-          <Form.Item label="新简历标题" name="title" rules={[{ required: true, message: '请输入标题' }]}>
+          <Form.Item label={t('settings.newResumeTitleLabel')} name="title" rules={[{ required: true, message: t('settings.newResumeTitleRequired') }]}>
             <Input />
           </Form.Item>
-          <Form.Item label="版本标签" name="versionLabel">
+          <Form.Item label={t('settings.versionLabelLabel')} name="versionLabel">
             <Input />
           </Form.Item>
-          <Form.Item label="目标岗位" name="targetRole">
+          <Form.Item label={t('settings.targetRoleLabel')} name="targetRole">
             <Input />
           </Form.Item>
         </Form>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Button, Card, DatePicker, Empty, Form, Input, List, Modal, Space, message } from 'antd';
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import type { Award } from '@/types/resume.types';
 import resumeService from '@/services/resumeService';
@@ -17,17 +18,22 @@ interface AwardsSectionProps {
 
 const AwardsSection = ({ data, onChange }: AwardsSectionProps) => {
   const { id } = useParams<{ id: string }>();
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Award | null>(null);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
+
+  const showUpgradeGuide = (error: ApiError) => {
+    openUpgradePrompt(error);
+  };
 
   const loadData = async () => {
     if (!id) return;
     try {
       onChange(await resumeService.getAwards(Number(id)));
     } catch (error) {
-      message.error(`加载奖项失败：${error instanceof Error ? error.message : String(error)}`);
+      message.error(t('resume.awards.loadFailed', { message: error instanceof Error ? error.message : String(error) }));
     }
   };
 
@@ -58,7 +64,7 @@ const AwardsSection = ({ data, onChange }: AwardsSectionProps) => {
       setEditingItem(null);
     } catch (error) {
       showUpgradeGuide(error as ApiError);
-      message.error(`保存奖项失败：${error instanceof Error ? error.message : String(error)}`);
+      message.error(t('resume.awards.saveFailed', { message: error instanceof Error ? error.message : String(error) }));
     } finally {
       setSaving(false);
     }
@@ -67,9 +73,9 @@ const AwardsSection = ({ data, onChange }: AwardsSectionProps) => {
   return (
     <div>
       <Button type="dashed" icon={<PlusOutlined />} block size="large" style={{ marginBottom: 16 }} onClick={() => { form.resetFields(); setEditingItem(null); setOpen(true); }}>
-        添加奖项
+        {t('resume.awards.addButton')}
       </Button>
-      {data.length === 0 ? <Empty description="暂无奖项" /> : (
+      {data.length === 0 ? <Empty description={t('resume.awards.emptyDescription')} /> : (
         <List
           dataSource={data}
           renderItem={(item) => (
@@ -86,8 +92,8 @@ const AwardsSection = ({ data, onChange }: AwardsSectionProps) => {
                   }} />
                   <Button type="link" danger icon={<DeleteOutlined />} onClick={() => {
                     Modal.confirm({
-                      title: '删除奖项',
-                      content: '确定删除这条奖项记录吗？',
+                      title: t('resume.awards.deleteTitle'),
+                      content: t('resume.awards.deleteContent'),
                       onOk: async () => {
                         if (!id) return;
                         await resumeService.deleteAward(Number(id), item.id);
@@ -105,19 +111,19 @@ const AwardsSection = ({ data, onChange }: AwardsSectionProps) => {
           )}
         />
       )}
-      <Modal title={editingItem ? '编辑奖项' : '添加奖项'} open={open} onOk={handleSubmit} confirmLoading={saving} onCancel={() => setOpen(false)} width={640}>
+      <Modal title={editingItem ? t('resume.awards.modalTitleEdit') : t('resume.awards.modalTitleCreate')} open={open} onOk={handleSubmit} confirmLoading={saving} onCancel={() => setOpen(false)} width={640}>
         <Form form={form} layout="vertical">
-          <Form.Item label="奖项名称" name="title" rules={[{ required: true, message: '请输入奖项名称' }]}>
-            <Input placeholder="国家奖学金 / 最佳员工" />
+          <Form.Item label={t('resume.awards.titleLabel')} name="title" rules={[{ required: true, message: t('resume.awards.titleRequired') }]}>
+            <Input placeholder={t('resume.awards.titlePlaceholder')} />
           </Form.Item>
-          <Form.Item label="颁发机构" name="issuer">
-            <Input placeholder="学校 / 公司 / 组织" />
+          <Form.Item label={t('resume.awards.issuerLabel')} name="issuer">
+            <Input placeholder={t('resume.awards.issuerPlaceholder')} />
           </Form.Item>
-          <Form.Item label="获奖时间" name="issueDate">
+          <Form.Item label={t('resume.awards.issueDateLabel')} name="issueDate">
             <DatePicker picker="month" style={{ width: '100%' }} />
           </Form.Item>
-          <Form.Item label="奖项说明" name="description">
-            <RichTextEditor placeholder="补充获奖背景、含金量或评选范围" />
+          <Form.Item label={t('resume.awards.descriptionLabel')} name="description">
+            <RichTextEditor placeholder={t('resume.awards.descriptionPlaceholder')} />
           </Form.Item>
         </Form>
       </Modal>
@@ -126,6 +132,3 @@ const AwardsSection = ({ data, onChange }: AwardsSectionProps) => {
 };
 
 export default AwardsSection;
-  const showUpgradeGuide = (error: ApiError) => {
-    openUpgradePrompt(error);
-  };

@@ -1,6 +1,7 @@
 import { Document, Font, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 import type { Resume } from '@/types/resume.types';
 import { htmlToPdfNodes } from '@/utils/htmlToPdfNodes';
+import i18n from '@/i18n';
 
 Font.register({
   family: 'Noto Serif SC',
@@ -30,11 +31,13 @@ const formatDate = (dateStr?: string | null) => {
   return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}`;
 };
 
-const MinimalTemplatePDF = ({ resume }: { resume: Resume }) => (
+const MinimalTemplatePDF = ({ resume }: { resume: Resume }) => {
+  const t = i18n.t.bind(i18n);
+  return (
   <Document>
     <Page size="A4" style={styles.page}>
       <View style={styles.header}>
-        <Text style={styles.name}>{resume.personalInfo?.fullName || '未填写姓名'}</Text>
+        <Text style={styles.name}>{resume.personalInfo?.fullName || t('resume.preview.noName')}</Text>
         <Text style={styles.meta}>
           {[resume.personalInfo?.email, resume.personalInfo?.phone, resume.personalInfo?.location].filter(Boolean).join(' · ')}
         </Text>
@@ -42,12 +45,12 @@ const MinimalTemplatePDF = ({ resume }: { resume: Resume }) => (
       </View>
       {resume.workExperiences?.length ? (
         <View style={styles.section}>
-          <Text style={styles.title}>Experience</Text>
+          <Text style={styles.title}>{t('resume.preview.workTitle')}</Text>
           {resume.workExperiences.map((item) => (
             <View key={item.id} style={styles.item}>
               <View style={styles.itemHeader}>
                 <Text style={styles.itemTitle}>{item.position}</Text>
-                <Text style={styles.itemMeta}>{formatDate(item.startDate)} - {item.isCurrent ? '至今' : formatDate(item.endDate)}</Text>
+                <Text style={styles.itemMeta}>{formatDate(item.startDate)} - {item.isCurrent ? t('resume.common.toPresent') : formatDate(item.endDate)}</Text>
               </View>
               <Text style={styles.itemMeta}>{item.companyName}</Text>
               {item.description && htmlToPdfNodes(item.description, { baseStyle: styles.itemText })}
@@ -57,7 +60,7 @@ const MinimalTemplatePDF = ({ resume }: { resume: Resume }) => (
       ) : null}
       {resume.education?.length ? (
         <View style={styles.section}>
-          <Text style={styles.title}>Education</Text>
+          <Text style={styles.title}>{t('resume.preview.educationTitle')}</Text>
           {resume.education.map((item) => (
             <View key={item.id} style={styles.item}>
               <View style={styles.itemHeader}>
@@ -71,12 +74,13 @@ const MinimalTemplatePDF = ({ resume }: { resume: Resume }) => (
       ) : null}
       {resume.skills?.length ? (
         <View style={styles.section}>
-          <Text style={styles.title}>Skills</Text>
+          <Text style={styles.title}>{t('resume.preview.skillsTitle')}</Text>
           <Text style={styles.itemText}>{resume.skills.map((item) => item.name).join(' · ')}</Text>
         </View>
       ) : null}
     </Page>
   </Document>
-);
+  );
+};
 
 export default MinimalTemplatePDF;

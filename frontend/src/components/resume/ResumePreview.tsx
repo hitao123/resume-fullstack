@@ -11,16 +11,16 @@ interface ResumePreviewProps {
   resume: Resume;
 }
 
-const sectionTitleMap: Record<string, string> = {
-  summary: '个人简介',
-  workExperiences: '工作经历',
-  education: '教育背景',
-  skills: '专业技能',
-  projects: '项目经历',
-  certifications: '证书',
-  languages: '语言',
-  awards: '奖项',
-  customSections: '自定义模块',
+const sectionTitleKeyMap: Record<string, string> = {
+  summary: 'resume.personal.summaryLabel',
+  workExperiences: 'resume.preview.workTitle',
+  education: 'resume.preview.educationTitle',
+  skills: 'resume.preview.skillsTitle',
+  projects: 'resume.preview.projectsTitle',
+  certifications: 'resumeEditor.tabs.certifications',
+  languages: 'resumeEditor.tabs.languages',
+  awards: 'resumeEditor.tabs.awards',
+  customSections: 'resumeEditor.tabs.custom',
 };
 
 const normalizeSections = (resume: Resume) => {
@@ -67,10 +67,12 @@ export const ResumePreview = ({ resume }: ResumePreviewProps) => {
     const sectionTitle = (
       <div style={{ marginBottom: mode === 'minimal' ? 10 : 14 }}>
         {mode === 'minimal' ? (
-          <Text strong style={headingStyle}>{sectionTitleMap[key] || key}</Text>
+          <Text strong style={headingStyle}>{sectionTitleKeyMap[key] ? t(sectionTitleKeyMap[key]) : key}</Text>
         ) : (
           <>
-            <Title level={5} style={{ margin: 0, ...headingStyle }}>{sectionTitleMap[key] || key}</Title>
+            <Title level={5} style={{ margin: 0, ...headingStyle }}>
+              {sectionTitleKeyMap[key] ? t(sectionTitleKeyMap[key]) : key}
+            </Title>
             <div style={{ width: mode === 'modern' ? 54 : 42, height: 3, borderRadius: 999, marginTop: 8, background: mode === 'modern' ? '#c9a35f' : '#7a5419' }} />
           </>
         )}
@@ -189,7 +191,11 @@ export const ResumePreview = ({ resume }: ResumePreviewProps) => {
               <div key={item.id}>
                 <Text strong>{item.name}</Text>
                 <div style={{ color: '#666', marginTop: 4 }}>{[item.issuingOrganization, item.credentialId].filter(Boolean).join(' · ')}</div>
-                {(item.issueDate || item.expiryDate) && <div style={{ color: '#999', fontSize: 12, marginTop: 4 }}>{formatDate(item.issueDate)} - {item.expiryDate ? formatDate(item.expiryDate) : '长期有效'}</div>}
+                {(item.issueDate || item.expiryDate) && (
+                  <div style={{ color: '#999', fontSize: 12, marginTop: 4 }}>
+                    {formatDate(item.issueDate)} - {item.expiryDate ? formatDate(item.expiryDate) : t('resume.certifications.noExpiry')}
+                  </div>
+                )}
               </div>
             ))}
           </Space>

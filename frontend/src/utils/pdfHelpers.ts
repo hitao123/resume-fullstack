@@ -3,6 +3,8 @@
  * 处理 @react-pdf/renderer 的限制（SVG、背景颜色等）
  */
 
+import i18n from '@/i18n';
+
 /**
  * SVG 转 Base64 PNG 图片
  * 用于在 PDF 中显示 SVG 图案
@@ -13,7 +15,7 @@ export const svgToImage = async (svgString: string): Promise<string> => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) {
-      reject(new Error('无法获取 canvas 上下文'));
+      reject(new Error(i18n.t('pdf.canvasContextUnavailable')));
       return;
     }
 
@@ -34,7 +36,7 @@ export const svgToImage = async (svgString: string): Promise<string> => {
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error('SVG 转换失败'));
+      reject(new Error(i18n.t('pdf.svgConversionFailed')));
     };
     img.src = url;
   });

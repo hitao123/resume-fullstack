@@ -21,8 +21,7 @@
       "Bash(npm install:*)",
       "Bash(npx tsc:*)",
       "Bash(wc:*)",
-      "Bash(go build:*)",
-      "Bash(ollama list:*)"
+      "Bash(go build:*)"
     ]
   },
   "enabledPlugins": {

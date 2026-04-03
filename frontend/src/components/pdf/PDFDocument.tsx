@@ -9,6 +9,7 @@ import {
 } from '@react-pdf/renderer';
 import type { Resume } from '@/types/resume.types';
 import { htmlToPdfNodes } from '@/utils/htmlToPdfNodes';
+import i18n from '@/i18n';
 
 // 注册中文字体
 Font.register({
@@ -141,6 +142,7 @@ interface PDFDocumentProps {
 
 export const PDFDocument: React.FC<PDFDocumentProps> = ({ resume }) => {
   const { personalInfo, workExperiences, education, skills } = resume;
+  const t = i18n.t.bind(i18n);
 
   const formatDate = (dateStr?: string | null) => {
     if (!dateStr) return '';
@@ -153,12 +155,12 @@ export const PDFDocument: React.FC<PDFDocumentProps> = ({ resume }) => {
     end?: string | null,
     isCurrent?: boolean
   ) => {
-    return `${formatDate(start)} - ${isCurrent || !end ? '至今' : formatDate(end)}`;
+    return `${formatDate(start)} - ${isCurrent || !end ? t('resume.common.toPresent') : formatDate(end)}`;
   };
 
   // 按类别分组技能
   const groupedSkills = (skills || []).reduce((acc, skill) => {
-    const category = skill.category || '其他';
+    const category = skill.category || t('resume.common.other');
     if (!acc[category]) {
       acc[category] = [];
     }
@@ -171,7 +173,7 @@ export const PDFDocument: React.FC<PDFDocumentProps> = ({ resume }) => {
       <Page size="A4" style={styles.page}>
         {/* 个人信息 */}
         <View style={styles.header}>
-          <Text style={styles.name}>{personalInfo?.fullName || '未填写姓名'}</Text>
+          <Text style={styles.name}>{personalInfo?.fullName || t('resume.preview.noName')}</Text>
 
           {personalInfo?.email && (
             <Text style={styles.contactInfo}>{personalInfo.email}</Text>
@@ -199,7 +201,7 @@ export const PDFDocument: React.FC<PDFDocumentProps> = ({ resume }) => {
         {/* 工作经历 */}
         {workExperiences && workExperiences.length > 0 && (
           <View>
-            <Text style={styles.sectionTitle}>工作经历</Text>
+            <Text style={styles.sectionTitle}>{t('resume.preview.workTitle')}</Text>
             {workExperiences.map((work) => (
               <View key={work.id} style={styles.item}>
                 <View style={styles.itemHeader}>
@@ -221,7 +223,7 @@ export const PDFDocument: React.FC<PDFDocumentProps> = ({ resume }) => {
         {/* 教育背景 */}
         {education && education.length > 0 && (
           <View>
-            <Text style={styles.sectionTitle}>教育背景</Text>
+            <Text style={styles.sectionTitle}>{t('resume.preview.educationTitle')}</Text>
             {education.map((edu) => (
               <View key={edu.id} style={styles.item}>
                 <View style={styles.itemHeader}>
@@ -244,7 +246,7 @@ export const PDFDocument: React.FC<PDFDocumentProps> = ({ resume }) => {
         {/* 专业技能 */}
         {skills && skills.length > 0 && (
           <View>
-            <Text style={styles.sectionTitle}>专业技能</Text>
+            <Text style={styles.sectionTitle}>{t('resume.preview.skillsTitle')}</Text>
             {Object.entries(groupedSkills).map(([category, categorySkills]) => (
               <View key={category} style={styles.skillsContainer}>
                 <Text style={styles.skillCategory}>{category}:</Text>

@@ -306,8 +306,9 @@ cd frontend && docker build -t resume-frontend .
 
 ## 页面
 
-![home](./imgs/home.png)
+![login](./imgs/login.png)
 ![editor](./imgs/editor.png)
+![platform](./imgs/platform.png)
 ![preview](./imgs/preview.png)
 ## 📄 License
 

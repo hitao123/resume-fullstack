@@ -5,6 +5,7 @@ import type { Resume } from '@/types/resume.types';
 import PDFDocument from '@/components/pdf/PDFDocument';
 import ModernTemplatePDF from '@/components/pdf/ModernTemplatePDF';
 import MinimalTemplatePDF from '@/components/pdf/MinimalTemplatePDF';
+import { useTranslation } from 'react-i18next';
 
 type TemplateType = 'classic' | 'modern' | 'minimal';
 type ExportMode = 'react-pdf' | 'html2canvas';
@@ -12,6 +13,7 @@ type ExportMode = 'react-pdf' | 'html2canvas';
 const PREVIEW_ELEMENT_ID = 'resume-preview';
 
 export const usePDFExport = () => {
+  const { t } = useTranslation();
   const [isGenerating, setIsGenerating] = useState(false);
   const [exportMode, setExportMode] = useState<ExportMode>('html2canvas');
 
@@ -28,7 +30,7 @@ export const usePDFExport = () => {
   };
 
   const buildFileName = (resume: Resume, templateType: TemplateType) => {
-    return `${resume.personalInfo?.fullName || '简历'}_${templateType}_${Date.now()}.pdf`;
+    return `${resume.personalInfo?.fullName || t('resumeEditor.export.defaultFileNameBase')}_${templateType}_${Date.now()}.pdf`;
   };
 
   // --- react-pdf path ---
@@ -57,7 +59,7 @@ export const usePDFExport = () => {
   const captureElement = async () => {
     const el = document.getElementById(PREVIEW_ELEMENT_ID);
     if (!el) {
-      throw new Error(`找不到预览元素 #${PREVIEW_ELEMENT_ID}，请确保预览面板已打开`);
+      throw new Error(t('resumeEditor.export.previewElementMissing', { id: PREVIEW_ELEMENT_ID }));
     }
 
     const html2canvas = (await import('html2canvas')).default;
@@ -154,10 +156,10 @@ export const usePDFExport = () => {
       } else {
         await generateWithReactPDF(resume, templateType);
       }
-      message.success('PDF 导出成功！');
+      message.success(t('resumeEditor.export.exportSuccess'));
     } catch (error) {
-      console.error('PDF 生成失败:', error);
-      message.error('PDF 导出失败，请重试');
+      console.error('PDF generation failed:', error);
+      message.error(t('resumeEditor.export.exportFailed'));
     } finally {
       setIsGenerating(false);
     }
@@ -171,10 +173,10 @@ export const usePDFExport = () => {
       } else {
         await previewWithReactPDF(resume, templateType);
       }
-      message.success('PDF 预览已打开');
+      message.success(t('resumeEditor.export.previewOpened'));
     } catch (error) {
-      console.error('PDF 预览失败:', error);
-      message.error('PDF 预览失败，请重试');
+      console.error('PDF preview failed:', error);
+      message.error(t('resumeEditor.export.previewFailed'));
     } finally {
       setIsGenerating(false);
     }

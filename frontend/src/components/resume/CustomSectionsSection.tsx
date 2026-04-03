@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Button, Card, Empty, Form, Input, List, Modal, Space, message } from 'antd';
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { CustomSection } from '@/types/resume.types';
 import resumeService from '@/services/resumeService';
 import RichTextEditor from '@/components/common/RichTextEditor';
@@ -16,17 +17,22 @@ interface CustomSectionsSectionProps {
 
 const CustomSectionsSection = ({ data, onChange }: CustomSectionsSectionProps) => {
   const { id } = useParams<{ id: string }>();
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<CustomSection | null>(null);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
+
+  const showUpgradeGuide = (error: ApiError) => {
+    openUpgradePrompt(error);
+  };
 
   const loadData = async () => {
     if (!id) return;
     try {
       onChange(await resumeService.getCustomSections(Number(id)));
     } catch (error) {
-      message.error(`加载自定义模块失败：${error instanceof Error ? error.message : String(error)}`);
+      message.error(t('resume.customSections.loadFailed', { message: error instanceof Error ? error.message : String(error) }));
     }
   };
 
@@ -55,7 +61,7 @@ const CustomSectionsSection = ({ data, onChange }: CustomSectionsSectionProps) =
       setEditingItem(null);
     } catch (error) {
       showUpgradeGuide(error as ApiError);
-      message.error(`保存自定义模块失败：${error instanceof Error ? error.message : String(error)}`);
+      message.error(t('resume.customSections.saveFailed', { message: error instanceof Error ? error.message : String(error) }));
     } finally {
       setSaving(false);
     }
@@ -64,9 +70,9 @@ const CustomSectionsSection = ({ data, onChange }: CustomSectionsSectionProps) =
   return (
     <div>
       <Button type="dashed" icon={<PlusOutlined />} block size="large" style={{ marginBottom: 16 }} onClick={() => { form.resetFields(); setEditingItem(null); setOpen(true); }}>
-        新建自定义模块
+        {t('resume.customSections.addButton')}
       </Button>
-      {data.length === 0 ? <Empty description="暂无自定义模块" /> : (
+      {data.length === 0 ? <Empty description={t('resume.customSections.emptyDescription')} /> : (
         <List
           dataSource={data}
           renderItem={(item) => (
@@ -79,8 +85,8 @@ const CustomSectionsSection = ({ data, onChange }: CustomSectionsSectionProps) =
                   <Button type="link" icon={<EditOutlined />} onClick={() => { setEditingItem(item); form.setFieldsValue(item); setOpen(true); }} />
                   <Button type="link" danger icon={<DeleteOutlined />} onClick={() => {
                     Modal.confirm({
-                      title: '删除自定义模块',
-                      content: '确定删除这个模块吗？',
+                      title: t('resume.customSections.deleteTitle'),
+                      content: t('resume.customSections.deleteContent'),
                       onOk: async () => {
                         if (!id) return;
                         await resumeService.deleteCustomSection(Number(id), item.id);
@@ -97,13 +103,13 @@ const CustomSectionsSection = ({ data, onChange }: CustomSectionsSectionProps) =
           )}
         />
       )}
-      <Modal title={editingItem ? '编辑自定义模块' : '新建自定义模块'} open={open} onOk={handleSubmit} confirmLoading={saving} onCancel={() => setOpen(false)} width={700}>
+      <Modal title={editingItem ? t('resume.customSections.modalTitleEdit') : t('resume.customSections.modalTitleCreate')} open={open} onOk={handleSubmit} confirmLoading={saving} onCancel={() => setOpen(false)} width={700}>
         <Form form={form} layout="vertical">
-          <Form.Item label="模块名称" name="title" rules={[{ required: true, message: '请输入模块名称' }]}>
-            <Input placeholder="奖学金 / 志愿经历 / 出版物" />
+          <Form.Item label={t('resume.customSections.titleLabel')} name="title" rules={[{ required: true, message: t('resume.customSections.titleRequired') }]}>
+            <Input placeholder={t('resume.customSections.titlePlaceholder')} />
           </Form.Item>
-          <Form.Item label="模块内容" name="content">
-            <RichTextEditor placeholder="填写该模块的详细内容" />
+          <Form.Item label={t('resume.customSections.contentLabel')} name="content">
+            <RichTextEditor placeholder={t('resume.customSections.contentPlaceholder')} />
           </Form.Item>
         </Form>
       </Modal>
@@ -112,6 +118,3 @@ const CustomSectionsSection = ({ data, onChange }: CustomSectionsSectionProps) =
 };
 
 export default CustomSectionsSection;
-  const showUpgradeGuide = (error: ApiError) => {
-    openUpgradePrompt(error);
-  };

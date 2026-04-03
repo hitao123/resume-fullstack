@@ -159,7 +159,7 @@ export const PersonalInfoForm = ({ data, onChange }: PersonalInfoFormProps) => {
         <Input placeholder={t('resume.personal.githubPlaceholder')} size="large" />
       </Form.Item>
 
-      <Form.Item label="头像链接" name="avatarUrl">
+      <Form.Item label={t('resume.personal.avatarUrlLabel')} name="avatarUrl">
         <Input placeholder="https://example.com/avatar.jpg" size="large" />
       </Form.Item>
 

@@ -197,7 +197,7 @@ export const WorkExperienceSection = ({ data, onChange }: WorkExperienceSectionP
                   {item.companyName} {item.location && `· ${item.location}`}
                 </div>
                 <div style={{ color: '#999', fontSize: 12, marginTop: 4 }}>
-                  {item.startDate} - {item.isCurrent ? '至今' : item.endDate || '至今'}
+                  {item.startDate} - {item.isCurrent ? t('resume.common.toPresent') : item.endDate || t('resume.common.toPresent')}
                 </div>
                 {item.description && (
                   <SafeHtmlRenderer

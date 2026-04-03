@@ -17,9 +17,9 @@
 
 body {
   margin: 0;
-  background:
+  /* background:
     radial-gradient(circle at top left, rgba(219, 190, 133, 0.18), transparent 20%),
-    linear-gradient(180deg, #fbf8f2 0%, #f5ede1 100%);
+    linear-gradient(180deg, #fbf8f2 0%, #f5ede1 100%); */
   color: var(--rs-ink);
   font-family: 'Segoe UI', 'PingFang SC', 'Noto Sans SC', -apple-system, BlinkMacSystemFont,
     sans-serif;

@@ -1,9 +1,11 @@
 import { useResumeStore } from '@/store/resumeStore';
 import { useNavigate } from 'react-router-dom';
 import { message } from 'antd';
+import { useTranslation } from 'react-i18next';
 
 export const useResume = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const {
     resumes,
     currentResume,
@@ -22,11 +24,11 @@ export const useResume = () => {
   const createResume = async (title: string, templateId?: number) => {
     try {
       const resume = await createResumeAction(title, templateId);
-      message.success('Resume created successfully');
+      message.success(t('resume.actions.createSuccess'));
       navigate(`/editor/${resume.id}`);
       return resume;
     } catch (error: any) {
-      message.error(error.message || 'Failed to create resume');
+      message.error(error.message || t('resume.actions.createFailed'));
       throw error;
     }
   };
@@ -37,9 +39,9 @@ export const useResume = () => {
   ) => {
     try {
       await updateResumeAction(id, data);
-      message.success('Resume updated successfully');
+      message.success(t('resume.actions.updateSuccess'));
     } catch (error: any) {
-      message.error(error.message || 'Failed to update resume');
+      message.error(error.message || t('resume.actions.updateFailed'));
       throw error;
     }
   };
@@ -47,9 +49,9 @@ export const useResume = () => {
   const deleteResume = async (id: number) => {
     try {
       await deleteResumeAction(id);
-      message.success('Resume deleted successfully');
+      message.success(t('resume.actions.deleteSuccess'));
     } catch (error: any) {
-      message.error(error.message || 'Failed to delete resume');
+      message.error(error.message || t('resume.actions.deleteFailed'));
       throw error;
     }
   };
@@ -57,10 +59,10 @@ export const useResume = () => {
   const duplicateResume = async (id: number) => {
     try {
       const resume = await duplicateResumeAction(id);
-      message.success('Resume duplicated successfully');
+      message.success(t('resume.actions.duplicateSuccess'));
       return resume;
     } catch (error: any) {
-      message.error(error.message || 'Failed to duplicate resume');
+      message.error(error.message || t('resume.actions.duplicateFailed'));
       throw error;
     }
   };

@@ -6,16 +6,16 @@ export const TEMPLATES = {
 } as const;
 
 // Template names
-export const TEMPLATE_NAMES: Record<number, string> = {
-  [TEMPLATES.MODERN]: 'Modern',
-  [TEMPLATES.CLASSIC]: 'Classic',
-  [TEMPLATES.MINIMAL]: 'Minimal',
+export const TEMPLATE_NAME_KEYS: Record<number, string> = {
+  [TEMPLATES.MODERN]: 'resumeEditor.export.modernShort',
+  [TEMPLATES.CLASSIC]: 'resumeEditor.export.classicShort',
+  [TEMPLATES.MINIMAL]: 'resumeEditor.export.minimalShort',
 };
 
 export const TEMPLATE_OPTIONS = [
-  { id: TEMPLATES.MODERN, name: 'Modern', description: '双栏展示，适合信息密度高的简历' },
-  { id: TEMPLATES.CLASSIC, name: 'Classic', description: '标准商务排版，适合大多数岗位' },
-  { id: TEMPLATES.MINIMAL, name: 'Minimal', description: '极简留白，更突出内容本身' },
+  { id: TEMPLATES.MODERN, nameKey: 'resumeEditor.export.modernShort', descriptionKey: 'settings.templateMetaModern.0' },
+  { id: TEMPLATES.CLASSIC, nameKey: 'resumeEditor.export.classicShort', descriptionKey: 'settings.templateMetaClassic.0' },
+  { id: TEMPLATES.MINIMAL, nameKey: 'resumeEditor.export.minimalShort', descriptionKey: 'settings.templateMetaMinimal.0' },
 ] as const;
 
 export const DEFAULT_SECTION_CONFIG = [

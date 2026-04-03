@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { message } from 'antd';
-import { AUTO_SAVE_DELAY, SUCCESS_MESSAGES } from '@/utils/constants';
+import { useTranslation } from 'react-i18next';
+import { AUTO_SAVE_DELAY } from '@/utils/constants';
 
 interface UseAutoSaveOptions<T> {
   data: T;
@@ -15,6 +16,7 @@ export const useAutoSave = <T>({
   delay = AUTO_SAVE_DELAY,
   enabled = true,
 }: UseAutoSaveOptions<T>) => {
+  const { t } = useTranslation();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const previousDataRef = useRef<T>(data);
   const isSavingRef = useRef(false);
@@ -26,13 +28,13 @@ export const useAutoSave = <T>({
       isSavingRef.current = true;
       await onSave(data);
       previousDataRef.current = data;
-      message.success(SUCCESS_MESSAGES.CHANGES_SAVED, 1);
+      message.success(t('common.changesSaved'), 1);
     } catch (error: any) {
-      message.error(error.message || 'Failed to save changes');
+      message.error(error.message || t('common.saveFailed'));
     } finally {
       isSavingRef.current = false;
     }
-  }, [data, onSave, enabled]);
+  }, [data, onSave, enabled, t]);
 
   useEffect(() => {
     if (!enabled) return;

@@ -11,22 +11,22 @@ import './CommercialPages.css';
 
 const { Title, Text } = Typography;
 
-const benefits = [
-  '注册后就能开始整理你的第一份基础母版',
-  '立即体验模板、AI 优化与导出流程',
-  '后续可升级解锁更多模板与岗位版本',
-];
-
-const plans = [
-  { name: '免费版', detail: '1 份简历 · 3 次 AI · 普通 PDF' },
-  { name: '初级会员', detail: '5 份简历 · 50 次 AI · 高清 PDF · 自定义模块' },
-  { name: '高级会员', detail: '不限简历 · 300 次 AI · JD 优化 · 多语言简历' },
-];
-
 export const Register = () => {
   const { register } = useAuth();
   const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
+
+  const benefits = [
+    t('auth.registerPage.benefits.item1'),
+    t('auth.registerPage.benefits.item2'),
+    t('auth.registerPage.benefits.item3'),
+  ];
+
+  const plans = [
+    { name: t('dashboard.plan.free'), detail: t('dashboard.plan.freePoints') },
+    { name: t('dashboard.plan.starter'), detail: t('dashboard.plan.starterPoints') },
+    { name: t('dashboard.plan.pro'), detail: t('dashboard.plan.proPoints') },
+  ];
 
   const onFinish = async (values: {
     email: string;
@@ -49,27 +49,27 @@ export const Register = () => {
         <Space direction="vertical" size={10} style={{ width: '100%' }}>
           <div className="auth-eyebrow">
             <RocketFilled />
-            简历工坊增长路径
+            {t('auth.registerPage.eyebrow')}
           </div>
           <Title level={1} className="auth-title">
-            创建账号，把简历制作从一次性操作变成可复用的工作流
+            {t('auth.registerPage.title')}
           </Title>
           <Text className="auth-copy">
-            一次录入经历，持续产出多个岗位版本，配合 AI 和模板导出，把更新简历这件事从“折腾”变成“复用”。
+            {t('auth.registerPage.subtitle')}
           </Text>
         </Space>
         <div className="auth-stats">
           <div className="auth-stat">
-            <span className="auth-stat-value">1 份</span>
-            <span className="auth-stat-label">默认起步简历</span>
+            <span className="auth-stat-value">{t('auth.registerPage.stats.value1')}</span>
+            <span className="auth-stat-label">{t('auth.registerPage.stats.label1')}</span>
           </div>
           <div className="auth-stat">
-            <span className="auth-stat-value">模板 + AI</span>
-            <span className="auth-stat-label">立即开始体验</span>
+            <span className="auth-stat-value">{t('auth.registerPage.stats.value2')}</span>
+            <span className="auth-stat-label">{t('auth.registerPage.stats.label2')}</span>
           </div>
           <div className="auth-stat">
-            <span className="auth-stat-value">可升级</span>
-            <span className="auth-stat-label">解锁更多投递版本</span>
+            <span className="auth-stat-value">{t('auth.registerPage.stats.value3')}</span>
+            <span className="auth-stat-label">{t('auth.registerPage.stats.label3')}</span>
           </div>
         </div>
       </div>
@@ -193,7 +193,7 @@ export const Register = () => {
           </div>
           <div style={{ textAlign: 'center', marginBottom: 8 }}>
             <Link to="/pricing" style={{ color: '#c9a35f', fontWeight: 700 }}>
-              先看会员方案
+              {t('auth.registerPage.viewPlans')}
             </Link>
           </div>
         </Form>
@@ -214,7 +214,7 @@ export const Register = () => {
 
       <Card className="auth-plan-card" bordered={false} style={{ background: 'linear-gradient(135deg, #2a2218 0%, #4a3822 100%)' }}>
         <Title level={4} style={{ color: '#fff', marginTop: 0, marginBottom: 14 }}>
-          套餐成长路径
+          {t('auth.registerPage.planTitle')}
         </Title>
         <Space direction="vertical" size={12} style={{ width: '100%' }}>
           {plans.map((item) => (

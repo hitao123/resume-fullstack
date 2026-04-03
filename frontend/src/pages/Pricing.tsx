@@ -5,25 +5,16 @@ import { useNavigate } from 'react-router-dom';
 import billingService from '@/services/billingService';
 import type { BillingOrder, BillingPlan } from '@/types/billing.types';
 import { useAuthStore } from '@/store/authStore';
+import { useTranslation } from 'react-i18next';
 import './CommercialPages.css';
 
 const { Title, Text, Paragraph } = Typography;
 
 const priceLabel = (amount: number) => `¥${(amount / 100).toFixed(0)}`;
 
-const featureList = (plan: BillingPlan) => [
-  `${plan.resumeLimit === 0 ? '不限' : plan.resumeLimit} 份简历`,
-  `${plan.aiQuotaMonthly} 次 AI / 月`,
-  `${plan.templateLimit >= 99 ? '全部模板' : `${plan.templateLimit} 个模板`}`,
-  plan.allowDuplicate ? '支持复制简历' : '不支持复制简历',
-  plan.allowCustomSections ? '支持自定义模块' : '不支持自定义模块',
-  plan.allowHdPdf ? '高清 PDF 导出' : '普通 PDF 导出',
-  plan.allowJdOptimization ? 'JD 定制优化' : '基础 AI 优化',
-  plan.allowMultiLanguage ? '多语言简历' : '单语言简历',
-];
-
 export const Pricing = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user, isAuthenticated, checkAuth, setUser } = useAuthStore();
   const [plans, setPlans] = useState<BillingPlan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,12 +23,23 @@ export const Pricing = () => {
   const [payingPlanCode, setPayingPlanCode] = useState<string | null>(null);
   const [orders, setOrders] = useState<BillingOrder[]>([]);
 
+  const featureListI18n = (plan: BillingPlan) => [
+    plan.resumeLimit === 0 ? t('pricing.featureResumesUnlimited') : t('pricing.featureResumes', { count: plan.resumeLimit }),
+    t('pricing.featureAiQuota', { count: plan.aiQuotaMonthly }),
+    plan.templateLimit >= 99 ? t('pricing.featureAllTemplates') : t('pricing.featureTemplates', { count: plan.templateLimit }),
+    plan.allowDuplicate ? t('pricing.featureAllowDuplicate') : t('pricing.featureNoDuplicate'),
+    plan.allowCustomSections ? t('pricing.featureAllowCustom') : t('pricing.featureNoCustom'),
+    plan.allowHdPdf ? t('pricing.featureHdPdf') : t('pricing.featureNormalPdf'),
+    plan.allowJdOptimization ? t('pricing.featureJdOpt') : t('pricing.featureBasicAi'),
+    plan.allowMultiLanguage ? t('pricing.featureMultiLang') : t('pricing.featureSingleLang'),
+  ];
+
   useEffect(() => {
     billingService.getPlans()
       .then(setPlans)
-      .catch((error) => message.error(error.message || '加载套餐失败'))
+      .catch((error) => message.error(error.message || t('pricing.loadFailed')))
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -54,9 +56,9 @@ export const Pricing = () => {
   const handlePurchase = async (plan: BillingPlan) => {
     if (!isAuthenticated) {
       Modal.confirm({
-        title: '登录后购买会员',
-        content: '购买高级会员需要先登录账号，登录后会立即返回购买流程。',
-        okText: '去登录',
+        title: t('pricing.loginToBuy'),
+        content: t('pricing.loginToBuyContent'),
+        okText: t('pricing.goLogin'),
         onOk: () => navigate('/login'),
       });
       return;
@@ -77,33 +79,33 @@ export const Pricing = () => {
           win.document.write(checkout.formHtml);
           win.document.close();
         }
-        message.info('支付宝支付页已打开');
+        message.info(t('pricing.alipayOpened'));
         return;
       }
 
       if (provider === 'wechat' && checkout.codeUrl) {
         Modal.info({
-          title: '微信 Native 支付',
-          content: `当前已生成支付链接。等你给到完整微信支付配置后，这里会替换成真正的二维码。临时链接：${checkout.codeUrl}`,
+          title: t('pricing.wechatNativeTitle'),
+          content: t('pricing.wechatNativeContent', { url: checkout.codeUrl }),
         });
         return;
       }
 
       Modal.confirm({
-        title: `确认购买 ${checkout.planName}`,
-        content: `当前将使用模拟支付完成购买，金额 ${priceLabel(checkout.amount)}，支付成功后会立即升级账号套餐。`,
-        okText: '确认支付',
-        cancelText: '取消',
+        title: t('pricing.confirmPurchaseTitle', { planName: checkout.planName }),
+        content: t('pricing.confirmPurchaseContent', { amount: priceLabel(checkout.amount) }),
+        okText: t('pricing.confirmPay'),
+        cancelText: t('pricing.cancel'),
         onOk: async () => {
           const result = await billingService.payOrder(checkout.orderId);
           setUser(result.user);
           await checkAuth();
-          message.success(`已成功升级到 ${result.user.plan?.name || checkout.planName}`);
+          message.success(t('pricing.upgradeSuccess', { planName: result.user.plan?.name || checkout.planName }));
           navigate('/dashboard');
         },
       });
     } catch (error: any) {
-      message.error(error.message || '购买失败');
+      message.error(error.message || t('pricing.purchaseFailed'));
     } finally {
       setPayingPlanCode(null);
     }
@@ -115,21 +117,21 @@ export const Pricing = () => {
         <Space direction="vertical" size={14} style={{ width: '100%' }}>
           <div className="commerce-hero-badge">
             <SafetyCertificateOutlined />
-            简历工坊会员中心
+            {t('pricing.badgeText')}
           </div>
           <Title level={1} className="commerce-hero-title">
-            选择适合你的会员方案，把简历制作升级成稳定的求职系统
+            {t('pricing.heroTitle')}
           </Title>
           <Paragraph className="commerce-hero-copy">
-            根据你的投递密度选择不同层级的模板、AI 配额和导出能力。升级后会立即刷新账号状态，继续在当前工作台里完成求职流程。
+            {t('pricing.heroCopy')}
           </Paragraph>
           <div className="pricing-topbar">
             <Segmented
               value={billingCycle}
               onChange={(value) => setBillingCycle(value as 'monthly' | 'yearly')}
               options={[
-                { label: '按月付费', value: 'monthly' },
-                { label: '按年付费', value: 'yearly' },
+                { label: t('pricing.billingMonthly'), value: 'monthly' },
+                { label: t('pricing.billingYearly'), value: 'yearly' },
               ]}
             />
             <Radio.Group
@@ -139,12 +141,12 @@ export const Pricing = () => {
               buttonStyle="solid"
               options={[
                 { label: 'Stripe Checkout', value: 'stripe' },
-                { label: '微信 Native', value: 'wechat' },
-                { label: '支付宝 Page Pay', value: 'alipay' },
+                { label: t('pricing.providerWechat'), value: 'wechat' },
+                { label: t('pricing.providerAlipay'), value: 'alipay' },
                 { label: 'Mock', value: 'mock' },
               ]}
             />
-            {user?.plan && <Tag color="gold">当前套餐：{user.plan.name}</Tag>}
+            {user?.plan && <Tag color="gold">{t('pricing.currentPlanLabel', { name: user.plan.name })}</Tag>}
           </div>
         </Space>
       </Card>
@@ -178,17 +180,17 @@ export const Pricing = () => {
                           <div>
                             <Title level={3} style={{ margin: 0 }}>{plan.name}</Title>
                             <Space size={[8, 8]} wrap style={{ marginTop: 6 }}>
-                              {isPopular && <Tag color="gold">推荐购买</Tag>}
-                              {isCurrent && <Tag color="gold">当前套餐</Tag>}
+                              {isPopular && <Tag color="gold">{t('pricing.recommended')}</Tag>}
+                              {isCurrent && <Tag color="gold">{t('pricing.currentPlan')}</Tag>}
                             </Space>
                           </div>
                         </div>
                         <div>
-                          <Title level={2} style={{ marginBottom: 0 }}>{amount === 0 ? '免费' : priceLabel(amount)}</Title>
-                          <Text type="secondary">{amount === 0 ? '立即开始体验' : billingCycle === 'yearly' ? '按年结算' : '按月结算'}</Text>
+                          <Title level={2} style={{ marginBottom: 0 }}>{amount === 0 ? t('pricing.free') : priceLabel(amount)}</Title>
+                          <Text type="secondary">{amount === 0 ? t('pricing.startNow') : billingCycle === 'yearly' ? t('pricing.billedYearly') : t('pricing.billedMonthly')}</Text>
                         </div>
                         <div className="pricing-feature-list">
-                          {featureList(plan).map((item) => (
+                          {featureListI18n(plan).map((item) => (
                             <div key={item} className="pricing-feature-item">
                               <CheckCircleFilled style={{ color: '#c9a35f', marginTop: 3 }} />
                               <Text style={{ color: '#334155' }}>{item}</Text>
@@ -206,7 +208,7 @@ export const Pricing = () => {
                           onClick={() => handlePurchase(plan)}
                           style={{ borderRadius: 14, minHeight: 48, fontWeight: 600 }}
                         >
-                          {isCurrent ? '当前已生效' : plan.code === 'FREE' ? '继续使用免费版' : `购买${plan.name}`}
+                          {isCurrent ? t('pricing.currentActive') : plan.code === 'FREE' ? t('pricing.continueFree') : t('pricing.buyPlan', { name: plan.name })}
                         </Button>
                       </div>
                     </Card>
@@ -219,46 +221,46 @@ export const Pricing = () => {
           <Col xs={24} xl={7} className="pricing-side-col">
             <Space direction="vertical" size="large" style={{ width: '100%' }} className="pricing-side-stack">
               <Card className="side-rail-card pricing-side-card">
-                <Title level={4} style={{ marginTop: 0 }}>当前账号状态</Title>
+                <Title level={4} style={{ marginTop: 0 }}>{t('pricing.sideAccountStatus')}</Title>
                 <Space direction="vertical" size={14} style={{ width: '100%' }}>
                   <div className="pricing-provider-note">
-                    <Text strong style={{ display: 'block', color: '#2a2218' }}>当前套餐</Text>
-                    <Text type="secondary">{user?.plan?.name || '未登录'}</Text>
+                    <Text strong style={{ display: 'block', color: '#2a2218' }}>{t('pricing.sideCurrentPlan')}</Text>
+                    <Text type="secondary">{user?.plan?.name || t('pricing.sideNotLoggedIn')}</Text>
                   </div>
                   <div className="pricing-provider-note">
-                    <Text strong style={{ display: 'block', color: '#2a2218' }}>AI 用量</Text>
+                    <Text strong style={{ display: 'block', color: '#2a2218' }}>{t('pricing.sideAiUsage')}</Text>
                     <Text type="secondary">{user?.usage?.aiUsed ?? 0} / {user?.plan?.aiQuotaMonthly ?? '-'}</Text>
                   </div>
                   <div className="pricing-provider-note">
-                    <Text strong style={{ display: 'block', color: '#2a2218' }}>支付方式</Text>
-                    <Text type="secondary">当前支持 Stripe Checkout、微信 Native、支付宝 Page Pay 和本地 Mock 测试。</Text>
+                    <Text strong style={{ display: 'block', color: '#2a2218' }}>{t('pricing.sidePaymentMethod')}</Text>
+                    <Text type="secondary">{t('pricing.sidePaymentMethodDesc')}</Text>
                   </div>
                 </Space>
               </Card>
 
               <Card className="side-rail-card side-rail-card--accent pricing-side-card">
-                <Title level={4} style={{ marginTop: 0 }}>购买说明</Title>
+                <Title level={4} style={{ marginTop: 0 }}>{t('pricing.sidePurchaseInfo')}</Title>
                 <Space direction="vertical" size={12} style={{ width: '100%' }}>
-                  <Text type="secondary">升级后会立即生效，当前账号的套餐状态和权益会同步刷新。</Text>
-                  <Text type="secondary">如果你暂时只想体验流程，可以先选择 Mock 支付完成本地验证。</Text>
+                  <Text type="secondary">{t('pricing.sidePurchaseInfoDesc1')}</Text>
+                  <Text type="secondary">{t('pricing.sidePurchaseInfoDesc2')}</Text>
                 </Space>
               </Card>
 
               <Card className="side-rail-card pricing-side-card pricing-orders-card">
-                <Title level={4} style={{ marginTop: 0 }}>最近订单</Title>
+                <Title level={4} style={{ marginTop: 0 }}>{t('pricing.sideRecentOrders')}</Title>
                 {isAuthenticated ? (
                   <div className="pricing-orders-scroll">
                     <List
                       dataSource={orders}
-                      locale={{ emptyText: '还没有订单记录' }}
+                      locale={{ emptyText: t('pricing.noOrders') }}
                       renderItem={(item) => (
                         <List.Item style={{ paddingLeft: 0, paddingRight: 0 }}>
                           <List.Item.Meta
                             title={<span style={{ fontWeight: 600 }}>{item.planName}</span>}
                             description={
                               <Space direction="vertical" size={2}>
-                                <Text type="secondary">{priceLabel(item.amount)} · {item.billingCycle === 'yearly' ? '年付' : '月付'}</Text>
-                                <Text type="secondary">{item.status === 'paid' ? '已支付' : '待支付'} · {new Date(item.createdAt).toLocaleDateString('zh-CN')}</Text>
+                                <Text type="secondary">{priceLabel(item.amount)} · {item.billingCycle === 'yearly' ? t('pricing.orderYearly') : t('pricing.orderMonthly')}</Text>
+                                <Text type="secondary">{item.status === 'paid' ? t('pricing.orderPaid') : t('pricing.orderPending')} · {new Date(item.createdAt).toLocaleDateString('zh-CN')}</Text>
                               </Space>
                             }
                           />
@@ -267,7 +269,7 @@ export const Pricing = () => {
                     />
                   </div>
                 ) : (
-                  <Text type="secondary">登录后可查看你的购买记录和当前会员状态。</Text>
+                  <Text type="secondary">{t('pricing.loginToViewOrders')}</Text>
                 )}
               </Card>
             </Space>

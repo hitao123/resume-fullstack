@@ -16,7 +16,7 @@ import ResumePreview from '@/components/resume/ResumePreview';
 import { usePDFExport } from '@/hooks/usePDFExport';
 import { useResumeStore } from '@/store/resumeStore';
 import type { Resume } from '@/types/resume.types';
-import { TEMPLATE_NAMES } from '@/utils/constants';
+import { TEMPLATE_NAME_KEYS } from '@/utils/constants';
 import type { MenuProps } from 'antd';
 import { useTranslation } from 'react-i18next';
 import '@/components/resume/ResumeWorkspace.css';
@@ -104,7 +104,7 @@ export const ResumeEditor = () => {
 
   const modeLabel = exportMode === 'html2canvas'
     ? t('resumeEditor.export.modeHtml2canvasShort')
-    : (pdfTemplate === 'classic' ? t('resumeEditor.export.classicShort') : pdfTemplate === 'modern' ? t('resumeEditor.export.modernShort') : '极简');
+    : (pdfTemplate === 'classic' ? t('resumeEditor.export.classicShort') : pdfTemplate === 'modern' ? t('resumeEditor.export.modernShort') : t('resumeEditor.export.minimalShort'));
 
   const exportMenuItems: MenuProps['items'] = [
     {
@@ -161,7 +161,7 @@ export const ResumeEditor = () => {
           key: 'minimal',
           label: (
             <Space>
-              极简模板
+              {t('resumeEditor.export.minimal')}
               {pdfTemplate === 'minimal' && <CheckCircleOutlined style={{ color: '#52c41a' }} />}
             </Space>
           ),
@@ -230,8 +230,8 @@ export const ResumeEditor = () => {
     );
   }
 
-  const currentTemplateName = TEMPLATE_NAMES[resume.templateId] || 'Template';
-  const previewTemplateName = previewTemplateId ? TEMPLATE_NAMES[previewTemplateId] : currentTemplateName;
+  const currentTemplateName = t(TEMPLATE_NAME_KEYS[resume.templateId] || 'common.template');
+  const previewTemplateName = previewTemplateId ? t(TEMPLATE_NAME_KEYS[previewTemplateId] || 'common.template') : currentTemplateName;
 
   const tabItems = [
     {
@@ -261,27 +261,27 @@ export const ResumeEditor = () => {
     },
     {
       key: 'certifications',
-      label: '证书',
+      label: t('resumeEditor.tabs.certifications'),
       children: <CertificationsSection data={resume.certifications || []} onChange={updateCertifications} />,
     },
     {
       key: 'languages',
-      label: '语言',
+      label: t('resumeEditor.tabs.languages'),
       children: <LanguagesSection data={resume.languages || []} onChange={updateLanguages} />,
     },
     {
       key: 'awards',
-      label: '奖项',
+      label: t('resumeEditor.tabs.awards'),
       children: <AwardsSection data={resume.awards || []} onChange={updateAwards} />,
     },
     {
       key: 'custom',
-      label: '自定义模块',
+      label: t('resumeEditor.tabs.custom'),
       children: <CustomSectionsSection data={resume.customSections || []} onChange={updateCustomSections} />,
     },
     {
       key: 'layout',
-      label: '布局与版本',
+      label: t('resumeEditor.tabs.layout'),
       children: (
         <ResumeSettingsSection
           resume={resume}
@@ -304,7 +304,7 @@ export const ResumeEditor = () => {
               <div className="resume-editor-title">
                 <strong>{resume.title}</strong>
                 <span>
-                  {resume.versionLabel || '当前编辑版本'}
+                  {resume.versionLabel || t('resumeEditor.currentEditingVersion')}
                   {resume.targetRole ? ` · ${resume.targetRole}` : ''}
                 </span>
               </div>
@@ -317,7 +317,9 @@ export const ResumeEditor = () => {
           extra={
             <Space wrap>
               <Tag color={exportMode === 'html2canvas' ? 'green' : 'gold'}>
-                {exportMode === 'html2canvas' ? 'HTML 预览导出' : 'React PDF'}
+                {exportMode === 'html2canvas'
+                  ? t('resumeEditor.export.htmlPreview')
+                  : t('resumeEditor.export.modeReactPdf')}
               </Tag>
               {previewVisible && (
                 <Segmented
@@ -325,8 +327,8 @@ export const ResumeEditor = () => {
                   value={previewFitMode}
                   onChange={(value) => setPreviewFitMode(value as 'a4' | 'screen')}
                   options={[
-                    { label: '适配 A4', value: 'a4' },
-                    { label: '适配屏幕', value: 'screen' },
+                    { label: t('resumeEditor.fitA4'), value: 'a4' },
+                    { label: t('resumeEditor.fitScreen'), value: 'screen' },
                   ]}
                 />
               )}
@@ -355,23 +357,23 @@ export const ResumeEditor = () => {
               opacity: previewFitMode === 'screen' ? 1 : 0.45,
               pointerEvents: previewFitMode === 'screen' ? 'auto' : 'none',
             }}
-            title="拖拽调整预览宽度"
+            title={t('resumeEditor.dragToResize')}
           >
             <div className="resume-preview-handle-line" />
           </div>
           <Sider width={effectivePreviewWidth} className="resume-preview-sider">
             <div className="resume-preview-toolbar">
               <div className="resume-preview-toolbar-title">
-                <strong>{previewTemplateName} 预览</strong>
+                <strong>{t('resumeEditor.previewLabel', { name: previewTemplateName })}</strong>
                 <span>
                   {previewTemplateId && previewTemplateId !== resume.templateId
-                    ? `正在预览未应用模板，当前保存模板为 ${currentTemplateName}`
-                    : `当前模板：${currentTemplateName}`}
+                    ? t('resumeEditor.previewingUnapplied', { current: currentTemplateName })
+                    : t('resumeEditor.currentTemplate', { name: currentTemplateName })}
                 </span>
               </div>
               <Space size={[8, 8]} wrap>
-                <Tag color="gold">{previewFitMode === 'a4' ? 'A4 视图' : '屏幕视图'}</Tag>
-                {previewTemplateId && previewTemplateId !== resume.templateId && <Tag color="warning">临时预览</Tag>}
+                <Tag color="gold">{previewFitMode === 'a4' ? t('resumeEditor.a4View') : t('resumeEditor.screenView')}</Tag>
+                {previewTemplateId && previewTemplateId !== resume.templateId && <Tag color="warning">{t('resumeEditor.tempPreview')}</Tag>}
               </Space>
             </div>
             <div className="resume-preview-stage">

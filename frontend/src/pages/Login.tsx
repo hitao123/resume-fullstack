@@ -14,22 +14,22 @@ interface LoginFormValues {
   password: string;
 }
 
-const planHighlights = [
-  { name: '免费版', detail: '1 份简历 · 3 次 AI · 基础模板' },
-  { name: '初级会员', detail: '5 份简历 · 50 次 AI · 高清 PDF' },
-  { name: '高级会员', detail: '不限简历 · 300 次 AI · JD 定制优化' },
-];
-
-const outcomeHighlights = [
-  '10 分钟生成第一版可投递简历',
-  '为不同岗位复制出多版本简历',
-  '用 AI 优化工作经历与项目亮点',
-];
-
 export const Login = () => {
   const navigate = useNavigate();
   const { login, isLoading } = useAuthStore();
   const { t } = useTranslation();
+
+  const planHighlights = [
+    { name: t('dashboard.plan.free'), detail: t('dashboard.plan.freePoints') },
+    { name: t('dashboard.plan.starter'), detail: t('dashboard.plan.starterPoints') },
+    { name: t('dashboard.plan.pro'), detail: t('dashboard.plan.proPoints') },
+  ];
+
+  const outcomeHighlights = [
+    t('auth.loginPage.outcomes.item1'),
+    t('auth.loginPage.outcomes.item2'),
+    t('auth.loginPage.outcomes.item3'),
+  ];
 
   const onFinish = async (values: LoginFormValues) => {
     try {
@@ -48,27 +48,27 @@ export const Login = () => {
         <Space direction="vertical" size={10} style={{ width: '100%' }}>
           <div className="auth-eyebrow">
             <ThunderboltFilled />
-            Resume Studio 工作台
+            {t('auth.loginPage.eyebrow')}
           </div>
           <Title level={1} className="auth-title">
-            登录后继续把你的下一份简历，打磨成真正可投递的版本
+            {t('auth.loginPage.title')}
           </Title>
           <Text className="auth-copy">
-            从模板选择、岗位多版本到 AI 优化和 PDF 导出，所有进度都会保存在你的简历工坊工作台里。
+            {t('auth.loginPage.subtitle')}
           </Text>
         </Space>
         <div className="auth-stats">
           <div className="auth-stat">
-            <span className="auth-stat-value">1 个</span>
-            <span className="auth-stat-label">统一工作台</span>
+            <span className="auth-stat-value">{t('auth.loginPage.stats.value1')}</span>
+            <span className="auth-stat-label">{t('auth.loginPage.stats.label1')}</span>
           </div>
           <div className="auth-stat">
-            <span className="auth-stat-value">3 档</span>
-            <span className="auth-stat-label">成长型套餐</span>
+            <span className="auth-stat-value">{t('auth.loginPage.stats.value2')}</span>
+            <span className="auth-stat-label">{t('auth.loginPage.stats.label2')}</span>
           </div>
           <div className="auth-stat">
-            <span className="auth-stat-value">多版本</span>
-            <span className="auth-stat-label">岗位定制能力</span>
+            <span className="auth-stat-value">{t('auth.loginPage.stats.value3')}</span>
+            <span className="auth-stat-label">{t('auth.loginPage.stats.label3')}</span>
           </div>
         </div>
       </div>
@@ -136,7 +136,7 @@ export const Login = () => {
           </div>
           <div style={{ textAlign: 'center', marginBottom: 8 }}>
             <Link to="/pricing" style={{ color: '#c9a35f', fontWeight: 700 }}>
-              查看会员方案
+              {t('auth.loginPage.viewPlans')}
             </Link>
           </div>
         </Form>
@@ -157,7 +157,7 @@ export const Login = () => {
 
       <Card className="auth-plan-card" bordered={false} style={{ background: 'linear-gradient(135deg, #2a2218 0%, #4a3822 100%)', color: '#fff' }}>
         <Title level={4} style={{ color: '#fff', marginTop: 0, marginBottom: 14 }}>
-          登录后你会立即看到
+          {t('auth.loginPage.planTitle')}
         </Title>
         <Space direction="vertical" size={12} style={{ width: '100%' }}>
           {planHighlights.map((item) => (

@@ -9,6 +9,7 @@ import {
 } from '@react-pdf/renderer';
 import type { Resume } from '@/types/resume.types';
 import { htmlToPdfNodes } from '@/utils/htmlToPdfNodes';
+import i18n from '@/i18n';
 
 // 注册中文字体
 Font.register({
@@ -150,6 +151,7 @@ interface ModernTemplatePDFProps {
 
 export const ModernTemplatePDF: React.FC<ModernTemplatePDFProps> = ({ resume }) => {
   const { personalInfo, workExperiences, education, skills } = resume;
+  const t = i18n.t.bind(i18n);
 
   const formatDate = (dateStr?: string | null) => {
     if (!dateStr) return '';
@@ -162,11 +164,11 @@ export const ModernTemplatePDF: React.FC<ModernTemplatePDFProps> = ({ resume }) 
     end?: string | null,
     isCurrent?: boolean
   ) => {
-    return `${formatDate(start)} - ${isCurrent || !end ? '至今' : formatDate(end)}`;
+    return `${formatDate(start)} - ${isCurrent || !end ? t('resume.common.toPresent') : formatDate(end)}`;
   };
 
   const groupedSkills = (skills || []).reduce((acc, skill) => {
-    const category = skill.category || '其他';
+    const category = skill.category || t('resume.common.other');
     if (!acc[category]) {
       acc[category] = [];
     }
@@ -181,12 +183,12 @@ export const ModernTemplatePDF: React.FC<ModernTemplatePDFProps> = ({ resume }) 
           {/* 左侧边栏 */}
           <View style={styles.sidebar}>
             <Text style={styles.sidebarName}>
-              {personalInfo?.fullName || '未填写姓名'}
+              {personalInfo?.fullName || t('resume.preview.noName')}
             </Text>
 
             {/* 联系方式 */}
             <View style={styles.sidebarSection}>
-              <Text style={styles.sidebarTitle}>联系方式</Text>
+              <Text style={styles.sidebarTitle}>{t('resume.personal.phoneLabel')}</Text>
               {personalInfo?.email && (
                 <Text style={styles.sidebarText}>{personalInfo.email}</Text>
               )}
@@ -201,7 +203,7 @@ export const ModernTemplatePDF: React.FC<ModernTemplatePDFProps> = ({ resume }) 
             {/* 链接 */}
             {(personalInfo?.website || personalInfo?.github || personalInfo?.linkedin) && (
               <View style={styles.sidebarSection}>
-                <Text style={styles.sidebarTitle}>在线资料</Text>
+                <Text style={styles.sidebarTitle}>{t('resume.personal.websiteLabel')}</Text>
                 {personalInfo?.website && (
                   <Text style={styles.sidebarText}>{personalInfo.website}</Text>
                 )}
@@ -217,7 +219,7 @@ export const ModernTemplatePDF: React.FC<ModernTemplatePDFProps> = ({ resume }) 
             {/* 专业技能 */}
             {skills && skills.length > 0 && (
               <View style={styles.sidebarSection}>
-                <Text style={styles.sidebarTitle}>专业技能</Text>
+                <Text style={styles.sidebarTitle}>{t('resume.preview.skillsTitle')}</Text>
                 {Object.entries(groupedSkills).map(([category, categorySkills]) => (
                   <View key={category} style={{ marginBottom: 12 }}>
                     <Text style={[styles.sidebarText, { fontWeight: 'bold', marginBottom: 4 }]}>
@@ -240,7 +242,7 @@ export const ModernTemplatePDF: React.FC<ModernTemplatePDFProps> = ({ resume }) 
             {/* 个人简介 */}
             {personalInfo?.summary && (
               <View style={styles.mainSection}>
-                <Text style={styles.mainSectionTitle}>个人简介</Text>
+                <Text style={styles.mainSectionTitle}>{t('resume.personal.summaryLabel')}</Text>
                 {htmlToPdfNodes(personalInfo.summary, { baseStyle: styles.itemDescription })}
               </View>
             )}
@@ -248,7 +250,7 @@ export const ModernTemplatePDF: React.FC<ModernTemplatePDFProps> = ({ resume }) 
             {/* 工作经历 */}
             {workExperiences && workExperiences.length > 0 && (
               <View style={styles.mainSection}>
-                <Text style={styles.mainSectionTitle}>工作经历</Text>
+                <Text style={styles.mainSectionTitle}>{t('resume.preview.workTitle')}</Text>
                 {workExperiences.map((work) => (
                   <View key={work.id} style={styles.item}>
                     <View style={styles.itemHeader}>
@@ -270,7 +272,7 @@ export const ModernTemplatePDF: React.FC<ModernTemplatePDFProps> = ({ resume }) 
             {/* 教育背景 */}
             {education && education.length > 0 && (
               <View style={styles.mainSection}>
-                <Text style={styles.mainSectionTitle}>教育背景</Text>
+                <Text style={styles.mainSectionTitle}>{t('resume.preview.educationTitle')}</Text>
                 {education.map((edu) => (
                   <View key={edu.id} style={styles.item}>
                     <View style={styles.itemHeader}>
