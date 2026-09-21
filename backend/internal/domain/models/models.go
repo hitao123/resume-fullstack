@@ -71,20 +71,21 @@ type ResumeSectionConfig struct {
 
 // PersonalInfo represents personal information section
 type PersonalInfo struct {
-	ID         uint      `gorm:"primarykey" json:"id"`
-	ResumeID   uint      `gorm:"uniqueIndex;not null" json:"resumeId"`
-	FullName   string    `json:"fullName"`
-	Email      string    `json:"email"`
-	Phone      string    `json:"phone"`
-	Location   string    `json:"location"`
-	Website    string    `json:"website"`
-	LinkedIn   string    `json:"linkedin"`
-	Github     string    `json:"github"`
-	AvatarURL  string    `gorm:"type:varchar(500)" json:"avatarUrl"`
-	ShowAvatar bool      `gorm:"default:false" json:"showAvatar"`
-	Summary    string    `gorm:"type:text" json:"summary"`
-	CreatedAt  time.Time `json:"createdAt"`
-	UpdatedAt  time.Time `json:"updatedAt"`
+	ID            uint      `gorm:"primarykey" json:"id"`
+	ResumeID      uint      `gorm:"uniqueIndex;not null" json:"resumeId"`
+	FullName      string    `json:"fullName"`
+	Email         string    `json:"email"`
+	Phone         string    `json:"phone"`
+	Location      string    `json:"location"`
+	Website       string    `json:"website"`
+	LinkedIn      string    `json:"linkedin"`
+	Github        string    `json:"github"`
+	AvatarURL     string    `gorm:"type:varchar(500)" json:"avatarUrl"`
+	AvatarDataURL string    `gorm:"-" json:"avatarDataUrl,omitempty"`
+	ShowAvatar    bool      `gorm:"default:false" json:"showAvatar"`
+	Summary       string    `gorm:"type:text" json:"summary"`
+	CreatedAt     time.Time `json:"createdAt"`
+	UpdatedAt     time.Time `json:"updatedAt"`
 }
 
 // WorkExperience represents work experience entry
@@ -196,6 +197,29 @@ type CustomSection struct {
 	DisplayOrder int       `gorm:"default:0;index" json:"displayOrder"`
 	CreatedAt    time.Time `json:"createdAt"`
 	UpdatedAt    time.Time `json:"updatedAt"`
+}
+
+// ResumeExport is an immutable, user-scoped rendering job. Snapshot contains
+// the complete resume at queue time and is never mutated after creation.
+type ResumeExport struct {
+	ID              string    `gorm:"primaryKey;type:char(32)" json:"id"`
+	ResumeID        uint      `gorm:"not null;index" json:"resumeId"`
+	UserID          uint      `gorm:"not null;index" json:"userId"`
+	Status          string    `gorm:"type:varchar(20);not null;index" json:"status"`
+	TemplateVersion string    `gorm:"type:varchar(50);not null" json:"templateVersion"`
+	Locale          string    `gorm:"type:varchar(20);not null" json:"locale"`
+	ContentHash     string    `gorm:"type:char(64);not null;index" json:"contentHash"`
+	CacheKey        string    `gorm:"type:char(64);not null;index" json:"-"`
+	Snapshot        string    `gorm:"type:longtext;not null" json:"-"`
+	FilePath        string    `gorm:"type:varchar(1024)" json:"-"`
+	FileName        string    `gorm:"type:varchar(255)" json:"fileName,omitempty"`
+	FileHash        string    `gorm:"type:char(64)" json:"fileHash,omitempty"`
+	PageCount       int       `gorm:"default:0" json:"pageCount,omitempty"`
+	ErrorCode       string    `gorm:"type:varchar(64)" json:"errorCode,omitempty"`
+	ErrorMessage    string    `gorm:"type:varchar(500)" json:"errorMessage,omitempty"`
+	ExpiresAt       time.Time `gorm:"not null;index" json:"expiresAt"`
+	CreatedAt       time.Time `json:"createdAt"`
+	UpdatedAt       time.Time `json:"updatedAt"`
 }
 
 // RefreshToken represents a JWT refresh token

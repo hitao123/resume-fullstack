@@ -18,10 +18,11 @@ const AIAssistantButton: React.FC<AIAssistantButtonProps> = ({ onClick, loading,
         onClick={onClick}
         loading={loading}
         style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'linear-gradient(135deg, #b98a2f 0%, #8a5a1d 100%)',
           border: 'none',
           color: '#fff',
           fontSize: 12,
+          borderRadius: 8,
           display: 'inline-flex',
           alignItems: 'center',
           gap: 4,

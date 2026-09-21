@@ -22,31 +22,49 @@ services:
       timeout: 5s
       retries: 5
 
-  # Uncomment when backend is ready
-  # backend:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #   container_name: resume-backend
-  #   environment:
-  #     DB_HOST: mysql
-  #     DB_PORT: 3306
-  #     DB_USER: resume_user
-  #     DB_PASSWORD: resume_password
-  #     DB_NAME: resume_db
-  #     JWT_SECRET: your-secret-key-change-in-production
-  #     JWT_REFRESH_SECRET: your-refresh-secret-change-in-production
-  #     PORT: 8080
-  #   ports:
-  #     - "8080:8080"
-  #   depends_on:
-  #     mysql:
-  #       condition: service_healthy
-  #   networks:
-  #     - resume-network
+  renderer:
+    build:
+      context: .
+      dockerfile: renderer/Dockerfile
+    container_name: resume-renderer
+    environment:
+      PORT: 3001
+      RENDERER_INTERNAL_TOKEN: development-renderer-token
+    networks:
+      - resume-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: resume-backend
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: resume_user
+      DB_PASSWORD: resume_password
+      DB_NAME: resume_db
+      JWT_SECRET: development-jwt-secret-change-in-production
+      JWT_REFRESH_SECRET: development-refresh-secret-change-in-production
+      PORT: 8080
+      RENDERER_URL: http://renderer:3001
+      RENDERER_INTERNAL_TOKEN: development-renderer-token
+      EXPORT_STORAGE_DIR: /data/exports
+    ports:
+      - "8080:8080"
+    volumes:
+      - export_data:/data/exports
+    depends_on:
+      mysql:
+        condition: service_healthy
+      renderer:
+        condition: service_started
+    networks:
+      - resume-network
 
 volumes:
   mysql_data:
+  export_data:
 
 networks:
   resume-network:

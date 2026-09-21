@@ -36,7 +36,7 @@ import { useResumeStore } from '@/store/resumeStore';
 import { useAuth } from '@/hooks/useAuth';
 import type { MenuProps } from 'antd';
 import { useTranslation } from 'react-i18next';
-import type { ApiError } from '@/types/api.types';
+import { getErrorMessage } from '@/utils/apiError';
 import { openUpgradePrompt } from '@/utils/planMessages';
 import { TEMPLATE_NAME_KEYS } from '@/utils/constants';
 import './CommercialPages.css';
@@ -90,13 +90,9 @@ export const Dashboard = () => {
 
   useEffect(() => {
     fetchResumes().catch((error) => {
-      message.error(t('dashboard.loadFailed', { message: error.message }));
+      message.error(t('dashboard.loadFailed', { message: getErrorMessage(error) }));
     });
   }, [fetchResumes, t]);
-
-  const showUpgradeGuide = (error: ApiError) => {
-    openUpgradePrompt(error);
-  };
 
   const handleCreateResume = async (values: { title: string }) => {
     try {
@@ -106,10 +102,12 @@ export const Dashboard = () => {
       form.resetFields();
       navigate(`/editor/${resume.id}`);
     } catch (error: unknown) {
-      const apiError = error as ApiError;
-      const msg = error instanceof Error ? error.message : String(error);
-      showUpgradeGuide(apiError);
-      message.error(t('dashboard.createFailed', { message: msg }));
+      if (openUpgradePrompt(error)) {
+        setCreateModalOpen(false);
+        form.resetFields();
+        return;
+      }
+      message.error(t('dashboard.createFailed', { message: getErrorMessage(error) }));
     }
   };
 
@@ -124,8 +122,7 @@ export const Dashboard = () => {
           await deleteResume(id);
           message.success(t('dashboard.deleted'));
         } catch (error: unknown) {
-          const msg = error instanceof Error ? error.message : String(error);
-          message.error(t('dashboard.deleteFailed', { message: msg }));
+          message.error(t('dashboard.deleteFailed', { message: getErrorMessage(error) }));
         }
       },
     });
@@ -136,10 +133,8 @@ export const Dashboard = () => {
       await duplicateResume(id);
       message.success(t('dashboard.duplicated'));
     } catch (error: unknown) {
-      const apiError = error as ApiError;
-      const msg = error instanceof Error ? error.message : String(error);
-      showUpgradeGuide(apiError);
-      message.error(t('dashboard.duplicateFailed', { message: msg }));
+      if (openUpgradePrompt(error)) return;
+      message.error(t('dashboard.duplicateFailed', { message: getErrorMessage(error) }));
     }
   };
 
@@ -221,7 +216,7 @@ export const Dashboard = () => {
                   size="large"
                   icon={<PlusOutlined />}
                   onClick={() => setCreateModalOpen(true)}
-                  style={{ minWidth: 150, borderRadius: 14, fontWeight: 600, background: '#9d6b21', color: '#fffdf8', border: 'none' }}
+                  style={{ minWidth: 150, borderRadius: 10, fontWeight: 600 }}
                 >
                   {t('dashboard.createResumeButton')}
                 </Button>
@@ -231,7 +226,7 @@ export const Dashboard = () => {
                     icon={<ArrowRightOutlined />}
                     iconPosition="end"
                     onClick={() => navigate(`/editor/${latestResume.id}`)}
-                    style={{ minWidth: 160, borderRadius: 14, fontWeight: 600, background: 'rgba(255,255,255,0.56)', color: '#5e4a30', borderColor: 'rgba(157,107,33,0.14)' }}
+                    style={{ minWidth: 160, borderRadius: 10, fontWeight: 600, background: '#ffffff', color: '#44403c', borderColor: '#dbd6cd' }}
                   >
                     {t('dashboard.continueLastEdit')}
                   </Button>
@@ -277,7 +272,7 @@ export const Dashboard = () => {
                       <span className="commerce-meter-hint">{resumes.length} / {resumeLimit === 0 ? t('dashboard.unlimited') : resumeLimit}</span>
                     </div>
                     {resumeLimit > 0 && (
-                      <Progress percent={Math.min(100, Math.round((resumes.length / resumeLimit) * 100))} showInfo={false} strokeColor="#c9a35f" />
+                      <Progress percent={Math.min(100, Math.round((resumes.length / resumeLimit) * 100))} showInfo={false} strokeColor="#9d6b21" />
                     )}
                   </div>
                 </Col>
@@ -288,7 +283,7 @@ export const Dashboard = () => {
                       <span className="commerce-meter-hint">{aiUsed} / {aiLimit || '-'}</span>
                     </div>
                     {aiLimit > 0 && (
-                      <Progress percent={Math.min(100, Math.round((aiUsed / aiLimit) * 100))} showInfo={false} strokeColor="#1d8f6f" />
+                      <Progress percent={Math.min(100, Math.round((aiUsed / aiLimit) * 100))} showInfo={false} strokeColor="#15803d" />
                     )}
                   </div>
                 </Col>
@@ -318,7 +313,7 @@ export const Dashboard = () => {
                       navigate(`/editor/${latestResume.id}`);
                     }
                   }}
-                  style={{ borderRadius: 12 }}
+                  style={{ borderRadius: 10 }}
                 >
                   {item.cta}
                 </Button>
@@ -419,7 +414,7 @@ export const Dashboard = () => {
                       </Text>
                       <Divider style={{ margin: '12px 0' }} />
                       <Space direction="vertical" size={6} style={{ width: '100%' }} className="resume-card-footer">
-                        <Text style={{ color: '#475569' }}>{t('dashboard.nextStepsTitle')}</Text>
+                        <Text style={{ color: '#57534e' }}>{t('dashboard.nextStepsTitle')}</Text>
                         <Text type="secondary">{t('dashboard.nextStepsHint')}</Text>
                       </Space>
                     </Card>
@@ -438,15 +433,15 @@ export const Dashboard = () => {
                 dataSource={planComparisons}
                 renderItem={(item) => (
                   <div className="plan-list-item">
-                    <Text style={{ display: 'block', fontWeight: 700, color: '#2a2218' }}>{item.plan}</Text>
-                    <Text style={{ color: '#64748b', lineHeight: 1.7 }}>{item.points}</Text>
+                    <Text style={{ display: 'block', fontWeight: 700, color: '#1c1917' }}>{item.plan}</Text>
+                    <Text style={{ color: '#78716c', lineHeight: 1.7 }}>{item.points}</Text>
                   </div>
                 )}
               />
               <Button
                 type="primary"
                 block
-                style={{ marginTop: 8, borderRadius: 12 }}
+                style={{ marginTop: 8, borderRadius: 10 }}
                 onClick={() => navigate('/pricing')}
               >
                 {t('dashboard.goMembershipTitle')}

@@ -6,8 +6,9 @@ import { useTranslation } from 'react-i18next';
 import type { Language } from '@/types/resume.types';
 import resumeService from '@/services/resumeService';
 import { LANGUAGE_PROFICIENCY_LEVELS } from '@/utils/constants';
-import type { ApiError } from '@/types/api.types';
+import { getErrorMessage, isFormValidateError } from '@/utils/apiError';
 import { openUpgradePrompt } from '@/utils/planMessages';
+import { useExportDraftGuard } from '@/hooks/useExportDraftGuard';
 
 interface LanguagesSectionProps {
   data: Language[];
@@ -21,17 +22,14 @@ const LanguagesSection = ({ data, onChange }: LanguagesSectionProps) => {
   const [editingItem, setEditingItem] = useState<Language | null>(null);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
-
-  const showUpgradeGuide = (error: ApiError) => {
-    openUpgradePrompt(error);
-  };
+  useExportDraftGuard('languages', open);
 
   const loadData = async () => {
     if (!id) return;
     try {
       onChange(await resumeService.getLanguages(Number(id)));
     } catch (error) {
-      message.error(t('resume.languages.loadFailed', { message: error instanceof Error ? error.message : String(error) }));
+      message.error(t('resume.languages.loadFailed', { message: getErrorMessage(error) }));
     }
   };
 
@@ -59,8 +57,8 @@ const LanguagesSection = ({ data, onChange }: LanguagesSectionProps) => {
       form.resetFields();
       setEditingItem(null);
     } catch (error) {
-      showUpgradeGuide(error as ApiError);
-      message.error(t('resume.languages.saveFailed', { message: error instanceof Error ? error.message : String(error) }));
+      if (isFormValidateError(error) || openUpgradePrompt(error)) return;
+      message.error(t('resume.languages.saveFailed', { message: getErrorMessage(error) }));
     } finally {
       setSaving(false);
     }

@@ -78,23 +78,23 @@ export const Register = () => {
         <Form name="register" onFinish={onFinish} autoComplete="off" layout="vertical">
           <Form.Item
             name="name"
-            label={<span style={{ color: '#334155', fontWeight: 600 }}>{t('auth.register.fullName')}</span>}
+            label={<span style={{ color: '#44403c', fontWeight: 600 }}>{t('auth.register.fullName')}</span>}
             rules={[
               { required: true, message: t('auth.register.nameRequired') },
               { min: 2, message: t('auth.register.nameMin') },
             ]}
           >
             <Input
-              prefix={<UserOutlined style={{ color: '#7c8aa0' }} />}
+              prefix={<UserOutlined style={{ color: '#a8a29e' }} />}
               placeholder={t('auth.register.fullName')}
               size="large"
-              style={{ borderRadius: 14, minHeight: 48 }}
+              style={{ borderRadius: 10, minHeight: 44 }}
             />
           </Form.Item>
 
           <Form.Item
             name="email"
-            label={<span style={{ color: '#334155', fontWeight: 600 }}>{t('auth.register.email')}</span>}
+            label={<span style={{ color: '#44403c', fontWeight: 600 }}>{t('auth.register.email')}</span>}
             rules={[
               { required: true, message: t('auth.register.emailRequired') },
               {
@@ -106,17 +106,17 @@ export const Register = () => {
             ]}
           >
             <Input
-              prefix={<MailOutlined style={{ color: '#7c8aa0' }} />}
+              prefix={<MailOutlined style={{ color: '#a8a29e' }} />}
               placeholder={t('auth.register.email')}
               size="large"
               type="email"
-              style={{ borderRadius: 14, minHeight: 48 }}
+              style={{ borderRadius: 10, minHeight: 44 }}
             />
           </Form.Item>
 
           <Form.Item
             name="password"
-            label={<span style={{ color: '#334155', fontWeight: 600 }}>{t('auth.register.password')}</span>}
+            label={<span style={{ color: '#44403c', fontWeight: 600 }}>{t('auth.register.password')}</span>}
             rules={[
               { required: true, message: t('auth.register.passwordRequired') },
               {
@@ -132,16 +132,16 @@ export const Register = () => {
             hasFeedback
           >
             <Input.Password
-              prefix={<LockOutlined style={{ color: '#7c8aa0' }} />}
+              prefix={<LockOutlined style={{ color: '#a8a29e' }} />}
               placeholder={t('auth.register.password')}
               size="large"
-              style={{ borderRadius: 14, minHeight: 48 }}
+              style={{ borderRadius: 10, minHeight: 44 }}
             />
           </Form.Item>
 
           <Form.Item
             name="confirmPassword"
-            label={<span style={{ color: '#334155', fontWeight: 600 }}>{t('auth.register.confirmPassword')}</span>}
+            label={<span style={{ color: '#44403c', fontWeight: 600 }}>{t('auth.register.confirmPassword')}</span>}
             dependencies={['password']}
             rules={[
               { required: true, message: t('auth.register.confirmRequired') },
@@ -157,10 +157,10 @@ export const Register = () => {
             hasFeedback
           >
             <Input.Password
-              prefix={<LockOutlined style={{ color: '#7c8aa0' }} />}
+              prefix={<LockOutlined style={{ color: '#a8a29e' }} />}
               placeholder={t('auth.register.confirmPassword')}
               size="large"
-              style={{ borderRadius: 14, minHeight: 48 }}
+              style={{ borderRadius: 10, minHeight: 44 }}
             />
           </Form.Item>
 
@@ -172,10 +172,8 @@ export const Register = () => {
               block
               loading={loading}
               style={{
-                minHeight: 50,
-                borderRadius: 14,
-                background: 'linear-gradient(135deg, #c9a35f 0%, #9d6b21 100%)',
-                border: 'none',
+                minHeight: 46,
+                borderRadius: 10,
                 fontWeight: 600,
               }}
             >
@@ -184,7 +182,7 @@ export const Register = () => {
           </Form.Item>
 
           <div style={{ textAlign: 'center', marginBottom: 8 }}>
-            <Text style={{ color: '#64748b' }}>
+            <Text style={{ color: '#78716c' }}>
               {t('auth.register.hasAccount')}{' '}
               <Link to="/login" style={{ color: '#9d6b21', fontWeight: 700 }}>
                 {t('auth.register.signIn')}
@@ -192,7 +190,7 @@ export const Register = () => {
             </Text>
           </div>
           <div style={{ textAlign: 'center', marginBottom: 8 }}>
-            <Link to="/pricing" style={{ color: '#c9a35f', fontWeight: 700 }}>
+            <Link to="/pricing" style={{ color: '#9d6b21', fontWeight: 700 }}>
               {t('auth.registerPage.viewPlans')}
             </Link>
           </div>
@@ -205,22 +203,22 @@ export const Register = () => {
         {benefits.map((item) => (
           <Col span={24} key={item}>
             <div className="auth-list-item">
-              <CheckCircleFilled style={{ color: '#c9a35f', marginTop: 3 }} />
+              <CheckCircleFilled style={{ color: '#9d6b21', marginTop: 3 }} />
               <span>{item}</span>
             </div>
           </Col>
         ))}
       </Row>
 
-      <Card className="auth-plan-card" bordered={false} style={{ background: 'linear-gradient(135deg, #2a2218 0%, #4a3822 100%)' }}>
-        <Title level={4} style={{ color: '#fff', marginTop: 0, marginBottom: 14 }}>
+      <Card className="auth-plan-card" bordered={false}>
+        <Title level={4} style={{ color: '#1c1917', marginTop: 0, marginBottom: 14 }}>
           {t('auth.registerPage.planTitle')}
         </Title>
         <Space direction="vertical" size={12} style={{ width: '100%' }}>
           {plans.map((item) => (
             <div key={item.name} className="auth-plan-row">
-              <Text style={{ display: 'block', color: '#fff', fontWeight: 600 }}>{item.name}</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.72)', textAlign: 'right' }}>{item.detail}</Text>
+              <Text style={{ display: 'block', color: '#1c1917', fontWeight: 600 }}>{item.name}</Text>
+              <Text style={{ color: '#78716c', textAlign: 'right' }}>{item.detail}</Text>
             </div>
           ))}
         </Space>

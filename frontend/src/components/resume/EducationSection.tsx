@@ -8,6 +8,7 @@ import resumeService from '@/services/resumeService';
 import { useTranslation } from 'react-i18next';
 import RichTextEditor from '@/components/common/RichTextEditor';
 import SafeHtmlRenderer from '@/components/common/SafeHtmlRenderer';
+import { useExportDraftGuard } from '@/hooks/useExportDraftGuard';
 
 const { RangePicker } = DatePicker;
 
@@ -23,6 +24,7 @@ export const EducationSection = ({ data, onChange }: EducationSectionProps) => {
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
   const { t } = useTranslation();
+  useExportDraftGuard('education', isModalOpen);
 
   // Load data when component mounts
   useEffect(() => {

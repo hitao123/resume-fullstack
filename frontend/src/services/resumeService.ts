@@ -24,6 +24,20 @@ import type {
 } from '@/types/resume.types';
 import type { ApiResponse } from '@/types/api.types';
 
+export interface ResumeExport {
+  id: string;
+  resumeId: number;
+  status: 'queued' | 'rendering' | 'ready' | 'failed';
+  templateVersion: string;
+  contentHash: string;
+  fileHash?: string;
+  fileName?: string;
+  pageCount?: number;
+  errorCode?: string;
+  errorMessage?: string;
+  expiresAt?: string;
+}
+
 export const resumeService = {
   // Resume CRUD
   async getResumes(): Promise<Resume[]> {
@@ -242,6 +256,23 @@ export const resumeService = {
 
   async deleteCustomSection(resumeId: number, id: number): Promise<void> {
     await api.delete(`/resumes/custom-sections/${id}`, { data: { resumeId } });
+  },
+
+  // Immutable minimal-v2 exports. The file endpoint is deliberately fetched as
+  // a Blob so credentials never appear in an iframe/download URL.
+  async createExport(resumeId: number, data: { locale: string; templateVersion: 'minimal-v2' }): Promise<ResumeExport> {
+    const response = await api.post<ApiResponse<ResumeExport>>(`/resumes/${resumeId}/exports`, data);
+    return response.data.data;
+  },
+
+  async getExport(resumeId: number, exportId: string): Promise<ResumeExport> {
+    const response = await api.get<ApiResponse<ResumeExport>>(`/resumes/${resumeId}/exports/${exportId}`);
+    return response.data.data;
+  },
+
+  async getExportFile(resumeId: number, exportId: string): Promise<Blob> {
+    const response = await api.get(`/resumes/${resumeId}/exports/${exportId}/file`, { responseType: 'blob' });
+    return response.data as Blob;
   },
 };
 

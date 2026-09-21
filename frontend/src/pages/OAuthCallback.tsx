@@ -74,14 +74,14 @@ const OAuthCallback = () => {
         height: '100vh',
         flexDirection: 'column',
         gap: 16,
-        background: 'linear-gradient(135deg, #0a1628 0%, #1a2332 100%)',
-        color: '#fff',
+        background: '#f7f6f3',
+        color: '#1c1917',
       }}
     >
       {error ? (
         <div style={{ textAlign: 'center' }}>
           <p>{error}</p>
-          <p style={{ color: 'rgba(255,255,255,0.5)' }}>Redirecting to login...</p>
+          <p style={{ color: '#a8a29e' }}>Redirecting to login...</p>
         </div>
       ) : (
         <Spin size="large" tip="Authenticating..." />

@@ -7,8 +7,9 @@ import type { CustomSection } from '@/types/resume.types';
 import resumeService from '@/services/resumeService';
 import RichTextEditor from '@/components/common/RichTextEditor';
 import SafeHtmlRenderer from '@/components/common/SafeHtmlRenderer';
-import type { ApiError } from '@/types/api.types';
+import { getErrorMessage, isFormValidateError } from '@/utils/apiError';
 import { openUpgradePrompt } from '@/utils/planMessages';
+import { useExportDraftGuard } from '@/hooks/useExportDraftGuard';
 
 interface CustomSectionsSectionProps {
   data: CustomSection[];
@@ -22,17 +23,14 @@ const CustomSectionsSection = ({ data, onChange }: CustomSectionsSectionProps) =
   const [editingItem, setEditingItem] = useState<CustomSection | null>(null);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
-
-  const showUpgradeGuide = (error: ApiError) => {
-    openUpgradePrompt(error);
-  };
+  useExportDraftGuard('custom-sections', open);
 
   const loadData = async () => {
     if (!id) return;
     try {
       onChange(await resumeService.getCustomSections(Number(id)));
     } catch (error) {
-      message.error(t('resume.customSections.loadFailed', { message: error instanceof Error ? error.message : String(error) }));
+      message.error(t('resume.customSections.loadFailed', { message: getErrorMessage(error) }));
     }
   };
 
@@ -60,8 +58,8 @@ const CustomSectionsSection = ({ data, onChange }: CustomSectionsSectionProps) =
       form.resetFields();
       setEditingItem(null);
     } catch (error) {
-      showUpgradeGuide(error as ApiError);
-      message.error(t('resume.customSections.saveFailed', { message: error instanceof Error ? error.message : String(error) }));
+      if (isFormValidateError(error) || openUpgradePrompt(error)) return;
+      message.error(t('resume.customSections.saveFailed', { message: getErrorMessage(error) }));
     } finally {
       setSaving(false);
     }

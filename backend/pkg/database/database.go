@@ -69,6 +69,7 @@ func Migrate() error {
 		&models.Language{},
 		&models.Award{},
 		&models.CustomSection{},
+		&models.ResumeExport{},
 		&models.Plan{},
 		&models.UserSubscription{},
 		&models.UserUsageMonthly{},

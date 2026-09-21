@@ -25,23 +25,23 @@ const AIResultPanel: React.FC<AIResultPanelProps> = ({
     <div
       style={{
         marginTop: 8,
-        border: '1px solid #d9d9d9',
-        borderRadius: 8,
+        border: '1px solid #e9e6e0',
+        borderRadius: 10,
         overflow: 'hidden',
-        background: '#fafafa',
+        background: '#ffffff',
       }}
     >
       <div
         style={{
           padding: '8px 12px',
-          borderBottom: '1px solid #f0f0f0',
-          background: 'linear-gradient(135deg, #667eea10, #764ba210)',
+          borderBottom: '1px solid #f0eee9',
+          background: '#f5eddc',
           display: 'flex',
           alignItems: 'center',
           gap: 8,
           fontSize: 13,
-          fontWeight: 500,
-          color: '#666',
+          fontWeight: 600,
+          color: '#7c5416',
         }}
       >
         <span style={{ fontSize: 14 }}>&#10024;</span>
@@ -51,11 +51,11 @@ const AIResultPanel: React.FC<AIResultPanelProps> = ({
 
       <div style={{ padding: 12, minHeight: 60, fontSize: 14, lineHeight: 1.6 }}>
         {error ? (
-          <div style={{ color: '#ff4d4f' }}>{t('ai.error', { message: error })}</div>
+          <div style={{ color: '#dc2626' }}>{t('ai.error', { message: error })}</div>
         ) : content ? (
-          <SafeHtmlRenderer content={content} style={{ color: '#333' }} />
+          <SafeHtmlRenderer content={content} style={{ color: '#44403c' }} />
         ) : (
-          <div style={{ color: '#999' }}>{t('ai.generating')}</div>
+          <div style={{ color: '#a8a29e' }}>{t('ai.generating')}</div>
         )}
       </div>
 
@@ -63,7 +63,7 @@ const AIResultPanel: React.FC<AIResultPanelProps> = ({
         <div
           style={{
             padding: '8px 12px',
-            borderTop: '1px solid #f0f0f0',
+            borderTop: '1px solid #f0eee9',
             display: 'flex',
             justifyContent: 'flex-end',
           }}

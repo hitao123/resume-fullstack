@@ -6,9 +6,10 @@ import { useTranslation } from 'react-i18next';
 import type { PersonalInfo, Resume, ResumeSectionConfig } from '@/types/resume.types';
 import resumeService from '@/services/resumeService';
 import { DEFAULT_SECTION_CONFIG, TEMPLATE_OPTIONS } from '@/utils/constants';
-import type { ApiError } from '@/types/api.types';
+import { getErrorMessage, isFormValidateError } from '@/utils/apiError';
 import { openUpgradePrompt } from '@/utils/planMessages';
 import { useAuth } from '@/hooks/useAuth';
+import { resumeSaveCoordinator } from '@/utils/resumeSaveCoordinator';
 import './ResumeWorkspace.css';
 
 interface ResumeSettingsSectionProps {
@@ -106,10 +107,6 @@ const ResumeSettingsSection = ({ resume, onResumeChange, onPreviewTemplateChange
   const sectionConfig = useMemo(() => mergeSectionConfig(resume), [resume]);
   const templateLimit = user?.plan?.templateLimit ?? 1;
 
-  const showUpgradeGuide = (error: ApiError) => {
-    openUpgradePrompt(error);
-  };
-
   useEffect(() => {
     resumeForm.setFieldsValue({
       title: resume.title,
@@ -125,11 +122,12 @@ const ResumeSettingsSection = ({ resume, onResumeChange, onPreviewTemplateChange
   const saveResumeMeta = async (values: Partial<Resume>) => {
     if (!id) return;
     try {
-      await resumeService.updateResume(Number(id), values);
+      await resumeSaveCoordinator.track(Number(id), 'resume-settings', resumeService.updateResume(Number(id), values));
       onResumeChange({ ...resume, ...values });
     } catch (error) {
-      showUpgradeGuide(error as ApiError);
-      throw error;
+      if (!openUpgradePrompt(error)) {
+        message.error(getErrorMessage(error));
+      }
     }
   };
 
@@ -147,13 +145,13 @@ const ResumeSettingsSection = ({ resume, onResumeChange, onPreviewTemplateChange
       avatarUrl: values.avatarUrl ?? resume.personalInfo?.avatarUrl ?? '',
       showAvatar: values.showAvatar ?? resume.personalInfo?.showAvatar ?? false,
     };
-    const updated = await resumeService.updatePersonalInfo(Number(id), nextPersonalInfo);
+    const updated = await resumeSaveCoordinator.track(Number(id), 'avatar-settings', resumeService.updatePersonalInfo(Number(id), nextPersonalInfo));
     onResumeChange({ ...resume, personalInfo: updated });
   };
 
   const updateSectionConfig = async (nextConfig: ResumeSectionConfig[]) => {
     if (!id) return;
-    await resumeService.updateResume(Number(id), { sectionConfig: nextConfig });
+    await resumeSaveCoordinator.track(Number(id), 'section-settings', resumeService.updateResume(Number(id), { sectionConfig: nextConfig }));
     onResumeChange({ ...resume, sectionConfig: nextConfig });
   };
 
@@ -187,8 +185,8 @@ const ResumeSettingsSection = ({ resume, onResumeChange, onPreviewTemplateChange
       duplicateForm.resetFields();
       navigate(`/editor/${updated.id}`);
     } catch (error) {
-      showUpgradeGuide(error as ApiError);
-      message.error(t('settings.createVersionFailed', { message: error instanceof Error ? error.message : String(error) }));
+      if (isFormValidateError(error) || openUpgradePrompt(error)) return;
+      message.error(t('settings.createVersionFailed', { message: getErrorMessage(error) }));
     } finally {
       setDuplicating(false);
     }
@@ -216,7 +214,7 @@ const ResumeSettingsSection = ({ resume, onResumeChange, onPreviewTemplateChange
                 ].join(' ')}
               >
                 <div className="template-card-header">
-                  <div style={{ fontWeight: 700, color: '#2a2218' }}>{t(template.nameKey)}</div>
+                  <div style={{ fontWeight: 700, color: '#1c1917' }}>{t(template.nameKey)}</div>
                   <Space size={6} wrap>
                     {isApplied && <Tag color="gold">{t('settings.templateApplied')}</Tag>}
                     {!isApplied && isPreviewing && <Tag color="warning">{t('settings.templatePreviewing')}</Tag>}

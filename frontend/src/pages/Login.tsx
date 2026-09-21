@@ -3,6 +3,7 @@ import { ArrowRightOutlined, CheckCircleFilled, LockOutlined, ThunderboltFilled,
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { useTranslation } from 'react-i18next';
+import { getErrorMessage } from '@/utils/apiError';
 import LandingLayout from '@/components/landing/LandingLayout';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
 import './CommercialPages.css';
@@ -37,8 +38,7 @@ export const Login = () => {
       message.success(t('auth.login.success'));
       navigate('/dashboard');
     } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : undefined;
-      message.error(msg || t('auth.login.failed'));
+      message.error(getErrorMessage(error, t('auth.login.failed')));
     }
   };
 
@@ -77,31 +77,31 @@ export const Login = () => {
         <Form name="login" onFinish={onFinish} autoComplete="off" layout="vertical">
           <Form.Item
             name="email"
-            label={<span style={{ color: '#334155', fontWeight: 600 }}>{t('auth.login.email')}</span>}
+            label={<span style={{ color: '#44403c', fontWeight: 600 }}>{t('auth.login.email')}</span>}
             rules={[
               { required: true, message: t('auth.login.emailRequired') },
               { type: 'email', message: t('auth.login.emailInvalid') },
             ]}
           >
             <Input
-              prefix={<UserOutlined style={{ color: '#7c8aa0' }} />}
+              prefix={<UserOutlined style={{ color: '#a8a29e' }} />}
               placeholder={t('auth.login.email')}
               size="large"
               type="email"
-              style={{ borderRadius: 14, minHeight: 48 }}
+              style={{ borderRadius: 10, minHeight: 44 }}
             />
           </Form.Item>
 
           <Form.Item
             name="password"
-            label={<span style={{ color: '#334155', fontWeight: 600 }}>{t('auth.login.password')}</span>}
+            label={<span style={{ color: '#44403c', fontWeight: 600 }}>{t('auth.login.password')}</span>}
             rules={[{ required: true, message: t('auth.login.passwordRequired') }]}
           >
             <Input.Password
-              prefix={<LockOutlined style={{ color: '#7c8aa0' }} />}
+              prefix={<LockOutlined style={{ color: '#a8a29e' }} />}
               placeholder={t('auth.login.password')}
               size="large"
-              style={{ borderRadius: 14, minHeight: 48 }}
+              style={{ borderRadius: 10, minHeight: 44 }}
             />
           </Form.Item>
 
@@ -115,10 +115,8 @@ export const Login = () => {
               icon={<ArrowRightOutlined />}
               iconPosition="end"
               style={{
-                minHeight: 50,
-                borderRadius: 14,
-                background: 'linear-gradient(135deg, #c9a35f 0%, #9d6b21 100%)',
-                border: 'none',
+                minHeight: 46,
+                borderRadius: 10,
                 fontWeight: 600,
               }}
             >
@@ -127,7 +125,7 @@ export const Login = () => {
           </Form.Item>
 
           <div style={{ textAlign: 'center', marginBottom: 8 }}>
-            <Text style={{ color: '#64748b' }}>
+            <Text style={{ color: '#78716c' }}>
               {t('auth.login.noAccount')}{' '}
               <Link to="/register" style={{ color: '#9d6b21', fontWeight: 700 }}>
                 {t('auth.login.signUp')}
@@ -135,7 +133,7 @@ export const Login = () => {
             </Text>
           </div>
           <div style={{ textAlign: 'center', marginBottom: 8 }}>
-            <Link to="/pricing" style={{ color: '#c9a35f', fontWeight: 700 }}>
+            <Link to="/pricing" style={{ color: '#9d6b21', fontWeight: 700 }}>
               {t('auth.loginPage.viewPlans')}
             </Link>
           </div>
@@ -148,22 +146,22 @@ export const Login = () => {
         {outcomeHighlights.map((item) => (
           <Col span={24} key={item}>
             <div className="auth-list-item">
-              <CheckCircleFilled style={{ color: '#c9a35f', marginTop: 3 }} />
+              <CheckCircleFilled style={{ color: '#9d6b21', marginTop: 3 }} />
               <span>{item}</span>
             </div>
           </Col>
         ))}
       </Row>
 
-      <Card className="auth-plan-card" bordered={false} style={{ background: 'linear-gradient(135deg, #2a2218 0%, #4a3822 100%)', color: '#fff' }}>
-        <Title level={4} style={{ color: '#fff', marginTop: 0, marginBottom: 14 }}>
+      <Card className="auth-plan-card" bordered={false}>
+        <Title level={4} style={{ color: '#1c1917', marginTop: 0, marginBottom: 14 }}>
           {t('auth.loginPage.planTitle')}
         </Title>
         <Space direction="vertical" size={12} style={{ width: '100%' }}>
           {planHighlights.map((item) => (
             <div key={item.name} className="auth-plan-row">
-              <Text style={{ color: '#fff', fontWeight: 600 }}>{item.name}</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.72)', textAlign: 'right' }}>{item.detail}</Text>
+              <Text style={{ color: '#1c1917', fontWeight: 600 }}>{item.name}</Text>
+              <Text style={{ color: '#78716c', textAlign: 'right' }}>{item.detail}</Text>
             </div>
           ))}
         </Space>

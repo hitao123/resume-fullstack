@@ -29,6 +29,7 @@
 - **React PDF（矢量）**：文字可选中，适合 ATS 解析
 - **截图导出（html2canvas + jsPDF）**：完整保留 SVG 图标和样式
 - 多模板支持（经典 / 现代 / 增强）
+- **minimal-v2（模板 3，默认开启）**：后端在事务中固定简历快照，交给受限 Chromium 渲染服务生成可搜索、可选择的 A4 PDF。预览与下载复用同一个 SHA-256 校验的不可变文件；编辑后旧文件会标记为过期。
 
 ### 其他
 - 中英文国际化（i18n）
@@ -134,6 +135,19 @@ go run cmd/server/main.go
 ```
 后端运行在 http://localhost:8080
 
+### 3.1 启动稳定 PDF 渲染器（minimal-v2）
+
+开发环境需在另一个终端启动固定版本的 Chromium 服务：
+
+```bash
+cd renderer
+npm ci
+npx playwright install chromium
+npm start
+```
+
+或从根目录运行 `docker compose up --build`，它会启动 MySQL、后端和内部 renderer。`RENDERER_INTERNAL_TOKEN` 必须在 backend 与 renderer 中一致；不要把 renderer 发布到公网。PDF 临时文件保存到 `EXPORT_STORAGE_DIR`（Compose 使用受保护卷），24 小时后清理。
+
 ### 4. 启动前端
 ```bash
 cd frontend
@@ -193,7 +207,24 @@ OAUTH_FRONTEND_CALLBACK_URL=http://localhost:5173/oauth/callback
 ### 前端 (.env)
 ```env
 VITE_API_BASE_URL=http://localhost:8080
+VITE_MINIMAL_V2_ENABLED=true
 ```
+
+将 `VITE_MINIMAL_V2_ENABLED=false` 可立即让模板 3 回到旧导出路径，作为受控回退；旧模板从未经过 renderer。
+
+### PDF 限制和本地验证
+
+minimal-v2 固定为 A4、15mm 边距、10.5pt/1.5 行高。它支持最多 30,000 Unicode 字符、300 条条目、5 层列表和 20 页；超出上限返回明确错误，不会截断或缩小字体。远程头像 URL 不会传入 Chromium：服务端仅接受 HTTPS 公网地址，并在 2 MiB、PNG/JPEG/WebP 校验后以内联受控资源交给 renderer；无法安全读取时返回 `AVATAR_ASSET_UNAVAILABLE`。
+
+```bash
+cd packages/resume-document && npm ci && npm test
+cd ../../renderer && npm ci && npm test && npm run test:integration
+PDF_PYTHON=/path/to/python-with-pypdf PDFTOPPM=/path/to/pdftoppm npm run verify:pdf
+cd ../frontend && npm run lint && npm run build
+cd ../backend && go test ./...
+```
+
+`verify:pdf` 把可检查的 PDF 和逐页 PNG 写入 `tmp/pdfs/`；不要用 DOM 截图替代 PDF 检查。
 
 ## 📡 API 接口
 

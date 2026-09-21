@@ -9,6 +9,7 @@ import AIAssistantButton from '@/components/ai/AIAssistantButton';
 import AIResultPanel from '@/components/ai/AIResultPanel';
 import { useAIAssistant } from '@/hooks/useAIAssistant';
 import { generateSummary } from '@/services/aiService';
+import { resumeSaveCoordinator } from '@/utils/resumeSaveCoordinator';
 
 interface PersonalInfoFormProps {
   data?: PersonalInfo;
@@ -19,6 +20,8 @@ export const PersonalInfoForm = ({ data, onChange }: PersonalInfoFormProps) => {
   const { id } = useParams<{ id: string }>();
   const [form] = Form.useForm();
   const isSavingRef = useRef(false);
+  const inFlightRef = useRef<Promise<void> | null>(null);
+  const latestValuesRef = useRef<Partial<PersonalInfo>>({});
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { t, i18n } = useTranslation();
   const ai = useAIAssistant();
@@ -29,17 +32,16 @@ export const PersonalInfoForm = ({ data, onChange }: PersonalInfoFormProps) => {
     }
   }, [data, form]);
 
-  // Auto-save function with debounce
-  const saveToBackend = useCallback(async (values: Partial<PersonalInfo>) => {
-    if (!id || isSavingRef.current) return;
-
-    // Clear previous timer
+  const saveNow = useCallback(async () => {
+    if (!id) return;
     if (saveTimerRef.current) {
       clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = null;
     }
-
-    // Set new timer
-    saveTimerRef.current = setTimeout(async () => {
+    if (inFlightRef.current) await inFlightRef.current;
+    const values = latestValuesRef.current;
+    if (!Object.keys(values).length) return;
+    const request = (async () => {
       isSavingRef.current = true;
       try {
         await resumeService.updatePersonalInfo(Number(id), {
@@ -58,11 +60,28 @@ export const PersonalInfoForm = ({ data, onChange }: PersonalInfoFormProps) => {
       } catch (error: unknown) {
         const msg = error instanceof Error ? error.message : String(error);
         message.error(t('resume.personal.autoSaveFailed', { message: msg }));
+        throw error;
       } finally {
         isSavingRef.current = false;
       }
-    }, 1000); // 1 second delay
+    })();
+    inFlightRef.current = request;
+    try { await request; } finally { if (inFlightRef.current === request) inFlightRef.current = null; }
   }, [id, t]);
+
+  // Debouncing is an editing convenience only. Export calls saveNow through the
+  // coordinator, so a pending local draft cannot be mistaken for saved data.
+  const saveToBackend = useCallback((values: Partial<PersonalInfo>) => {
+    if (!id) return;
+    latestValuesRef.current = values;
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => { void saveNow(); }, 1000);
+  }, [id, saveNow]);
+
+  useEffect(() => {
+    if (!id) return;
+    return resumeSaveCoordinator.register(Number(id), 'personal-info', saveNow);
+  }, [id, saveNow]);
 
   // Cleanup on unmount
   useEffect(() => {

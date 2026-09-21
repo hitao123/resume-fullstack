@@ -1,0 +1,16 @@
+{
+  "name": "resume-renderer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node --test test/server.test.mjs",
+    "test:integration": "node --test test/integration.test.mjs",
+    "verify:pdf": "node test/verify-pdf.mjs"
+  },
+  "dependencies": {
+    "@resume-studio/resume-document": "file:../packages/resume-document",
+    "playwright": "1.58.2"
+  }
+}

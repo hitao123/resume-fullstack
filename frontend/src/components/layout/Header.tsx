@@ -82,9 +82,10 @@ export const Header = () => {
             <Tag
               style={{
                 borderRadius: 999,
-                borderColor: user.plan.code === 'FREE' ? '#d9c7a4' : user.plan.code === 'STARTER' ? '#d7b77a' : '#c9a35f',
-                background: user.plan.code === 'FREE' ? '#f5efe4' : user.plan.code === 'STARTER' ? '#fbf2df' : '#f6ead0',
-                color: user.plan.code === 'FREE' ? '#6f6558' : user.plan.code === 'STARTER' ? '#9d6b21' : '#7a5419',
+                marginInlineEnd: 0,
+                borderColor: user.plan.code === 'FREE' ? '#e9e6e0' : '#e6d7b8',
+                background: user.plan.code === 'FREE' ? '#faf9f6' : '#f5eddc',
+                color: user.plan.code === 'FREE' ? '#78716c' : '#7c5416',
                 fontWeight: 600,
               }}
             >

@@ -341,12 +341,7 @@ export const ResumePreview = ({ resume }: ResumePreviewProps) => {
       id="resume-preview"
       style={{
         padding: 24,
-        background:
-          resume.templateId === TEMPLATES.MODERN
-            ? 'linear-gradient(180deg, #faf4e7 0%, #fffaf2 100%)'
-            : resume.templateId === TEMPLATES.MINIMAL
-              ? '#f8f5ef'
-              : '#f7f1e7',
+        background: '#f4f3f0',
       }}
     >
       {resume.templateId === TEMPLATES.MODERN && renderModern()}

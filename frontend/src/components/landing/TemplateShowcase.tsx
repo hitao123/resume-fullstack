@@ -1,20 +1,40 @@
 import { useTranslation } from 'react-i18next';
 
 const templates = [
-  { key: 'classic', color: '#1a1a2e' },
-  { key: 'modern', color: '#16213e' },
-  { key: 'minimal', color: '#0f3460' },
+  { key: 'classic', accent: '#44403c' },
+  { key: 'modern', accent: '#9d6b21' },
+  { key: 'minimal', accent: '#a8a29e' },
 ];
+
+const row = (width: string, height: number, color: string, extra?: React.CSSProperties) => (
+  <div
+    style={{
+      width,
+      height,
+      borderRadius: 999,
+      background: color,
+      ...extra,
+    }}
+  />
+);
 
 const TemplateShowcase = () => {
   const { t } = useTranslation();
 
   return (
     <div>
-      <h2 style={{ fontSize: 24, fontWeight: 600, color: '#fff', margin: '0 0 24px' }}>
+      <h2
+        style={{
+          fontSize: 22,
+          fontWeight: 700,
+          color: 'var(--rs-ink)',
+          margin: '0 0 20px',
+          letterSpacing: '-0.01em',
+        }}
+      >
         {t('landing.templates.title')}
       </h2>
-      <div style={{ display: 'flex', gap: 16 }}>
+      <div style={{ display: 'flex', gap: 14 }}>
         {templates.map((tpl) => (
           <div
             key={tpl.key}
@@ -22,7 +42,9 @@ const TemplateShowcase = () => {
               flex: 1,
               borderRadius: 12,
               overflow: 'hidden',
-              background: tpl.color,
+              background: '#ffffff',
+              border: '1px solid var(--rs-border)',
+              boxShadow: 'var(--rs-shadow-sm)',
               padding: 16,
               minHeight: 180,
               display: 'flex',
@@ -34,49 +56,25 @@ const TemplateShowcase = () => {
             <div>
               <div
                 style={{
-                  width: '60%',
+                  width: '46%',
                   height: 10,
-                  borderRadius: 4,
-                  background: 'rgba(255,255,255,0.4)',
-                  marginBottom: 8,
+                  borderRadius: 999,
+                  background: tpl.accent,
+                  marginBottom: 10,
                 }}
               />
-              <div
-                style={{
-                  width: '80%',
-                  height: 6,
-                  borderRadius: 3,
-                  background: 'rgba(255,255,255,0.15)',
-                  marginBottom: 4,
-                }}
-              />
-              <div
-                style={{
-                  width: '70%',
-                  height: 6,
-                  borderRadius: 3,
-                  background: 'rgba(255,255,255,0.15)',
-                  marginBottom: 12,
-                }}
-              />
-              <div
-                style={{
-                  width: '40%',
-                  height: 8,
-                  borderRadius: 4,
-                  background: 'rgba(255,255,255,0.3)',
-                  marginBottom: 6,
-                }}
-              />
+              {row('82%', 6, '#edece9', { marginBottom: 5 })}
+              {row('68%', 6, '#edece9', { marginBottom: 14 })}
+              {row('38%', 8, tpl.accent, { marginBottom: 8, opacity: 0.85 })}
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
                   style={{
-                    width: `${90 - i * 10}%`,
+                    width: `${92 - i * 12}%`,
                     height: 5,
-                    borderRadius: 3,
-                    background: 'rgba(255,255,255,0.1)',
-                    marginBottom: 3,
+                    borderRadius: 999,
+                    background: '#f1efeb',
+                    marginBottom: 4,
                   }}
                 />
               ))}
@@ -84,9 +82,10 @@ const TemplateShowcase = () => {
             <div
               style={{
                 fontSize: 13,
-                fontWeight: 500,
-                color: 'rgba(255,255,255,0.85)',
+                fontWeight: 600,
+                color: 'var(--rs-ink-soft)',
                 textAlign: 'center',
+                marginTop: 14,
               }}
             >
               {t(`landing.templates.${tpl.key}`)}

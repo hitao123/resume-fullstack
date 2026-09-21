@@ -1,10 +1,10 @@
-import type { ApiError } from '@/types/api.types';
-import { Modal } from 'antd';
+import { Modal, message } from 'antd';
 import i18n from '@/i18n';
+import { getErrorCode } from '@/utils/apiError';
 
-export function getUpgradeMessage(error: ApiError): { title: string; content: string } | null {
+export function getUpgradeMessage(error: unknown): { title: string; content: string } | null {
   const t = i18n.t.bind(i18n);
-  switch (error.code) {
+  switch (getErrorCode(error)) {
     case 'RESUME_LIMIT_EXCEEDED':
       return {
         title: t('upgrade.resumeLimitTitle'),
@@ -30,15 +30,23 @@ export function getUpgradeMessage(error: ApiError): { title: string; content: st
   }
 }
 
-export function openUpgradePrompt(error: ApiError) {
+export function openUpgradePrompt(error: unknown): boolean {
   const upgrade = getUpgradeMessage(error);
-  if (!upgrade) return;
+  if (!upgrade) return false;
   const t = i18n.t.bind(i18n);
+  message.open({
+    type: 'warning',
+    content: upgrade.title,
+    className: 'upgrade-message',
+  });
   Modal.confirm({
     title: upgrade.title,
     content: upgrade.content,
     okText: t('upgrade.goMembership'),
     cancelText: t('upgrade.later'),
+    centered: true,
+    zIndex: 2000,
     onOk: () => window.location.assign('/pricing'),
   });
+  return true;
 }

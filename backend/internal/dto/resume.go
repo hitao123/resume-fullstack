@@ -35,6 +35,11 @@ type DeleteResumeRequest struct {
 	ID uint `json:"id" binding:"required"`
 }
 
+type CreateResumeExportRequest struct {
+	Locale          string `json:"locale" binding:"omitempty,max=20"`
+	TemplateVersion string `json:"templateVersion" binding:"required,oneof=minimal-v2"`
+}
+
 // ReorderRequest represents reorder items request
 type ReorderRequest struct {
 	Items []ReorderItem `json:"items" binding:"required"`

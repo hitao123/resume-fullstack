@@ -35,13 +35,13 @@
 .rich-text-editor .tiptap p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
-  color: #bfbfbf;
+  color: #a8a29e;
   pointer-events: none;
   height: 0;
 }
 
 /* Focus 边框 */
 .rich-text-editor:focus-within {
-  border-color: #1677ff !important;
-  box-shadow: 0 0 0 2px rgba(5, 145, 255, 0.1);
+  border-color: #9d6b21 !important;
+  box-shadow: 0 0 0 2px rgba(157, 107, 33, 0.12);
 }

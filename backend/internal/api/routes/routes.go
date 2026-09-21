@@ -37,6 +37,7 @@ func SetupRoutes(router *gin.Engine) {
 
 	// Resume handlers (protected)
 	resumeHandler := handlers.NewResumeHandler()
+	exportHandler := handlers.NewExportHandler()
 	resumes := v1.Group("/resumes")
 	resumes.Use(middleware.AuthMiddleware())
 	{
@@ -47,6 +48,9 @@ func SetupRoutes(router *gin.Engine) {
 		resumes.POST("/update", resumeHandler.UpdateResume)
 		resumes.DELETE("/:id", resumeHandler.DeleteResume)
 		resumes.POST("/:id/duplicate", resumeHandler.DuplicateResume)
+		resumes.POST("/:id/exports", exportHandler.Create)
+		resumes.GET("/:id/exports/:exportId", exportHandler.Get)
+		resumes.GET("/:id/exports/:exportId/file", exportHandler.File)
 
 		// Resume sections - use :id as resumeId
 		resumes.POST("/personal-info/get", resumeHandler.GetPersonalInfo)

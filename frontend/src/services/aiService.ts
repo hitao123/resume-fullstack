@@ -1,3 +1,5 @@
+import { openUpgradePrompt } from '@/utils/planMessages';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 export interface AIStreamCallbacks {
@@ -33,6 +35,7 @@ async function streamRequest(
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ message: 'Request failed' }));
+      openUpgradePrompt(errorData);
       callbacks.onError(errorData.message || errorData.error || `HTTP ${response.status}`);
       return;
     }

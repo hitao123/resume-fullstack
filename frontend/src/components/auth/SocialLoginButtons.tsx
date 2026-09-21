@@ -24,8 +24,8 @@ const SocialLoginButtons = () => {
 
   return (
     <div style={{ marginTop: 8 }}>
-      <Divider style={{ color: '#94a3b8', borderColor: '#e2e8f0' }}>
-        <span style={{ color: '#64748b', fontSize: 13 }}>
+      <Divider style={{ color: '#a8a29e', borderColor: '#e9e6e0' }}>
+        <span style={{ color: '#78716c', fontSize: 13 }}>
           {t('auth.oauth.divider')}
         </span>
       </Divider>
@@ -39,9 +39,9 @@ const SocialLoginButtons = () => {
           onClick={() => handleOAuth('github')}
           style={{
             background: '#fff',
-            borderColor: '#dbe3ee',
-            color: '#0f172a',
-            borderRadius: 12,
+            borderColor: '#e9e6e0',
+            color: '#1c1917',
+            borderRadius: 10,
           }}
         >
           {t('auth.oauth.github')}
@@ -55,9 +55,9 @@ const SocialLoginButtons = () => {
           onClick={() => handleOAuth('google')}
           style={{
             background: '#fff',
-            borderColor: '#dbe3ee',
-            color: '#0f172a',
-            borderRadius: 12,
+            borderColor: '#e9e6e0',
+            color: '#1c1917',
+            borderRadius: 10,
           }}
         >
           {t('auth.oauth.google')}
@@ -71,9 +71,9 @@ const SocialLoginButtons = () => {
           onClick={() => handleOAuth('wechat')}
           style={{
             background: '#fff',
-            borderColor: '#dbe3ee',
-            color: '#0f172a',
-            borderRadius: 12,
+            borderColor: '#e9e6e0',
+            color: '#1c1917',
+            borderRadius: 10,
           }}
         >
           {t('auth.oauth.wechat')}

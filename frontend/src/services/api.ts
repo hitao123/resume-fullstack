@@ -1,5 +1,6 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import type { ApiError, ApiResponse } from '@/types/api.types';
+import { toApiClientError, ApiClientError } from '@/utils/apiError';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -45,11 +46,30 @@ const processQueue = (error: Error | null, token: string | null = null) => {
   failedQueue = [];
 };
 
+function readApiErrorPayload(data: unknown): Partial<ApiError> {
+  if (!data || typeof data !== 'object' || data instanceof Blob) return {};
+  const payload = data as Record<string, unknown>;
+  return {
+    message: typeof payload.message === 'string' ? payload.message : undefined,
+    code: typeof payload.code === 'string' ? payload.code : undefined,
+    errors: payload.errors as ApiError['errors'],
+    details: payload.details as ApiError['details'],
+  };
+}
+
 api.interceptors.response.use(
   (response) => {
+    const payload = response.data as (ApiResponse<unknown> & Partial<ApiError>) | undefined;
+    if (payload && typeof payload === 'object' && payload.success === false) {
+      throw toApiClientError(readApiErrorPayload(payload));
+    }
     return response;
   },
-  async (error: AxiosError<ApiError>) => {
+  async (error: AxiosError<ApiError> | ApiClientError) => {
+    if (error instanceof ApiClientError) {
+      return Promise.reject(error);
+    }
+
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean;
     };
@@ -119,13 +139,13 @@ api.interceptors.response.use(
     }
 
     // Handle other errors
-    const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
-    return Promise.reject({
-      message: errorMessage,
-      code: error.response?.data?.code || error.code,
-      errors: error.response?.data?.errors,
-      details: error.response?.data?.details,
-    } as ApiError);
+    const payload = readApiErrorPayload(error.response?.data);
+    return Promise.reject(toApiClientError({
+      message: payload.message || error.message || 'An error occurred',
+      code: payload.code || error.code,
+      errors: payload.errors,
+      details: payload.details,
+    }));
   }
 );
 

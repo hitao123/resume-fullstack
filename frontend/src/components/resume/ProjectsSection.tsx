@@ -12,6 +12,7 @@ import AIAssistantButton from '@/components/ai/AIAssistantButton';
 import AIResultPanel from '@/components/ai/AIResultPanel';
 import { useAIAssistant } from '@/hooks/useAIAssistant';
 import { enhanceDescription } from '@/services/aiService';
+import { useExportDraftGuard } from '@/hooks/useExportDraftGuard';
 
 const { RangePicker } = DatePicker;
 
@@ -28,6 +29,7 @@ export const ProjectsSection = ({ data, onChange }: ProjectsSectionProps) => {
   const [form] = Form.useForm();
   const { t, i18n } = useTranslation();
   const ai = useAIAssistant();
+  useExportDraftGuard('projects', isModalOpen);
 
   // Load data when component mounts
   useEffect(() => {

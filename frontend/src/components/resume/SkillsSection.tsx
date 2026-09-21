@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom';
 import type { Skill } from '@/types/resume.types';
 import resumeService from '@/services/resumeService';
 import { useTranslation } from 'react-i18next';
+import { useExportDraftGuard } from '@/hooks/useExportDraftGuard';
 
 interface SkillsSectionProps {
   data: Skill[];
@@ -40,6 +41,7 @@ export const SkillsSection = ({ data, onChange }: SkillsSectionProps) => {
   const [skillCategory, setSkillCategory] = useState(categories[0]?.key ?? 'language');
   const [proficiencyLevel, setProficiencyLevel] = useState<string>('proficient');
   const [saving, setSaving] = useState(false);
+  useExportDraftGuard('skills', inputVisible);
 
   // Load data when component mounts
   useEffect(() => {

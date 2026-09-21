@@ -300,7 +300,19 @@
       "exportSuccess": "PDF exported successfully!",
       "exportFailed": "PDF export failed. Please try again.",
       "previewOpened": "PDF preview opened",
-      "previewFailed": "PDF preview failed. Please try again."
+      "previewFailed": "PDF preview failed. Please try again.",
+      "stableSaving": "Changes are still saving. Wait for the save to finish, then generate again.",
+      "stableTemplatePending": "Apply the minimal template before generating its final PDF.",
+      "stableFailed": "Stable PDF generation failed. Please retry.",
+      "stablePreviewTitle": "Stable PDF preview",
+      "stableStatus": {
+        "idle": "not generated",
+        "queued": "queued",
+        "rendering": "rendering",
+        "ready": "ready",
+        "stale": "out of date",
+        "failed": "failed"
+      }
     }
   },
   "pdf": {

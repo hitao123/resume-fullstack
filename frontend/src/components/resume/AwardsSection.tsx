@@ -8,8 +8,9 @@ import type { Award } from '@/types/resume.types';
 import resumeService from '@/services/resumeService';
 import RichTextEditor from '@/components/common/RichTextEditor';
 import SafeHtmlRenderer from '@/components/common/SafeHtmlRenderer';
-import type { ApiError } from '@/types/api.types';
+import { getErrorMessage, isFormValidateError } from '@/utils/apiError';
 import { openUpgradePrompt } from '@/utils/planMessages';
+import { useExportDraftGuard } from '@/hooks/useExportDraftGuard';
 
 interface AwardsSectionProps {
   data: Award[];
@@ -23,17 +24,14 @@ const AwardsSection = ({ data, onChange }: AwardsSectionProps) => {
   const [editingItem, setEditingItem] = useState<Award | null>(null);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
-
-  const showUpgradeGuide = (error: ApiError) => {
-    openUpgradePrompt(error);
-  };
+  useExportDraftGuard('awards', open);
 
   const loadData = async () => {
     if (!id) return;
     try {
       onChange(await resumeService.getAwards(Number(id)));
     } catch (error) {
-      message.error(t('resume.awards.loadFailed', { message: error instanceof Error ? error.message : String(error) }));
+      message.error(t('resume.awards.loadFailed', { message: getErrorMessage(error) }));
     }
   };
 
@@ -63,8 +61,8 @@ const AwardsSection = ({ data, onChange }: AwardsSectionProps) => {
       form.resetFields();
       setEditingItem(null);
     } catch (error) {
-      showUpgradeGuide(error as ApiError);
-      message.error(t('resume.awards.saveFailed', { message: error instanceof Error ? error.message : String(error) }));
+      if (isFormValidateError(error) || openUpgradePrompt(error)) return;
+      message.error(t('resume.awards.saveFailed', { message: getErrorMessage(error) }));
     } finally {
       setSaving(false);
     }

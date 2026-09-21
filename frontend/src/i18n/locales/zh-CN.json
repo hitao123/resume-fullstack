@@ -300,7 +300,19 @@
       "exportSuccess": "PDF 导出成功！",
       "exportFailed": "PDF 导出失败，请重试",
       "previewOpened": "PDF 预览已打开",
-      "previewFailed": "PDF 预览失败，请重试"
+      "previewFailed": "PDF 预览失败，请重试",
+      "stableSaving": "修改仍在保存，请等待保存完成后重新生成。",
+      "stableTemplatePending": "请先应用简约模板，再生成其最终 PDF。",
+      "stableFailed": "稳定 PDF 生成失败，请重试。",
+      "stablePreviewTitle": "稳定 PDF 预览",
+      "stableStatus": {
+        "idle": "未生成",
+        "queued": "排队中",
+        "rendering": "生成中",
+        "ready": "已就绪",
+        "stale": "已过期",
+        "failed": "失败"
+      }
     }
   },
   "pdf": {

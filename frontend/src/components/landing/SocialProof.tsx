@@ -17,11 +17,13 @@ const SocialProof = () => {
   return (
     <div>
       {/* Stats */}
-      <div style={{ display: 'flex', gap: 32, marginBottom: 32 }}>
+      <div style={{ display: 'flex', gap: 40, marginBottom: 32 }}>
         {stats.map((s) => (
-          <div key={s.key} style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 28, fontWeight: 700, color: '#fff' }}>{s.value}</div>
-            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 4 }}>
+          <div key={s.key}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--rs-ink)', letterSpacing: '-0.02em' }}>
+              {s.value}
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--rs-ink-soft)', marginTop: 4 }}>
               {t(`landing.stats.${s.key}`)}
             </div>
           </div>
@@ -29,12 +31,14 @@ const SocialProof = () => {
       </div>
 
       {/* Testimonials */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {testimonials.map((item) => (
           <div
             key={item.key}
             style={{
-              background: 'rgba(255,255,255,0.1)',
+              background: 'rgba(255, 255, 255, 0.78)',
+              border: '1px solid var(--rs-border)',
+              boxShadow: 'var(--rs-shadow-sm)',
               borderRadius: 12,
               padding: 16,
               display: 'flex',
@@ -46,23 +50,24 @@ const SocialProof = () => {
                 width: 36,
                 height: 36,
                 borderRadius: '50%',
-                background: 'rgba(255,255,255,0.25)',
+                background: 'var(--rs-gold-soft)',
+                border: '1px solid var(--rs-gold-border)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: 14,
-                fontWeight: 600,
-                color: '#fff',
+                fontWeight: 700,
+                color: 'var(--rs-gold-deep)',
                 flexShrink: 0,
               }}
             >
               {item.avatar}
             </div>
             <div>
-              <div style={{ fontSize: 14, color: '#fff', fontWeight: 500 }}>
+              <div style={{ fontSize: 14, color: 'var(--rs-ink)', fontWeight: 600 }}>
                 {t(`landing.testimonials.${item.key}.name`)}
               </div>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', lineHeight: 1.5, marginTop: 4 }}>
+              <div style={{ fontSize: 13, color: 'var(--rs-ink-soft)', lineHeight: 1.6, marginTop: 4 }}>
                 {t(`landing.testimonials.${item.key}.text`)}
               </div>
             </div>

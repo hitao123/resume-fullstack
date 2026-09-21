@@ -1,12 +1,34 @@
 :root {
+  /* 品牌金：保留识别度，加深一档保证对比度 */
   --rs-gold: #c9a35f;
   --rs-gold-deep: #9d6b21;
-  --rs-gold-soft: #ead9b6;
-  --rs-cream: #f7f1e7;
-  --rs-cream-soft: #fbf8f2;
-  --rs-ink: #2a2218;
-  --rs-ink-soft: #6f6558;
-  --rs-success: #2f7d57;
+  --rs-gold-strong: #7c5416;
+  --rs-gold-soft: #f5eddc;
+  --rs-gold-border: #e6d7b8;
+
+  /* 中性色：暖灰底 + 纯白表面，干净专业 */
+  --rs-bg: #f7f6f3;
+  --rs-surface: #ffffff;
+  --rs-surface-soft: #faf9f6;
+  --rs-border: #e9e6e0;
+  --rs-border-strong: #dbd6cd;
+
+  /* 文字 */
+  --rs-ink: #1c1917;
+  --rs-ink-soft: #78716c;
+  --rs-ink-faint: #a8a29e;
+
+  --rs-success: #15803d;
+
+  /* 圆角 */
+  --rs-radius-sm: 8px;
+  --rs-radius-md: 12px;
+  --rs-radius-lg: 16px;
+
+  /* 阴影：中性、轻量 */
+  --rs-shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.05);
+  --rs-shadow-md: 0 2px 8px rgba(28, 25, 23, 0.06), 0 1px 2px rgba(28, 25, 23, 0.04);
+  --rs-shadow-lg: 0 12px 32px rgba(28, 25, 23, 0.08), 0 2px 6px rgba(28, 25, 23, 0.04);
 }
 
 * {
@@ -17,9 +39,7 @@
 
 body {
   margin: 0;
-  /* background:
-    radial-gradient(circle at top left, rgba(219, 190, 133, 0.18), transparent 20%),
-    linear-gradient(180deg, #fbf8f2 0%, #f5ede1 100%); */
+  background: var(--rs-bg);
   color: var(--rs-ink);
   font-family: 'Segoe UI', 'PingFang SC', 'Noto Sans SC', -apple-system, BlinkMacSystemFont,
     sans-serif;
@@ -43,16 +63,16 @@ code {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
+  background: #d6d2cb;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #b8b3aa;
 }
 
 /* SafeHtmlRenderer */
@@ -69,4 +89,7 @@ code {
 }
 .safe-html-content li {
   margin-bottom: 0.1em;
+}
+body .ant-message:has(.upgrade-message) {
+  z-index: 2100;
 }

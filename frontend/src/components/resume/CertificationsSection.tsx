@@ -6,8 +6,9 @@ import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import type { Certification } from '@/types/resume.types';
 import resumeService from '@/services/resumeService';
-import type { ApiError } from '@/types/api.types';
+import { getErrorMessage, isFormValidateError } from '@/utils/apiError';
 import { openUpgradePrompt } from '@/utils/planMessages';
+import { useExportDraftGuard } from '@/hooks/useExportDraftGuard';
 
 interface CertificationsSectionProps {
   data: Certification[];
@@ -21,17 +22,14 @@ const CertificationsSection = ({ data, onChange }: CertificationsSectionProps) =
   const [editingItem, setEditingItem] = useState<Certification | null>(null);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
-
-  const showUpgradeGuide = (error: ApiError) => {
-    openUpgradePrompt(error);
-  };
+  useExportDraftGuard('certifications', open);
 
   const loadData = async () => {
     if (!id) return;
     try {
       onChange(await resumeService.getCertifications(Number(id)));
     } catch (error) {
-      message.error(t('resume.certifications.loadFailed', { message: error instanceof Error ? error.message : String(error) }));
+      message.error(t('resume.certifications.loadFailed', { message: getErrorMessage(error) }));
     }
   };
 
@@ -63,8 +61,8 @@ const CertificationsSection = ({ data, onChange }: CertificationsSectionProps) =
       form.resetFields();
       setEditingItem(null);
     } catch (error) {
-      showUpgradeGuide(error as ApiError);
-      message.error(t('resume.certifications.saveFailed', { message: error instanceof Error ? error.message : String(error) }));
+      if (isFormValidateError(error) || openUpgradePrompt(error)) return;
+      message.error(t('resume.certifications.saveFailed', { message: getErrorMessage(error) }));
     } finally {
       setSaving(false);
     }

@@ -192,8 +192,8 @@ export const Pricing = () => {
                         <div className="pricing-feature-list">
                           {featureListI18n(plan).map((item) => (
                             <div key={item} className="pricing-feature-item">
-                              <CheckCircleFilled style={{ color: '#c9a35f', marginTop: 3 }} />
-                              <Text style={{ color: '#334155' }}>{item}</Text>
+                              <CheckCircleFilled style={{ color: '#9d6b21', marginTop: 3 }} />
+                              <Text style={{ color: '#44403c' }}>{item}</Text>
                             </div>
                           ))}
                         </div>
@@ -206,7 +206,7 @@ export const Pricing = () => {
                           loading={payingPlanCode === plan.code}
                           disabled={isCurrent}
                           onClick={() => handlePurchase(plan)}
-                          style={{ borderRadius: 14, minHeight: 48, fontWeight: 600 }}
+                          style={{ borderRadius: 10, minHeight: 46, fontWeight: 600 }}
                         >
                           {isCurrent ? t('pricing.currentActive') : plan.code === 'FREE' ? t('pricing.continueFree') : t('pricing.buyPlan', { name: plan.name })}
                         </Button>
@@ -224,15 +224,15 @@ export const Pricing = () => {
                 <Title level={4} style={{ marginTop: 0 }}>{t('pricing.sideAccountStatus')}</Title>
                 <Space direction="vertical" size={14} style={{ width: '100%' }}>
                   <div className="pricing-provider-note">
-                    <Text strong style={{ display: 'block', color: '#2a2218' }}>{t('pricing.sideCurrentPlan')}</Text>
+                    <Text strong style={{ display: 'block', color: '#1c1917' }}>{t('pricing.sideCurrentPlan')}</Text>
                     <Text type="secondary">{user?.plan?.name || t('pricing.sideNotLoggedIn')}</Text>
                   </div>
                   <div className="pricing-provider-note">
-                    <Text strong style={{ display: 'block', color: '#2a2218' }}>{t('pricing.sideAiUsage')}</Text>
+                    <Text strong style={{ display: 'block', color: '#1c1917' }}>{t('pricing.sideAiUsage')}</Text>
                     <Text type="secondary">{user?.usage?.aiUsed ?? 0} / {user?.plan?.aiQuotaMonthly ?? '-'}</Text>
                   </div>
                   <div className="pricing-provider-note">
-                    <Text strong style={{ display: 'block', color: '#2a2218' }}>{t('pricing.sidePaymentMethod')}</Text>
+                    <Text strong style={{ display: 'block', color: '#1c1917' }}>{t('pricing.sidePaymentMethod')}</Text>
                     <Text type="secondary">{t('pricing.sidePaymentMethodDesc')}</Text>
                   </div>
                 </Space>
