@@ -219,6 +219,7 @@ type ResumeExport struct {
 	PageCount       int       `gorm:"default:0" json:"pageCount,omitempty"`
 	ErrorCode       string    `gorm:"type:varchar(64)" json:"errorCode,omitempty"`
 	ErrorMessage    string    `gorm:"type:varchar(500)" json:"errorMessage,omitempty"`
+	WarningCode     string    `gorm:"type:varchar(64)" json:"warningCode,omitempty"`
 	ExpiresAt       time.Time `gorm:"not null;index" json:"expiresAt"`
 	CreatedAt       time.Time `json:"createdAt"`
 	UpdatedAt       time.Time `json:"updatedAt"`

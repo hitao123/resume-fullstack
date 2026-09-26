@@ -216,7 +216,7 @@ VITE_MINIMAL_V2_ENABLED=true
 
 ### PDF 限制和本地验证
 
-minimal-v2 固定为 A4、15mm 边距、10.5pt/1.5 行高。它支持最多 30,000 Unicode 字符、300 条条目、5 层列表和 20 页；超出上限返回明确错误，不会截断或缩小字体。远程头像 URL 不会传入 Chromium：服务端仅接受 HTTPS 公网地址，并在 2 MiB、PNG/JPEG/WebP 校验后以内联受控资源交给 renderer；无法安全读取时返回 `AVATAR_ASSET_UNAVAILABLE`。
+minimal-v2 固定为 A4、15mm 边距、10.5pt/1.5 行高。它支持最多 30,000 Unicode 字符、300 条条目、5 层列表和 20 页；超出上限返回明确错误，不会截断或缩小字体。远程头像 URL 不会传入 Chromium：服务端仅接受 HTTPS 公网地址，并在 2 MiB、PNG/JPEG/WebP 校验后以内联受控资源交给 renderer；无法安全读取时照常导出但不含头像，导出任务带 `warningCode: AVATAR_OMITTED`，前端据此提示用户。
 
 ```bash
 cd packages/resume-document && npm ci && npm test

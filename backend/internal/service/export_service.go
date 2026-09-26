@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"mime"
 	"net"
 	"net/http"
@@ -188,6 +189,25 @@ func controlledAvatarDataURL(raw string) (string, error) {
 	return "data:" + mediaType + ";base64," + base64.StdEncoding.EncodeToString(data), nil
 }
 
+const avatarOmittedWarning = "AVATAR_OMITTED"
+
+// attachAvatar inlines the avatar into the snapshot. An avatar that cannot be
+// fetched safely is dropped rather than failing the export, and the returned
+// warning code lets the client tell the user the PDF has no photo.
+func attachAvatar(resume *models.Resume, fetch func(string) (string, error)) string {
+	info := resume.PersonalInfo
+	if info == nil || !info.ShowAvatar || info.AvatarURL == "" {
+		return ""
+	}
+	dataURL, err := fetch(info.AvatarURL)
+	if err != nil {
+		log.Printf("export: omitting avatar for resume %d: %v", resume.ID, err)
+		return avatarOmittedWarning
+	}
+	info.AvatarDataURL = dataURL
+	return ""
+}
+
 // Create records the only source of truth for an export before it enters the queue.
 func (s *ExportService) Create(resumeID, userID uint, locale string) (*models.ResumeExport, error) {
 	if database.DB == nil {
@@ -208,13 +228,7 @@ func (s *ExportService) Create(resumeID, userID uint, locale string) (*models.Re
 	if err := tx.Commit().Error; err != nil {
 		return nil, err
 	}
-	if resume.PersonalInfo != nil && resume.PersonalInfo.ShowAvatar && resume.PersonalInfo.AvatarURL != "" {
-		dataURL, avatarErr := controlledAvatarDataURL(resume.PersonalInfo.AvatarURL)
-		if avatarErr != nil {
-			return nil, &RendererError{Code: "AVATAR_ASSET_UNAVAILABLE", Message: "Avatar could not be loaded safely: " + avatarErr.Error()}
-		}
-		resume.PersonalInfo.AvatarDataURL = dataURL
-	}
+	warningCode := attachAvatar(resume, controlledAvatarDataURL)
 	snapshot, err := json.Marshal(resume)
 	if err != nil {
 		return nil, err
@@ -235,7 +249,7 @@ func (s *ExportService) Create(resumeID, userID uint, locale string) (*models.Re
 	if err != nil {
 		return nil, err
 	}
-	task := &models.ResumeExport{ID: id, ResumeID: resumeID, UserID: userID, Status: exportStatusQueued, TemplateVersion: "minimal-v2", Locale: locale, ContentHash: contentHash, CacheKey: cacheKey, Snapshot: string(snapshot), ExpiresAt: now.Add(exportTTL)}
+	task := &models.ResumeExport{ID: id, ResumeID: resumeID, UserID: userID, Status: exportStatusQueued, TemplateVersion: "minimal-v2", Locale: locale, ContentHash: contentHash, CacheKey: cacheKey, Snapshot: string(snapshot), WarningCode: warningCode, ExpiresAt: now.Add(exportTTL)}
 	if err := database.DB.Create(task).Error; err != nil {
 		return nil, err
 	}

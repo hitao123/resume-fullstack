@@ -7,6 +7,9 @@ const PORT = Number(process.env.PORT || 3001);
 const MAX_CONCURRENCY = 2;
 const MAX_QUEUE = 16;
 const RENDER_TIMEOUT_MS = 60_000;
+// A 2 MiB avatar grows to ~2.8 MB as base64 and the snapshot is JSON-escaped
+// twice (backend and request body), so the body limit must leave headroom.
+const MAX_BODY_BYTES = 8 * 1024 * 1024;
 const internalToken = process.env.RENDERER_INTERNAL_TOKEN || '';
 let browser;
 let active = 0;
@@ -67,9 +70,9 @@ function enqueue(job) {
 }
 function drain() {
   while (active < MAX_CONCURRENCY && waiting.length) {
-    const item = waiting.shift(); active += 1;
-    Promise.race([render(item.job), new Promise((_, reject) => setTimeout(() => reject(Object.assign(new Error('Renderer timed out.'), { code: 'RENDER_TIMEOUT' })), RENDER_TIMEOUT_MS))])
-      .then(item.resolve, item.reject).finally(() => { active -= 1; drain(); });
+    const item = waiting.shift(); active += 1; let timer;
+    Promise.race([render(item.job), new Promise((_, reject) => { timer = setTimeout(() => reject(Object.assign(new Error('Renderer timed out.'), { code: 'RENDER_TIMEOUT' })), RENDER_TIMEOUT_MS); })])
+      .then(item.resolve, item.reject).finally(() => { clearTimeout(timer); active -= 1; drain(); });
   }
 }
 function json(res, status, body) { res.writeHead(status, { 'content-type': 'application/json; charset=utf-8' }); res.end(JSON.stringify(body)); }
@@ -79,11 +82,22 @@ export function createServer() {
     if (req.method === 'GET' && req.url === '/health') { json(res, 200, { status: 'ok', active, queued: waiting.length }); return; }
     if (req.method !== 'POST' || req.url !== '/render') { json(res, 404, { code: 'NOT_FOUND', message: 'Not found.' }); return; }
     if (internalToken && req.headers['x-renderer-token'] !== internalToken) { json(res, 401, { code: 'UNAUTHORIZED', message: 'Invalid renderer token.' }); return; }
-    let raw = ''; req.setEncoding('utf8');
-    req.on('data', (chunk) => { raw += chunk; if (raw.length > 2_000_000) req.destroy(); });
+    const chunks = []; let size = 0; let rejected = false;
+    req.on('data', (chunk) => {
+      if (rejected) return;
+      size += chunk.length;
+      if (size > MAX_BODY_BYTES) {
+        rejected = true; chunks.length = 0;
+        res.setHeader('connection', 'close');
+        json(res, 413, { code: 'PAYLOAD_TOO_LARGE', message: 'Render request exceeds the size limit.' });
+        return;
+      }
+      chunks.push(chunk);
+    });
     req.on('end', async () => {
+      if (rejected) return;
       try {
-        const result = await enqueue(JSON.parse(raw));
+        const result = await enqueue(JSON.parse(Buffer.concat(chunks).toString('utf8')));
         res.writeHead(200, { 'content-type': 'application/pdf', 'content-length': result.pdf.length, 'x-resume-pages': String(result.pageCount) }); res.end(result.pdf);
       } catch (error) { json(res, error.code === 'QUEUE_FULL' ? 429 : 422, { code: error.code || 'RENDER_FAILED', message: error.message || 'Renderer failed.' }); }
     });
