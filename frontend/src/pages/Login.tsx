@@ -15,16 +15,17 @@ interface LoginFormValues {
   password: string;
 }
 
+const devLoginValues: Partial<LoginFormValues> | undefined = import.meta.env.DEV
+  ? {
+      email: import.meta.env.VITE_DEV_LOGIN_EMAIL,
+      password: import.meta.env.VITE_DEV_LOGIN_PASSWORD,
+    }
+  : undefined;
+
 export const Login = () => {
   const navigate = useNavigate();
   const { login, isLoading } = useAuthStore();
   const { t } = useTranslation();
-
-  const planHighlights = [
-    { name: t('dashboard.plan.free'), detail: t('dashboard.plan.freePoints') },
-    { name: t('dashboard.plan.starter'), detail: t('dashboard.plan.starterPoints') },
-    { name: t('dashboard.plan.pro'), detail: t('dashboard.plan.proPoints') },
-  ];
 
   const outcomeHighlights = [
     t('auth.loginPage.outcomes.item1'),
@@ -36,7 +37,7 @@ export const Login = () => {
     try {
       await login(values.email, values.password);
       message.success(t('auth.login.success'));
-      navigate('/dashboard');
+      navigate('/');
     } catch (error: unknown) {
       message.error(getErrorMessage(error, t('auth.login.failed')));
     }
@@ -74,7 +75,7 @@ export const Login = () => {
       </div>
 
       <Card className="auth-form-card" bordered={false}>
-        <Form name="login" onFinish={onFinish} autoComplete="off" layout="vertical">
+        <Form name="login" onFinish={onFinish} autoComplete="off" layout="vertical" initialValues={devLoginValues}>
           <Form.Item
             name="email"
             label={<span style={{ color: '#44403c', fontWeight: 600 }}>{t('auth.login.email')}</span>}
@@ -132,11 +133,6 @@ export const Login = () => {
               </Link>
             </Text>
           </div>
-          <div style={{ textAlign: 'center', marginBottom: 8 }}>
-            <Link to="/pricing" style={{ color: '#9d6b21', fontWeight: 700 }}>
-              {t('auth.loginPage.viewPlans')}
-            </Link>
-          </div>
         </Form>
 
         <SocialLoginButtons />
@@ -153,19 +149,6 @@ export const Login = () => {
         ))}
       </Row>
 
-      <Card className="auth-plan-card" bordered={false}>
-        <Title level={4} style={{ color: '#1c1917', marginTop: 0, marginBottom: 14 }}>
-          {t('auth.loginPage.planTitle')}
-        </Title>
-        <Space direction="vertical" size={12} style={{ width: '100%' }}>
-          {planHighlights.map((item) => (
-            <div key={item.name} className="auth-plan-row">
-              <Text style={{ color: '#1c1917', fontWeight: 600 }}>{item.name}</Text>
-              <Text style={{ color: '#78716c', textAlign: 'right' }}>{item.detail}</Text>
-            </div>
-          ))}
-        </Space>
-      </Card>
     </LandingLayout>
   );
 };

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Layout, Card, Tabs, Button, Space, message, Dropdown, Spin, Tag, Segmented } from 'antd';
 import { DownloadOutlined, EyeOutlined, MoreOutlined, ArrowLeftOutlined, CheckCircleOutlined } from '@ant-design/icons';
@@ -13,7 +13,7 @@ import AwardsSection from '@/components/resume/AwardsSection';
 import CustomSectionsSection from '@/components/resume/CustomSectionsSection';
 import ResumeSettingsSection from '@/components/resume/ResumeSettingsSection';
 import ResumePreview from '@/components/resume/ResumePreview';
-import MinimalDocument from '@/components/pdf/MinimalDocument';
+import PrintDocument from '@/components/pdf/PrintDocument';
 import PdfPreviewModal from '@/components/pdf/PdfPreviewModal';
 import { usePDFExport } from '@/hooks/usePDFExport';
 import { useStablePdfExport } from '@/hooks/useStablePdfExport';
@@ -76,8 +76,10 @@ export const ResumeEditor = () => {
   }, [currentResume, id]);
 
   const effectiveTemplateId = previewTemplateId ?? resume?.templateId;
-  const isMinimalV2 = effectiveTemplateId === 3 && import.meta.env.VITE_MINIMAL_V2_ENABLED !== 'false';
-  const canGenerateStablePdf = resume?.templateId === 3 && previewTemplateId === null;
+  const printPipelineEnabled = import.meta.env.VITE_MINIMAL_V2_ENABLED !== 'false';
+  // The renderer prints the saved server snapshot, so an unapplied preview template cannot be exported yet.
+  const canGenerateStablePdf = previewTemplateId === null || previewTemplateId === resume?.templateId;
+  const previewResume = useMemo(() => resume && effectiveTemplateId ? { ...resume, templateId: effectiveTemplateId } : resume, [resume, effectiveTemplateId]);
 
   // The section forms persist independently. Wait through the longest local
   // debounce, then reload the server snapshot. If the draft remains different,
@@ -114,18 +116,22 @@ export const ResumeEditor = () => {
     if (revision !== exportRevisionRef.current) return undefined;
     const { url } = result;
     if (url && openPreview) setStablePreviewOpen(true);
-    if (result.error) message.error(result.error);
+    const warning = result.warningCode && t(`resumeEditor.export.warnings.${result.warningCode}`, { defaultValue: '' });
+    if (warning) message.warning(warning);
+    if (result.error) {
+      message.error(t(`resumeEditor.export.errors.${result.errorCode}`, { defaultValue: '' }) || t('resumeEditor.export.stableFailed'));
+    }
     return url;
   };
 
   const handleExport = async () => {
     if (!resume) return;
-    if (isMinimalV2) {
+    if (printPipelineEnabled) {
       const url = await generateStablePdf(false);
       if (url) {
         const link = document.createElement('a');
         link.href = url;
-        link.download = 'resume-minimal-v2.pdf';
+        link.download = `${resume.personalInfo?.fullName || t('resumeEditor.export.defaultFileNameBase')}.pdf`;
         document.body.appendChild(link);
         link.click();
         link.remove();
@@ -137,7 +143,7 @@ export const ResumeEditor = () => {
 
   const handlePreviewPDF = async () => {
     if (!resume) return;
-    if (isMinimalV2) {
+    if (printPipelineEnabled) {
       await generateStablePdf(true);
       return;
     }
@@ -178,13 +184,13 @@ export const ResumeEditor = () => {
 
   const effectivePreviewWidth = previewFitMode === 'a4' ? 860 : previewWidth;
 
-  const modeLabel = isMinimalV2
-    ? 'minimal-v2'
+  const modeLabel = printPipelineEnabled
+    ? t(TEMPLATE_NAME_KEYS[effectiveTemplateId ?? 0] || 'common.template')
     : exportMode === 'html2canvas'
     ? t('resumeEditor.export.modeHtml2canvasShort')
     : (pdfTemplate === 'classic' ? t('resumeEditor.export.classicShort') : pdfTemplate === 'modern' ? t('resumeEditor.export.modernShort') : t('resumeEditor.export.minimalShort'));
 
-  const exportMenuItems: MenuProps['items'] = isMinimalV2 ? [
+  const exportMenuItems: MenuProps['items'] = printPipelineEnabled ? [
     {
       key: 'download',
       label: t('resumeEditor.export.downloadPdf', { template: modeLabel }),
@@ -400,93 +406,162 @@ export const ResumeEditor = () => {
           className="resume-editor-shell"
           title={
             <div className="resume-editor-titlebar">
-              <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/dashboard')} />
+              <Button
+                className="resume-editor-back"
+                icon={<ArrowLeftOutlined />}
+                onClick={() => navigate("/dashboard")}
+              />
               <div className="resume-editor-title">
                 <strong>{resume.title}</strong>
                 <span>
-                  {resume.versionLabel || t('resumeEditor.currentEditingVersion')}
-                  {resume.targetRole ? ` · ${resume.targetRole}` : ''}
+                  {resume.versionLabel ||
+                    t("resumeEditor.currentEditingVersion")}
+                  {resume.targetRole ? ` · ${resume.targetRole}` : ""}
                 </span>
               </div>
               <span className="resume-editor-status">
                 <CheckCircleOutlined />
-                {t('resumeEditor.autoSave')}
+                {t("resumeEditor.autoSave")}
               </span>
             </div>
           }
           extra={
-            <Space wrap>
-              <Tag color={exportMode === 'html2canvas' ? 'green' : 'gold'}>
-              {isMinimalV2
-                  ? `minimal-v2: ${t(`resumeEditor.export.stableStatus.${stablePdf.status}`)}`
-                  : exportMode === 'html2canvas'
-                  ? t('resumeEditor.export.htmlPreview')
-                  : t('resumeEditor.export.modeReactPdf')}
+            <Space className="resume-editor-actions" wrap>
+              <Tag color={exportMode === "html2canvas" ? "green" : "gold"}>
+                {printPipelineEnabled
+                  ? t("resumeEditor.export.stableTag", {
+                      status: t(
+                        `resumeEditor.export.stableStatus.${stablePdf.status}`,
+                      ),
+                    })
+                  : exportMode === "html2canvas"
+                    ? t("resumeEditor.export.htmlPreview")
+                    : t("resumeEditor.export.modeReactPdf")}
               </Tag>
               {previewVisible && (
                 <Segmented
                   size="middle"
                   value={previewFitMode}
-                  onChange={(value) => setPreviewFitMode(value as 'a4' | 'screen')}
+                  onChange={(value) =>
+                    setPreviewFitMode(value as "a4" | "screen")
+                  }
                   options={[
-                    { label: t('resumeEditor.fitA4'), value: 'a4' },
-                    { label: t('resumeEditor.fitScreen'), value: 'screen' },
+                    { label: t("resumeEditor.fitA4"), value: "a4" },
+                    { label: t("resumeEditor.fitScreen"), value: "screen" },
                   ]}
                 />
               )}
-              <Button icon={<EyeOutlined />} onClick={() => setPreviewVisible(!previewVisible)}>
-                {previewVisible ? t('resumeEditor.hidePreview') : t('resumeEditor.showPreview')}
+              <Button
+                size="small"
+                icon={<EyeOutlined />}
+                onClick={() => setPreviewVisible(!previewVisible)}
+              >
+                {previewVisible
+                  ? t("resumeEditor.hidePreview")
+                  : t("resumeEditor.showPreview")}
               </Button>
-              <Dropdown menu={{ items: exportMenuItems }} placement="bottomRight">
-                <Button icon={<DownloadOutlined />} loading={isGenerating || stablePdf.status === 'queued' || stablePdf.status === 'rendering'} type="primary">
-                  {t('resumeEditor.export.button')} <MoreOutlined />
+              <Dropdown
+                menu={{ items: exportMenuItems }}
+                placement="bottomRight"
+              >
+                <Button
+                  size="small"
+                  icon={<DownloadOutlined />}
+                  loading={
+                    isGenerating ||
+                    stablePdf.status === "queued" ||
+                    stablePdf.status === "rendering"
+                  }
+                  type="primary"
+                >
+                  {t("resumeEditor.export.button")} <MoreOutlined />
                 </Button>
               </Dropdown>
             </Space>
           }
         >
-          <Tabs className="resume-editor-tabs" activeKey={activeTab} onChange={setActiveTab} items={tabItems} size="large" />
+          <Tabs
+            className="resume-editor-tabs"
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            items={tabItems}
+            size="large"
+          />
         </Card>
       </Content>
 
       {previewVisible && (
         <>
           <div
-            onMouseDown={previewFitMode === 'screen' ? startResize : undefined}
+            onMouseDown={previewFitMode === "screen" ? startResize : undefined}
             className="resume-preview-handle"
             style={{
-              cursor: previewFitMode === 'screen' ? 'col-resize' : 'default',
-              opacity: previewFitMode === 'screen' ? 1 : 0.45,
-              pointerEvents: previewFitMode === 'screen' ? 'auto' : 'none',
+              cursor: previewFitMode === "screen" ? "col-resize" : "default",
+              opacity: previewFitMode === "screen" ? 1 : 0.45,
+              pointerEvents: previewFitMode === "screen" ? "auto" : "none",
             }}
-            title={t('resumeEditor.dragToResize')}
+            title={t("resumeEditor.dragToResize")}
           >
             <div className="resume-preview-handle-line" />
           </div>
           <Sider width={effectivePreviewWidth} className="resume-preview-sider">
             <div className="resume-preview-toolbar">
               <div className="resume-preview-toolbar-title">
-                <strong>{t('resumeEditor.previewLabel', { name: previewTemplateName })}</strong>
+                <strong>
+                  {t("resumeEditor.previewLabel", {
+                    name: previewTemplateName,
+                  })}
+                </strong>
                 <span>
                   {previewTemplateId && previewTemplateId !== resume.templateId
-                    ? t('resumeEditor.previewingUnapplied', { current: currentTemplateName })
-                    : t('resumeEditor.currentTemplate', { name: currentTemplateName })}
+                    ? t("resumeEditor.previewingUnapplied", {
+                        current: currentTemplateName,
+                      })
+                    : t("resumeEditor.currentTemplate", {
+                        name: currentTemplateName,
+                      })}
                 </span>
               </div>
               <Space size={[8, 8]} wrap>
-                <Tag color="gold">{previewFitMode === 'a4' ? t('resumeEditor.a4View') : t('resumeEditor.screenView')}</Tag>
-                {previewTemplateId && previewTemplateId !== resume.templateId && <Tag color="warning">{t('resumeEditor.tempPreview')}</Tag>}
+                <Tag color="gold">
+                  {previewFitMode === "a4"
+                    ? t("resumeEditor.a4View")
+                    : t("resumeEditor.screenView")}
+                </Tag>
+                {previewTemplateId &&
+                  previewTemplateId !== resume.templateId && (
+                    <Tag color="warning">{t("resumeEditor.tempPreview")}</Tag>
+                  )}
               </Space>
             </div>
             <div className="resume-preview-stage">
-              {isMinimalV2
-                ? <MinimalDocument resume={resume} locale={i18n.language} fitMode={previewFitMode} />
-                : <ResumePreview resume={{ ...resume, templateId: previewTemplateId ?? resume.templateId }} />}
+              {printPipelineEnabled ? (
+                <PrintDocument
+                  resume={previewResume ?? resume}
+                  locale={i18n.language}
+                  fitMode={previewFitMode}
+                />
+              ) : (
+                <ResumePreview
+                  resume={{
+                    ...resume,
+                    templateId: previewTemplateId ?? resume.templateId,
+                  }}
+                />
+              )}
             </div>
           </Sider>
         </>
       )}
-      <PdfPreviewModal open={stablePreviewOpen} title={t('resumeEditor.export.stablePreviewTitle')} url={stablePdf.blobUrl} loading={stablePdf.status === 'queued' || stablePdf.status === 'rendering'} onClose={() => setStablePreviewOpen(false)} />
+      <PdfPreviewModal
+        open={stablePreviewOpen}
+        title={t("resumeEditor.export.stablePreviewTitle")}
+        url={stablePdf.blobUrl}
+        loading={
+          stablePdf.status === "queued" || stablePdf.status === "rendering"
+        }
+        onClose={() => setStablePreviewOpen(false)}
+      />
     </Layout>
   );
 };

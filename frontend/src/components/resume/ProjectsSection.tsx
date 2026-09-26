@@ -8,10 +8,6 @@ import resumeService from '@/services/resumeService';
 import { useTranslation } from 'react-i18next';
 import RichTextEditor from '@/components/common/RichTextEditor';
 import SafeHtmlRenderer from '@/components/common/SafeHtmlRenderer';
-import AIAssistantButton from '@/components/ai/AIAssistantButton';
-import AIResultPanel from '@/components/ai/AIResultPanel';
-import { useAIAssistant } from '@/hooks/useAIAssistant';
-import { enhanceDescription } from '@/services/aiService';
 import { useExportDraftGuard } from '@/hooks/useExportDraftGuard';
 
 const { RangePicker } = DatePicker;
@@ -27,8 +23,7 @@ export const ProjectsSection = ({ data, onChange }: ProjectsSectionProps) => {
   const [editingItem, setEditingItem] = useState<Project | null>(null);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
-  const { t, i18n } = useTranslation();
-  const ai = useAIAssistant();
+  const { t } = useTranslation();
   useExportDraftGuard('projects', isModalOpen);
 
   // Load data when component mounts
@@ -52,7 +47,6 @@ export const ProjectsSection = ({ data, onChange }: ProjectsSectionProps) => {
   const handleAdd = () => {
     form.resetFields();
     setEditingItem(null);
-    ai.reset();
     setIsModalOpen(true);
   };
 
@@ -64,7 +58,6 @@ export const ProjectsSection = ({ data, onChange }: ProjectsSectionProps) => {
         : null,
     });
     setEditingItem(item);
-    ai.reset();
     setIsModalOpen(true);
   };
 
@@ -120,7 +113,6 @@ export const ProjectsSection = ({ data, onChange }: ProjectsSectionProps) => {
       await loadProjects();
       setIsModalOpen(false);
       form.resetFields();
-      ai.reset();
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : String(error);
       message.error(
@@ -131,23 +123,6 @@ export const ProjectsSection = ({ data, onChange }: ProjectsSectionProps) => {
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleEnhanceDescription = () => {
-    const description = form.getFieldValue('description');
-    if (!description) {
-      message.warning(t('ai.noContent'));
-      return;
-    }
-    const language = i18n.language.startsWith('zh') ? 'zh' : 'en';
-    ai.startGeneration((callbacks, signal) => {
-      enhanceDescription(description, language, callbacks, signal);
-    });
-  };
-
-  const handleAcceptDescription = () => {
-    form.setFieldsValue({ description: ai.content });
-    ai.reset();
   };
 
   return (
@@ -232,7 +207,7 @@ export const ProjectsSection = ({ data, onChange }: ProjectsSectionProps) => {
         open={isModalOpen}
         onOk={handleSubmit}
         confirmLoading={saving}
-        onCancel={() => { setIsModalOpen(false); ai.reset(); }}
+        onCancel={() => setIsModalOpen(false)}
         width={600}
       >
         <Form form={form} layout="vertical">
@@ -261,27 +236,13 @@ export const ProjectsSection = ({ data, onChange }: ProjectsSectionProps) => {
           </Form.Item>
 
           <Form.Item
-            label={
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                {t('resume.projects.descriptionLabel')}
-                <AIAssistantButton
-                  onClick={handleEnhanceDescription}
-                  loading={ai.isGenerating}
-                />
-              </div>
-            }
+            label={t('resume.projects.descriptionLabel')}
             name="description"
           >
             <RichTextEditor placeholder={t('resume.projects.descriptionPlaceholder')} />
           </Form.Item>
 
-          <AIResultPanel
-            content={ai.content}
-            isGenerating={ai.isGenerating}
-            error={ai.error}
-            onAccept={handleAcceptDescription}
-            onDiscard={ai.reset}
-          />
+          {/* AI rewriting is paused; descriptions remain directly editable. */}
 
           <Form.Item label={t('resume.projects.urlLabel')} name="url">
             <Input placeholder={t('resume.projects.urlPlaceholder')} />

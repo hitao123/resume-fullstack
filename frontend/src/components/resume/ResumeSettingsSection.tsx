@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Avatar, Button, Card, Form, Input, List, Modal, Space, Switch, Tag, message } from 'antd';
-import { ArrowDownOutlined, ArrowUpOutlined, CopyOutlined, EyeOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
+import { Avatar, Button, Card, ColorPicker, Form, Input, List, Modal, Segmented, Space, Switch, Tag, message } from 'antd';
+import { ArrowDownOutlined, ArrowUpOutlined, CopyOutlined, EyeOutlined, UserOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { PersonalInfo, Resume, ResumeSectionConfig } from '@/types/resume.types';
 import resumeService from '@/services/resumeService';
 import { DEFAULT_SECTION_CONFIG, TEMPLATE_OPTIONS } from '@/utils/constants';
+import { TEMPLATE_BY_ID, THEME_PRESETS, readableAccent, tint } from '../../../../packages/resume-document/src/index';
 import { getErrorMessage, isFormValidateError } from '@/utils/apiError';
 import { openUpgradePrompt } from '@/utils/planMessages';
-import { useAuth } from '@/hooks/useAuth';
 import { resumeSaveCoordinator } from '@/utils/resumeSaveCoordinator';
 import './ResumeWorkspace.css';
 
@@ -30,24 +30,27 @@ const mergeSectionConfig = (resume: Resume): ResumeSectionConfig[] => {
   return DEFAULT_SECTION_CONFIG.map((item) => existing.get(item.key) || { ...item }).sort((a, b) => a.order - b.order);
 };
 
-const TemplateThumbnail = ({ templateId }: { templateId: number }) => {
+const TemplateThumbnail = ({ templateId, themeColor }: { templateId: number; themeColor?: string }) => {
+  const accent = readableAccent(themeColor, TEMPLATE_BY_ID[templateId] || 'minimal');
+  const soft = tint(accent, 0.45);
+
   if (templateId === 1) {
     return (
       <div className="template-thumbnail">
         <div className="template-thumbnail-page template-thumb-modern">
-          <div className="template-thumb-modern-sidebar">
-            <div className="template-thumb-row" style={{ width: '66%', background: 'rgba(255,255,255,0.72)' }} />
+          <div className="template-thumb-modern-sidebar" style={{ background: accent }}>
+            <div className="template-thumb-row" style={{ width: '66%', background: 'rgba(255,255,255,0.8)' }} />
             <div className="template-thumb-row" style={{ width: '84%', background: 'rgba(255,255,255,0.38)', marginTop: 18 }} />
             <div className="template-thumb-row" style={{ width: '72%', background: 'rgba(255,255,255,0.38)' }} />
             <div className="template-thumb-row" style={{ width: '78%', background: 'rgba(255,255,255,0.38)', marginTop: 20 }} />
             <div className="template-thumb-row" style={{ width: '64%', background: 'rgba(255,255,255,0.38)' }} />
           </div>
           <div className="template-thumb-modern-main">
-            <div className="template-thumb-row" style={{ width: '60%', background: '#d6b274' }} />
+            <div className="template-thumb-row" style={{ width: '60%', background: accent }} />
             <div className="template-thumb-row" style={{ width: '88%', marginTop: 16 }} />
             <div className="template-thumb-row" style={{ width: '94%' }} />
             <div className="template-thumb-row" style={{ width: '82%' }} />
-            <div className="template-thumb-row" style={{ width: '56%', marginTop: 16, background: '#d6b274' }} />
+            <div className="template-thumb-row" style={{ width: '56%', marginTop: 16, background: accent }} />
             <div className="template-thumb-row" style={{ width: '92%' }} />
             <div className="template-thumb-row" style={{ width: '74%' }} />
           </div>
@@ -60,14 +63,14 @@ const TemplateThumbnail = ({ templateId }: { templateId: number }) => {
     return (
       <div className="template-thumbnail">
         <div className="template-thumbnail-page template-thumb-classic">
-          <div className="template-thumb-classic-header">
-            <div className="template-thumb-row" style={{ width: '56%', background: '#cbb189', height: 12 }} />
-            <div className="template-thumb-row" style={{ width: '82%', marginTop: 10, height: 8 }} />
+          <div className="template-thumb-classic-header" style={{ borderBottomColor: accent }}>
+            <div className="template-thumb-row" style={{ width: '46%', background: accent, height: 12, marginInline: 'auto' }} />
+            <div className="template-thumb-row" style={{ width: '82%', marginTop: 10, height: 8, marginInline: 'auto' }} />
           </div>
-          <div className="template-thumb-row" style={{ width: '38%', background: '#7a5419' }} />
+          <div className="template-thumb-row" style={{ width: '38%', background: accent }} />
           <div className="template-thumb-row" style={{ width: '100%', marginTop: 14 }} />
           <div className="template-thumb-row" style={{ width: '90%' }} />
-          <div className="template-thumb-row" style={{ width: '42%', marginTop: 14, background: '#7a5419' }} />
+          <div className="template-thumb-row" style={{ width: '42%', marginTop: 14, background: accent }} />
           <div className="template-thumb-row" style={{ width: '96%', marginTop: 14 }} />
           <div className="template-thumb-row" style={{ width: '72%' }} />
         </div>
@@ -79,13 +82,13 @@ const TemplateThumbnail = ({ templateId }: { templateId: number }) => {
     <div className="template-thumbnail">
       <div className="template-thumbnail-page template-thumb-minimal">
         <div className="template-thumb-minimal-header">
-          <div className="template-thumb-row" style={{ width: '52%', height: 12, background: '#4a3822' }} />
+          <div className="template-thumb-row" style={{ width: '52%', height: 12, background: '#1f2933' }} />
           <div className="template-thumb-row" style={{ width: '74%', marginTop: 10, height: 8 }} />
         </div>
-        <div className="template-thumb-row" style={{ width: '30%', background: '#a48d67' }} />
+        <div className="template-thumb-row" style={{ width: '30%', background: soft }} />
         <div className="template-thumb-row" style={{ width: '96%', marginTop: 14 }} />
         <div className="template-thumb-row" style={{ width: '84%' }} />
-        <div className="template-thumb-row" style={{ width: '30%', marginTop: 16, background: '#a48d67' }} />
+        <div className="template-thumb-row" style={{ width: '30%', marginTop: 16, background: soft }} />
         <div className="template-thumb-row" style={{ width: '94%', marginTop: 14 }} />
         <div className="template-thumb-row" style={{ width: '68%' }} />
       </div>
@@ -96,7 +99,6 @@ const TemplateThumbnail = ({ templateId }: { templateId: number }) => {
 const ResumeSettingsSection = ({ resume, onResumeChange, onPreviewTemplateChange, previewTemplateId }: ResumeSettingsSectionProps) => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
   const { t } = useTranslation();
   const [resumeForm] = Form.useForm();
   const [avatarForm] = Form.useForm();
@@ -105,7 +107,9 @@ const ResumeSettingsSection = ({ resume, onResumeChange, onPreviewTemplateChange
   const [duplicateForm] = Form.useForm();
 
   const sectionConfig = useMemo(() => mergeSectionConfig(resume), [resume]);
-  const templateLimit = user?.plan?.templateLimit ?? 1;
+  const activeTemplateKey = TEMPLATE_BY_ID[previewTemplateId ?? resume.templateId] || 'minimal';
+  const chosenColor = resume.themeColor?.toLowerCase() || '';
+  const effectiveAccent = readableAccent(chosenColor, activeTemplateKey);
 
   useEffect(() => {
     resumeForm.setFieldsValue({
@@ -199,7 +203,6 @@ const ResumeSettingsSection = ({ resume, onResumeChange, onPreviewTemplateChange
           {TEMPLATE_OPTIONS.map((template) => {
             const isApplied = resume.templateId === template.id;
             const isPreviewing = previewTemplateId === template.id;
-            const isLocked = template.id > templateLimit;
             const metaKeys = templateMetaKeys[template.id] || [];
 
             return (
@@ -210,7 +213,6 @@ const ResumeSettingsSection = ({ resume, onResumeChange, onPreviewTemplateChange
                   'template-card',
                   isApplied ? 'template-card--active' : '',
                   !isApplied && isPreviewing ? 'template-card--preview' : '',
-                  isLocked ? 'template-card--locked' : '',
                 ].join(' ')}
               >
                 <div className="template-card-header">
@@ -218,11 +220,10 @@ const ResumeSettingsSection = ({ resume, onResumeChange, onPreviewTemplateChange
                   <Space size={6} wrap>
                     {isApplied && <Tag color="gold">{t('settings.templateApplied')}</Tag>}
                     {!isApplied && isPreviewing && <Tag color="warning">{t('settings.templatePreviewing')}</Tag>}
-                    {isLocked && <Tag color="default" icon={<LockOutlined />}>{t('settings.templateLocked')}</Tag>}
                   </Space>
                 </div>
 
-                <TemplateThumbnail templateId={template.id} />
+                <TemplateThumbnail templateId={template.id} themeColor={resume.themeColor} />
 
                 <div className="template-card-copy">{t(template.descriptionKey)}</div>
 
@@ -240,18 +241,11 @@ const ResumeSettingsSection = ({ resume, onResumeChange, onPreviewTemplateChange
                     type="primary"
                     disabled={isApplied}
                     onClick={() => {
-                      if (isLocked) {
-                        openUpgradePrompt({
-                          message: t('upgrade.templateUnavailableTitle'),
-                          code: 'TEMPLATE_NOT_AVAILABLE',
-                        });
-                        return;
-                      }
                       onPreviewTemplateChange?.(null);
                       void saveResumeMeta({ templateId: template.id });
                     }}
                   >
-                    {isLocked ? t('settings.templateUpgradeBtn') : isApplied ? t('settings.templateCurrentBtn') : t('settings.templateApplyBtn')}
+                    {isApplied ? t('settings.templateCurrentBtn') : t('settings.templateApplyBtn')}
                   </Button>
                 </Space>
               </Card>
@@ -266,6 +260,58 @@ const ResumeSettingsSection = ({ resume, onResumeChange, onPreviewTemplateChange
             </Button>
           </div>
         )}
+      </Card>
+
+      <Card
+        className="settings-card"
+        title={t('settings.themeColor')}
+        extra={chosenColor ? (
+          <Button type="link" style={{ paddingInline: 0, color: '#9d6b21' }} onClick={() => { void saveResumeMeta({ themeColor: '' }); }}>
+            {t('settings.themeColorReset')}
+          </Button>
+        ) : null}
+      >
+        <div className="theme-swatches">
+          {THEME_PRESETS.map((preset) => (
+            <button
+              key={preset.key}
+              type="button"
+              className={`theme-swatch${chosenColor === preset.color ? ' theme-swatch--active' : ''}`}
+              style={{ background: preset.color }}
+              title={t(`settings.themePresets.${preset.key}`)}
+              aria-label={t(`settings.themePresets.${preset.key}`)}
+              aria-pressed={chosenColor === preset.color}
+              onClick={() => { void saveResumeMeta({ themeColor: preset.color }); }}
+            />
+          ))}
+          <ColorPicker
+            disabledAlpha
+            value={effectiveAccent}
+            onChangeComplete={(color) => { void saveResumeMeta({ themeColor: color.toHexString().slice(0, 7) }); }}
+          >
+            <Button size="small">{t('settings.themeColorCustom')}</Button>
+          </ColorPicker>
+        </div>
+        <div className="theme-hint">
+          {!chosenColor
+            ? t('settings.themeColorDefaultHint')
+            : effectiveAccent !== chosenColor
+            ? t('settings.themeColorAdjusted', { color: effectiveAccent })
+            : t('settings.themeColorHint')}
+        </div>
+      </Card>
+
+      <Card className="settings-card" title={t('settings.layoutDensity')}>
+        <Segmented
+          block
+          value={resume.layoutDensity || 'balanced'}
+          options={(['compact', 'balanced', 'spacious'] as const).map((value) => ({
+            label: t(`settings.layoutDensityOptions.${value}`),
+            value,
+          }))}
+          onChange={(value) => { void saveResumeMeta({ layoutDensity: value as Resume['layoutDensity'] }); }}
+        />
+        <div className="theme-hint">{t('settings.layoutDensityHint')}</div>
       </Card>
 
       <Card className="settings-card" title={t('settings.positionVersion')}>

@@ -35,6 +35,7 @@ export interface ResumeExport {
   pageCount?: number;
   errorCode?: string;
   errorMessage?: string;
+  warningCode?: string;
   expiresAt?: string;
 }
 
@@ -153,7 +154,7 @@ export const resumeService = {
     await api.delete(`/resumes/skills/${id}`, { data: { resumeId } });
   },
 
-  async bulkUpdateSkills(resumeId: number, skills: Skill[]): Promise<Skill[]> {
+  async bulkUpdateSkills(resumeId: number, skills: Array<SkillInput | Skill>): Promise<Skill[]> {
     const response = await api.post<ApiResponse<Skill[]>>('/resumes/skills/bulk', { resumeId, skills });
     return response.data.data;
   },

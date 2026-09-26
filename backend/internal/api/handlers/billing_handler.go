@@ -36,7 +36,7 @@ func (h *BillingHandler) GetPlans(c *gin.Context) {
 			PriceYearly:           plan.PriceYearly,
 			ResumeLimit:           plan.ResumeLimit,
 			AIQuotaMonthly:        plan.AIQuotaMonthly,
-			TemplateLimit:         plan.TemplateLimit,
+			TemplateLimit:         service.EffectiveTemplateLimit(plan.TemplateLimit),
 			AllowDuplicate:        plan.AllowDuplicate,
 			AllowCustomSections:   plan.AllowCustomSections,
 			AllowCertifications:   plan.AllowCertifications,

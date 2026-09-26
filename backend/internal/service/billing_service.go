@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	mysqlDriver "github.com/go-sql-driver/mysql"
@@ -17,6 +16,9 @@ const (
 	PlanPro      = "PRO"
 	CycleMonthly = "monthly"
 	StatusActive = "active"
+	// CurrentFreeTemplateMaxID is the last template ID available on every plan
+	// (Modern, Classic, Minimal / minimal-v2). Membership only gates later IDs.
+	CurrentFreeTemplateMaxID = 3
 )
 
 type LimitError struct {
@@ -135,69 +137,30 @@ func (s *BillingService) CheckResumeCreation(userID uint) (*models.Plan, error) 
 	if err != nil {
 		return nil, err
 	}
-
-	var count int64
-	if err := database.DB.Model(&models.Resume{}).Where("user_id = ?", userID).Count(&count).Error; err != nil {
-		return nil, err
-	}
-
-	if plan.ResumeLimit > 0 && int(count) >= plan.ResumeLimit {
-		return nil, &LimitError{
-			Code:    "RESUME_LIMIT_EXCEEDED",
-			Message: fmt.Sprintf("Current plan allows up to %d resumes. Upgrade to unlock more resume slots.", plan.ResumeLimit),
-			Details: map[string]interface{}{"current": count, "limit": plan.ResumeLimit, "planCode": plan.Code},
-		}
-	}
-
+	// Membership is paused: every account can create job-specific versions.
 	return plan, nil
 }
 
 func (s *BillingService) CheckTemplateAccess(userID uint, templateID int) error {
-	_, plan, err := s.GetActiveSubscription(userID)
-	if err != nil {
-		return err
-	}
-	if plan.TemplateLimit > 0 && templateID > plan.TemplateLimit {
-		return &LimitError{
-			Code:    "TEMPLATE_NOT_AVAILABLE",
-			Message: "Current plan does not include this template. Upgrade to access more templates.",
-			Details: map[string]interface{}{"templateId": templateID, "templateLimit": plan.TemplateLimit, "planCode": plan.Code},
-		}
+	// All published templates are available while membership is hidden.
+	_ = userID
+	if templateID < 1 || templateID > CurrentFreeTemplateMaxID {
+		return &LimitError{Code: "INVALID_TEMPLATE_ID", Message: "Unknown resume template."}
 	}
 	return nil
 }
 
+func EffectiveTemplateLimit(limit int) int {
+	if limit > 0 && limit < CurrentFreeTemplateMaxID {
+		return CurrentFreeTemplateMaxID
+	}
+	return limit
+}
+
 func (s *BillingService) CheckFeature(userID uint, feature string) error {
-	_, plan, err := s.GetActiveSubscription(userID)
-	if err != nil {
-		return err
-	}
-	allowed := false
-	switch feature {
-	case "duplicate":
-		allowed = plan.AllowDuplicate
-	case "custom_sections":
-		allowed = plan.AllowCustomSections
-	case "certifications":
-		allowed = plan.AllowCertifications
-	case "languages":
-		allowed = plan.AllowLanguages
-	case "awards":
-		allowed = plan.AllowAwards
-	case "hd_pdf":
-		allowed = plan.AllowHdPdf
-	case "jd_optimization":
-		allowed = plan.AllowJdOptimization
-	case "multi_language":
-		allowed = plan.AllowMultiLanguage
-	}
-	if !allowed {
-		return &LimitError{
-			Code:    "FEATURE_NOT_AVAILABLE",
-			Message: "This feature is not available on your current plan. Upgrade to unlock it.",
-			Details: map[string]interface{}{"feature": feature, "planCode": plan.Code},
-		}
-	}
+	// Resume sections, duplication, and export are open to every account.
+	_ = userID
+	_ = feature
 	return nil
 }
 
@@ -228,18 +191,18 @@ func BuildPlanFeatures(plan *models.Plan) PlanFeatures {
 	return PlanFeatures{
 		Code:                  plan.Code,
 		Name:                  plan.Name,
-		ResumeLimit:           plan.ResumeLimit,
-		AIQuotaMonthly:        plan.AIQuotaMonthly,
-		TemplateLimit:         plan.TemplateLimit,
-		AllowDuplicate:        plan.AllowDuplicate,
-		AllowCustomSections:   plan.AllowCustomSections,
-		AllowCertifications:   plan.AllowCertifications,
-		AllowLanguages:        plan.AllowLanguages,
-		AllowAwards:           plan.AllowAwards,
-		AllowHdPdf:            plan.AllowHdPdf,
-		AllowJdOptimization:   plan.AllowJdOptimization,
-		AllowMultiLanguage:    plan.AllowMultiLanguage,
-		AllowPriorityFeatures: plan.AllowPriorityFeatures,
+		ResumeLimit:           0,
+		AIQuotaMonthly:        0,
+		TemplateLimit:         CurrentFreeTemplateMaxID,
+		AllowDuplicate:        true,
+		AllowCustomSections:   true,
+		AllowCertifications:   true,
+		AllowLanguages:        true,
+		AllowAwards:           true,
+		AllowHdPdf:            true,
+		AllowJdOptimization:   false,
+		AllowMultiLanguage:    true,
+		AllowPriorityFeatures: false,
 	}
 }
 

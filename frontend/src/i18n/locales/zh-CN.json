@@ -9,6 +9,7 @@
     "english": "English"
   },
   "nav": {
+    "templates": "模板中心",
     "myResumes": "我的简历",
     "membership": "会员中心"
   },
@@ -57,12 +58,12 @@
     "loginPage": {
       "eyebrow": "简历工坊工作台",
       "title": "登录后继续把你的下一份简历，打磨成真正可投递的版本",
-      "subtitle": "从模板选择、岗位多版本到 AI 优化和 PDF 导出，所有进度都会保存在你的简历工坊工作台里。",
+      "subtitle": "从内容编辑、模板排版到 PDF 导出，所有进度都会保存在你的简历工坊工作台里。",
       "stats": {
         "value1": "1 个",
         "label1": "统一工作台",
-        "value2": "3 档",
-        "label2": "成长型套餐",
+        "value2": "3 套",
+        "label2": "可用模板",
         "value3": "多版本",
         "label3": "岗位定制能力"
       },
@@ -71,37 +72,38 @@
       "outcomes": {
         "item1": "10 分钟生成第一版可投递简历",
         "item2": "为不同岗位复制出多版本简历",
-        "item3": "用 AI 优化工作经历与项目亮点"
+        "item3": "调整配色和疏密，导出清晰的 PDF"
       }
     },
     "registerPage": {
       "eyebrow": "简历工坊增长路径",
       "title": "创建账号，把简历制作从一次性操作变成可复用的工作流",
-      "subtitle": "一次录入经历，持续产出多个岗位版本，配合 AI 和模板导出，把更新简历这件事从“折腾”变成“复用”。",
+      "subtitle": "一次录入经历，持续产出多个岗位版本，调整模板与排版后导出，把更新简历变成可复用的流程。",
       "stats": {
         "value1": "1 份",
         "label1": "默认起步简历",
-        "value2": "模板 + AI",
-        "label2": "立即开始体验",
-        "value3": "可升级",
-        "label3": "解锁更多投递版本"
+        "value2": "3 套",
+        "label2": "可用模板",
+        "value3": "不限",
+        "label3": "岗位版本"
       },
       "viewPlans": "先看会员方案",
       "planTitle": "套餐成长路径",
       "benefits": {
         "item1": "注册后就能开始整理你的第一份基础母版",
-        "item2": "立即体验模板、AI 优化与导出流程",
-        "item3": "后续可升级解锁更多模板与岗位版本"
+        "item2": "立即体验模板、配色、排版与导出流程",
+        "item3": "自由复制多个岗位版本，整理不同投递方向"
       }
     }
   },
   "landing": {
     "hero": {
-      "title": "用 AI 打造专业简历，轻松拿下心仪 Offer",
-      "subtitle": "简历工坊是一款 AI 驱动的简历工作台，帮你快速创建专业、优雅的简历，从模板选择到内容撰写，全程智能辅助。",
+      "title": "把真实经历排成清晰、专业的简历",
+      "subtitle": "简历工坊帮你整理经历、调整模板和版式，并实时预览可投递的 PDF。",
       "aiWriting": "AI 智能写作，一键生成专业内容",
       "fastCreate": "分钟级创建，多模板随心切换",
-      "pdfExport": "一键导出高质量 PDF，随时投递"
+      "pdfExport": "一键导出高质量 PDF，随时投递",
+      "styleEditing": "模板、配色和排版疏密自由调整"
     },
     "features": {
       "title": "核心功能",
@@ -120,6 +122,10 @@
       "export": {
         "title": "PDF 一键导出",
         "desc": "支持矢量 PDF 和截图导出两种方式，完美还原排版效果"
+      },
+      "editor": {
+        "title": "专注内容编辑",
+        "desc": "分模块整理教育、经历、项目与技能，随时调整顺序和显示内容"
       }
     },
     "templates": {
@@ -136,7 +142,7 @@
     "testimonials": {
       "user1": {
         "name": "李同学 · 应届毕业生",
-        "text": "AI 帮我把简历写得特别专业，面试邀约明显变多了，强烈推荐给找工作的同学！"
+        "text": "模板和实时预览让我更容易把经历整理成清楚的一页简历。"
       },
       "user2": {
         "name": "王工 · 3年经验开发者",
@@ -186,13 +192,13 @@
     "updatedDaysAgo": "{{count}} 天前更新",
     "defaultVersion": "默认版本",
     "nextStepsTitle": "适合继续做什么",
-    "nextStepsHint": "优化描述、调整模板、导出投递版 PDF",
+    "nextStepsHint": "整理描述、调整模板与排版、导出投递版 PDF",
     "unlimited": "不限",
     "allTemplates": "全部模板",
     "templateCount": "{{count}} 个模板",
     "workspaceName": "简历工坊工作台",
     "heroTitle": "用一个工作台，持续打磨每一份更接近 Offer 的简历版本",
-    "heroCopy": "在简历工坊里管理模板、岗位版本、AI 优化和导出节奏。这里不只是存放文件，而是把每一次修改都沉淀成可复用的投递资产。",
+    "heroCopy": "在一个工作台里整理经历、管理岗位版本、调整排版，并导出可直接投递的 PDF。",
     "actions": {
       "new": {
         "title": "新建简历",
@@ -208,13 +214,18 @@
         "title": "导出 PDF",
         "description": "导出最近版本，直接用于投递或发送给招聘方。",
         "cta": "去导出"
+      },
+      "layout": {
+        "title": "调整版式",
+        "description": "选择模板、配色和内容疏密，边调整边看最终效果。",
+        "cta": "去排版"
       }
     },
     "plan": {
       "free": "免费版",
       "starter": "初级会员",
       "pro": "高级会员",
-      "freePoints": "1 份简历 · 3 次 AI · 基础模板",
+      "freePoints": "1 份简历 · 3 次 AI · 3 套模板",
       "starterPoints": "5 份简历 · 50 次 AI · 高清 PDF · 自定义模块",
       "proPoints": "不限简历 · 300 次 AI · JD 定制 · 多语言简历"
     },
@@ -231,13 +242,14 @@
       "resumesCreated": "已创建简历",
       "currentPlan": "当前套餐",
       "resumeQuota": "简历额度",
-      "aiUsage": "本月 AI 用量"
+      "aiUsage": "本月 AI 用量",
+      "templates": "可用模板"
     },
     "workspacePanelTitle": "我的简历版本",
     "workspacePanelSubtitle": "围绕目标岗位持续复制、优化和导出不同版本。",
     "newVersionButton": "新建版本",
     "emptyWorkspaceTitle": "你的工作台还没有简历版本",
-    "emptyWorkspaceSubtitle": "先创建一份母版，再为不同岗位复制出专门版本，最后用 AI 和模板把它们完善成可投递状态。",
+    "emptyWorkspaceSubtitle": "先创建一份母版，再为不同岗位复制出专门版本，最后调整模板和排版并导出。",
     "createFirstResumeButton": "创建第一份简历",
     "viewPricingDiffButton": "查看套餐差异",
     "upgradeRouteTitle": "升级路线",
@@ -246,8 +258,46 @@
     "step1Description": "先整理一份完整母版，后续岗位简历都从它复制出来。",
     "step2Title": "2. 针对岗位拆分版本",
     "step2Description": "不同岗位的关键词和项目排序应该不同。",
-    "step3Title": "3. 导出前最后做一轮 AI 优化",
-    "step3Description": "特别是工作成果和项目描述，最影响投递转化。"
+    "step3Title": "3. 预览排版后导出",
+    "step3Description": "检查内容顺序、换行和分页，再下载可投递的 PDF。",
+    "chipVersions": "已创建 {{count}} 份版本",
+    "chipStyles": "可自由调整模板与排版",
+    "layoutTip": "在简历编辑器中切换模板、主题色和排版疏密，预览与 PDF 使用同一套样式。",
+    "browseTemplates": "浏览岗位模板"
+  },
+  "home": {
+    "badge": "岗位模板",
+    "title": "按岗位挑一份写好的简历，改成你自己的",
+    "subtitle": "每份模板都是真实 A4 渲染，写法、栏目和配色都按岗位准备好了。选一份，改成你的经历即可投递。",
+    "startBlank": "从空白开始",
+    "myResumes": "我的简历 ({{count}})",
+    "continueEdit": "继续编辑：{{title}}",
+    "countLabel": "共 {{count}} 个模板",
+    "previewAction": "预览",
+    "useAction": "使用此模板",
+    "useSuccess": "已用模板创建简历",
+    "usePartial": "简历已创建，部分内容未导入，可在编辑器中补全",
+    "useFailed": "使用模板失败：{{message}}",
+    "previewTitle": "模板预览",
+    "tipsTitle": "写法要点",
+    "templateInfoTitle": "模板信息",
+    "templateLabel": "模板",
+    "colorLabel": "配色",
+    "densityLabel": "密度",
+    "density": {
+      "compact": "紧凑",
+      "balanced": "适中",
+      "spacious": "宽松"
+    },
+    "useHint": "会创建一份新简历，示例内容可直接修改",
+    "emptyCategory": "该分类暂无模板",
+    "categories": {
+      "all": "全部",
+      "engineering": "技术研发",
+      "ai": "AI 与算法",
+      "manufacturing": "制造与工程",
+      "business": "职能与管理"
+    }
   },
   "resumeEditor": {
     "loading": "加载简历...",
@@ -302,9 +352,9 @@
       "previewOpened": "PDF 预览已打开",
       "previewFailed": "PDF 预览失败，请重试",
       "stableSaving": "修改仍在保存，请等待保存完成后重新生成。",
-      "stableTemplatePending": "请先应用简约模板，再生成其最终 PDF。",
-      "stableFailed": "稳定 PDF 生成失败，请重试。",
-      "stablePreviewTitle": "稳定 PDF 预览",
+      "stableTemplatePending": "正在预览未应用的模板，请先应用该模板再导出 PDF。",
+      "stableFailed": "PDF 生成失败，请重试。",
+      "stablePreviewTitle": "PDF 预览",
       "stableStatus": {
         "idle": "未生成",
         "queued": "排队中",
@@ -312,6 +362,38 @@
         "ready": "已就绪",
         "stale": "已过期",
         "failed": "失败"
+      },
+      "stableTag": "PDF：{{status}}",
+      "warnings": {
+        "AVATAR_OMITTED": "头像无法读取，本次 PDF 未包含头像。请确认头像地址是可公开访问的 HTTPS 图片（PNG/JPEG/WebP，不超过 2MB）。"
+      },
+      "errors": {
+        "QUEUE_FULL": "当前导出人数较多，请稍后重试。",
+        "POLL_TIMEOUT": "PDF 生成超时，请重试。",
+        "RENDER_TIMEOUT": "PDF 生成超时，请重试。",
+        "RENDERER_UNAVAILABLE": "PDF 生成服务暂时不可用，请稍后重试。",
+        "RENDERER_RESTARTED": "PDF 生成服务已重启，请重新导出。",
+        "EXPORT_WORKER_TIMEOUT": "PDF 生成意外中断，请重试。",
+        "BROWSER_NOT_INSTALLED": "PDF 生成服务未就绪，请联系管理员。",
+        "FONT_LOAD_FAILED": "PDF 所需字体加载失败，请稍后重试。",
+        "UNAUTHORIZED": "PDF 生成服务配置有误，请联系管理员。",
+        "DOCUMENT_TOO_LARGE": "简历内容超过 30,000 字的上限，请精简后再导出。",
+        "TOO_MANY_ENTRIES": "简历条目超过 300 条的上限，请精简后再导出。",
+        "LIST_TOO_DEEP": "列表嵌套超过 5 层，请减少嵌套层级后再导出。",
+        "PAGE_LIMIT_EXCEEDED": "PDF 超过 20 页的上限，请精简内容后再导出。",
+        "HORIZONTAL_OVERFLOW": "有内容超出页面宽度，请检查过长的链接或文字。",
+        "PAYLOAD_TOO_LARGE": "简历数据过大（通常是头像图片太大），请换一张更小的头像。",
+        "INVALID_SNAPSHOT": "简历数据异常，无法生成 PDF，请刷新后重试。",
+        "INVALID_DOCUMENT": "简历数据异常，无法生成 PDF，请刷新后重试。",
+        "INVALID_PDF": "PDF 生成结果异常，请重试。",
+        "RENDER_FAILED": "PDF 生成失败，请重试。",
+        "STORAGE_FAILED": "PDF 保存失败，请稍后重试。",
+        "EXPORT_FILE_MISSING": "PDF 文件已失效，请重新导出。",
+        "EXPORT_EXPIRED": "PDF 文件已过期，请重新导出。",
+        "EXPORT_NOT_READY": "PDF 尚未生成完成，请稍后重试。",
+        "EXPORT_NOT_FOUND": "找不到这次导出记录，请重新导出。",
+        "RESUME_NOT_FOUND": "简历不存在或已被删除。",
+        "ERR_NETWORK": "网络连接失败，请检查网络后重试。"
       }
     }
   },
@@ -568,9 +650,21 @@
     "templateUpgradeBtn": "升级解锁",
     "templatePreviewingUnApplied": "正在预览未应用模板",
     "templateBackToCurrent": "返回当前模板",
-    "templateMetaModern": ["双栏信息密度", "适合经历丰富", "视觉更现代"],
-    "templateMetaClassic": ["标准商务排版", "适配大多数岗位", "阅读成本低"],
-    "templateMetaMinimal": ["极简留白", "突出内容本身", "适合内容精炼"],
+    "templateMetaModern": [
+      "双栏信息密度",
+      "适合经历丰富",
+      "视觉更现代"
+    ],
+    "templateMetaClassic": [
+      "标准商务排版",
+      "适配大多数岗位",
+      "阅读成本低"
+    ],
+    "templateMetaMinimal": [
+      "极简留白",
+      "突出内容本身",
+      "适合内容精炼"
+    ],
     "positionVersion": "岗位版本",
     "resumeTitleLabel": "简历标题",
     "resumeTitlePlaceholder": "例如：前端工程师简历",
@@ -602,13 +696,35 @@
       "languages": "语言",
       "awards": "奖项",
       "customSections": "自定义模块"
-    }
+    },
+    "themeColor": "主题色",
+    "themeColorReset": "恢复默认",
+    "themeColorCustom": "自定义颜色",
+    "themeColorDefaultHint": "当前使用模板默认配色。预设色均为高对比度，打印与屏幕阅读都清晰。",
+    "themeColorHint": "主题色会同时应用到预览和导出的 PDF。",
+    "themeColorAdjusted": "所选颜色偏浅，为保证文字可读已自动加深为 {{color}}。",
+    "themePresets": {
+      "navy": "藏青",
+      "graphite": "石墨",
+      "burgundy": "酒红",
+      "forest": "森绿",
+      "teal": "深青",
+      "indigo": "靛蓝",
+      "umber": "赭棕"
+    },
+    "layoutDensity": "排版疏密",
+    "layoutDensityOptions": {
+      "compact": "紧凑",
+      "balanced": "标准",
+      "spacious": "宽松"
+    },
+    "layoutDensityHint": "同时调整正文大小、行距与模块间距，并同步到 PDF。"
   },
   "pricing": {
     "loadFailed": "加载套餐失败",
     "badgeText": "简历工坊会员中心",
     "heroTitle": "选择适合你的会员方案，把简历制作升级成稳定的求职系统",
-    "heroCopy": "根据你的投递密度选择不同层级的模板、AI 配额和导出能力。升级后会立即刷新账号状态，继续在当前工作台里完成求职流程。",
+    "heroCopy": "根据你的投递密度选择 AI 配额、简历份数和导出能力。升级后会立即刷新账号状态，继续在当前工作台里完成求职流程。",
     "billingMonthly": "按月付费",
     "billingYearly": "按年付费",
     "providerWechat": "微信 Native",
@@ -674,8 +790,8 @@
     "aiQuotaContent": "初级会员每月可使用 50 次 AI，高级会员每月可使用 300 次 AI。",
     "featureUnavailableTitle": "当前套餐暂不支持该功能",
     "featureUnavailableContent": "升级会员后可解锁简历复制、证书、语言、自定义模块、高清导出等能力。",
-    "templateUnavailableTitle": "当前套餐模板数量不足",
-    "templateUnavailableContent": "初级会员支持 3 到 5 个模板，高级会员支持全部模板。",
+    "templateUnavailableTitle": "当前套餐暂不支持该模板",
+    "templateUnavailableContent": "现有 3 套模板对所有用户开放，后续新增模板由高级会员解锁。",
     "goMembership": "去会员中心",
     "later": "稍后再说"
   }

@@ -42,6 +42,8 @@ type Resume struct {
 	UserID        uint                  `gorm:"not null;index" json:"userId"`
 	Title         string                `gorm:"not null;default:'Untitled Resume'" json:"title"`
 	TemplateID    int                   `gorm:"default:1" json:"templateId"`
+	ThemeColor    string                `gorm:"type:varchar(16)" json:"themeColor"`
+	LayoutDensity string                `gorm:"type:varchar(16);default:balanced" json:"layoutDensity"`
 	VersionLabel  string                `gorm:"type:varchar(255)" json:"versionLabel"`
 	TargetRole    string                `gorm:"type:varchar(255)" json:"targetRole"`
 	SectionConfig []ResumeSectionConfig `gorm:"serializer:json;type:longtext" json:"sectionConfig,omitempty"`

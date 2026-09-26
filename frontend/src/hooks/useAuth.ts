@@ -20,7 +20,7 @@ export const useAuth = () => {
     try {
       await loginAction(email, password);
       message.success('Logged in successfully');
-      navigate('/dashboard');
+      navigate('/');
     } catch (error: any) {
       message.error(error.message || 'Login failed');
       throw error;
@@ -31,7 +31,7 @@ export const useAuth = () => {
     try {
       await registerAction(email, password, name);
       message.success('Account created successfully');
-      navigate('/dashboard');
+      navigate('/');
     } catch (error: any) {
       message.error(error.message || 'Registration failed');
       throw error;

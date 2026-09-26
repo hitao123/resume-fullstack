@@ -1,6 +1,42 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { DocumentLimitError, normalizeResume, richText, safeUrl } from './index.js';
+import { DEFAULT_ACCENT, DocumentLimitError, THEME_PRESETS, documentBodyHtml, documentCss, normalizeResume, readableAccent, richText, safeUrl } from './index.js';
+
+test('maps template ids and falls back to minimal', () => {
+  assert.equal(normalizeResume({ templateId: 1 }).template, 'modern');
+  assert.equal(normalizeResume({ templateId: 2 }).template, 'classic');
+  assert.equal(normalizeResume({ templateId: 99 }).template, 'minimal');
+  assert.equal(normalizeResume({ templateId: 1 }).accent, DEFAULT_ACCENT.modern);
+});
+
+test('keeps readable accents and darkens light ones to WCAG AA', () => {
+  for (const preset of THEME_PRESETS) assert.equal(readableAccent(preset.color, 'modern'), preset.color);
+  const darkened = readableAccent('#ffd166', 'modern');
+  assert.notEqual(darkened, '#ffd166');
+  assert.match(darkened, /^#[0-9a-f]{6}$/);
+  assert.equal(readableAccent('red; background:url(x)', 'classic'), DEFAULT_ACCENT.classic);
+});
+
+test('applies the selected layout density to preview and PDF markup', () => {
+  const compact = normalizeResume({ layoutDensity: 'compact' });
+  const spacious = normalizeResume({ layoutDensity: 'spacious' });
+  assert.equal(normalizeResume({}).layoutDensity, 'balanced');
+  assert.equal(normalizeResume({ layoutDensity: 'invalid' }).layoutDensity, 'balanced');
+  assert.equal(compact.layoutDensity, 'compact');
+  assert.equal(spacious.layoutDensity, 'spacious');
+  assert.match(documentBodyHtml(compact), /--rd-font-size:9\.5pt;--rd-line-height:1\.35/);
+  assert.match(documentBodyHtml(spacious), /--rd-font-size:11pt;--rd-line-height:1\.6/);
+  assert.match(documentCss('minimal'), /font-size:var\(--rd-font-size,10\.5pt\)/);
+});
+
+test('renders modern sidebar sections separately and escapes content', () => {
+  const doc = normalizeResume({ templateId: 1, themeColor: '#1d5b45', personalInfo: { fullName: '<b>Ada</b>', summary: 'Hi' }, skills: [{ id: 1, name: 'Go' }] });
+  const html = documentBodyHtml(doc);
+  assert.match(html, /--rd-accent:#1d5b45/);
+  assert.match(html, /<aside class="rd-sidebar">.*data-section="skills".*<\/aside><div class="rd-main">.*data-section="summary"/);
+  assert.match(html, /&lt;b&gt;Ada&lt;\/b&gt;/);
+  assert.match(documentCss('modern'), /@page\{size:A4;margin:0\}/);
+});
 
 test('normalizes every supported section in configured order without management metadata', () => {
   const doc = normalizeResume({ title: 'Private draft', versionLabel: 'v4', targetRole: 'Staff Engineer', personalInfo: { fullName: '李雷', summary: '<p>Hello <strong>world</strong></p>', linkedin: 'https://linkedin.com/in/lei' }, sectionConfig: [{ key: 'projects', visible: true, order: 0 }], projects: [{ id: 2, name: 'Resume', url: 'https://example.com', displayOrder: 3 }] });

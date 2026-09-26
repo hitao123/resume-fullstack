@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
 const features = [
-  { icon: '🤖', key: 'ai' },
+  { icon: '✏️', key: 'editor' },
   { icon: '🎨', key: 'templates' },
   { icon: '👁', key: 'preview' },
   { icon: '📥', key: 'export' },

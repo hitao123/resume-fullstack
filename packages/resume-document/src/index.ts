@@ -21,9 +21,15 @@ export type DocumentNode = ParagraphNode | ListNode;
 export interface Contact { label: string; value: string; href?: string }
 export interface DocumentEntry { sourceId: string; heading: string; meta?: string; nodes: DocumentNode[]; links?: Contact[] }
 export interface DocumentSection { sourceId: string; key: string; title: string; entries: DocumentEntry[] }
+export type TemplateKey = 'modern' | 'classic' | 'minimal';
+export type LayoutDensity = 'compact' | 'balanced' | 'spacious';
 export interface ResumeDocument {
   schemaVersion: typeof SCHEMA_VERSION;
   locale: Locale;
+  template: TemplateKey;
+  /** Hex accent, already darkened so white text on it and it on white both reach WCAG AA. */
+  accent: string;
+  layoutDensity: LayoutDensity;
   header: { fullName?: string; targetRole?: string; contacts: Contact[]; avatar?: { dataUrl: string; mimeType: string } };
   sections: DocumentSection[];
   statistics: { characters: number; entries: number };
@@ -185,8 +191,45 @@ export function normalizeResume(input: unknown, options: { locale?: string } = {
   const entries = sections.reduce((total, section) => total + section.entries.length, 0);
   if (entries > DOCUMENT_LIMITS.maxEntries) throw new DocumentLimitError('TOO_MANY_ENTRIES', `A resume may contain at most ${DOCUMENT_LIMITS.maxEntries} entries.`);
   if ([...visibleText].length > DOCUMENT_LIMITS.maxCharacters) throw new DocumentLimitError('DOCUMENT_TOO_LARGE', `A resume may contain at most ${DOCUMENT_LIMITS.maxCharacters} Unicode characters.`);
-  return { schemaVersion: SCHEMA_VERSION, locale, header: { fullName: string(personal.fullName) || undefined, targetRole: string(resume.targetRole) || undefined, contacts, avatar: personal.showAvatar === true ? controlledAvatar(personal.avatarDataUrl) : undefined }, sections, statistics: { characters: [...visibleText].length, entries } };
+  const template = TEMPLATE_BY_ID[number(resume.templateId, 3)] || 'minimal';
+  const layoutDensity: LayoutDensity = resume.layoutDensity === 'compact' || resume.layoutDensity === 'spacious' ? resume.layoutDensity : 'balanced';
+  return { schemaVersion: SCHEMA_VERSION, locale, template, accent: readableAccent(resume.themeColor, template), layoutDensity, header: { fullName: string(personal.fullName) || undefined, targetRole: string(resume.targetRole) || undefined, contacts, avatar: personal.showAvatar === true ? controlledAvatar(personal.avatarDataUrl) : undefined }, sections, statistics: { characters: [...visibleText].length, entries } };
 }
 
-/** Shared fixed print stylesheet consumed by both the editor component and renderer. */
-export const minimalCss = `@page{size:A4;margin:15mm}html,body{margin:0;padding:0}.minimal-document{box-sizing:border-box;color:#18212b;font-family:"Noto Sans","Noto Sans CJK SC","PingFang SC",Arial,sans-serif;font-size:10.5pt;line-height:1.5;overflow-wrap:anywhere;word-break:normal}.minimal-document *{box-sizing:border-box}.minimal-header{border-bottom:1px solid #cbd5df;padding-bottom:5mm;margin-bottom:6mm}.minimal-name{font-size:22pt;line-height:1.2;margin:0}.minimal-role{margin:1mm 0;color:#465565}.minimal-contacts{display:flex;flex-wrap:wrap;gap:1mm 3mm;font-size:9.5pt}.minimal-section{margin:0 0 5mm}.minimal-section-title{font-size:12pt;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid #d7dee5;margin:0 0 2.5mm;padding-bottom:1mm;break-after:avoid}.minimal-entry{margin:0 0 3.2mm}.minimal-entry-short{break-inside:avoid}.minimal-entry-heading{font-weight:700;break-after:avoid}.minimal-entry-meta{color:#526271;font-size:9.5pt;margin-bottom:1mm;break-after:avoid}.minimal-entry p{margin:0 0 1.6mm;orphans:3;widows:3}.minimal-entry ul,.minimal-entry ol{margin:1mm 0 1.6mm;padding-left:5mm;orphans:3;widows:3}.minimal-entry li{break-inside:auto}.minimal-entry a{color:#183e66;text-decoration:underline;overflow-wrap:anywhere}.minimal-avatar{float:right;object-fit:cover;width:22mm;height:22mm;border-radius:50%;margin-left:5mm}@media screen{.minimal-document{width:210mm;min-height:297mm;margin:auto;background:#fff;padding:15mm;box-shadow:0 2px 16px #0002}.minimal-print-style{display:none}}`;
+export const TEMPLATE_BY_ID: Record<number, TemplateKey> = { 1: 'modern', 2: 'classic', 3: 'minimal' };
+export const DEFAULT_ACCENT: Record<TemplateKey, string> = { modern: '#1f3a5f', classic: '#8c1d2f', minimal: '#1f2933' };
+/** Curated accents with clearly different hues; all pass 4.5:1 against white. */
+export const THEME_PRESETS = [
+  { key: 'navy', color: '#1f3a5f' },
+  { key: 'graphite', color: '#1f2933' },
+  { key: 'burgundy', color: '#8c1d2f' },
+  { key: 'forest', color: '#1d5b45' },
+  { key: 'teal', color: '#0e5c6b' },
+  { key: 'indigo', color: '#3730a3' },
+  { key: 'umber', color: '#7a4a12' },
+] as const;
+
+const hexPattern = /^#[0-9a-f]{6}$/i;
+function rgb(hex: string): [number, number, number] { return [1, 3, 5].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16)) as [number, number, number]; }
+function hex(channels: number[]): string { return `#${channels.map((value) => Math.round(value).toString(16).padStart(2, '0')).join('')}`; }
+function luminance(channels: number[]): number {
+  const [r, g, b] = channels.map((value) => { const c = value / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/**
+ * Accepts any user color but darkens it until white text on it (and it as text
+ * on white) meets WCAG AA 4.5:1, so a custom pick can never produce an
+ * unreadable sidebar or heading.
+ */
+export function readableAccent(value: unknown, template: TemplateKey): string {
+  const source = string(value);
+  if (!hexPattern.test(source)) return DEFAULT_ACCENT[template];
+  let channels = rgb(source.toLowerCase());
+  while (1.05 / (luminance(channels) + 0.05) < 4.5) channels = channels.map((c) => c * 0.92) as [number, number, number];
+  return hex(channels);
+}
+/** Blends the accent toward white; used for chips and hairlines. */
+export function tint(accent: string, amount: number): string { return hex(rgb(accent).map((c) => c + (255 - c) * amount)); }
+
+export { documentBodyHtml, documentCss, documentHtml } from './render.js';

@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/henryhua/resume-backend/config"
+	"github.com/henryhua/resume-backend/internal/api/handlers"
 	"github.com/henryhua/resume-backend/internal/api/middleware"
 	"github.com/henryhua/resume-backend/internal/api/routes"
 	"github.com/henryhua/resume-backend/pkg/auth"
@@ -40,6 +41,10 @@ func main() {
 		ginMode = gin.DebugMode
 	}
 	gin.SetMode(ginMode)
+
+	if err := handlers.SeedDevUser(); err != nil {
+		log.Fatal("Failed to seed dev user:", err)
+	}
 
 	// Create router
 	router := gin.Default()

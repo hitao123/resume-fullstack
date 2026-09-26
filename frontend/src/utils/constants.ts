@@ -5,6 +5,9 @@ export const TEMPLATES = {
   MINIMAL: 3,
 } as const;
 
+/** Current catalog is free on every plan. Membership only gates later template IDs. */
+export const FREE_TEMPLATE_MAX_ID = TEMPLATES.MINIMAL;
+
 // Template names
 export const TEMPLATE_NAME_KEYS: Record<number, string> = {
   [TEMPLATES.MODERN]: 'resumeEditor.export.modernShort',

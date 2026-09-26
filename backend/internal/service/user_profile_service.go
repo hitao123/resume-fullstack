@@ -5,7 +5,6 @@ import (
 
 	"github.com/henryhua/resume-backend/internal/domain/models"
 	"github.com/henryhua/resume-backend/internal/dto"
-	"github.com/henryhua/resume-backend/pkg/database"
 )
 
 func BuildUserInfo(user models.User) (*dto.UserInfo, error) {
@@ -17,16 +16,6 @@ func BuildUserInfo(user models.User) (*dto.UserInfo, error) {
 	usage, err := billing.GetUsage(user.ID, time.Now())
 	if err != nil {
 		return nil, err
-	}
-
-	var resumeCount int64
-	if err := database.DB.Model(&models.Resume{}).Where("user_id = ?", user.ID).Count(&resumeCount).Error; err != nil {
-		return nil, err
-	}
-
-	upgradeHint := ""
-	if plan.ResumeLimit > 0 && int(resumeCount) >= plan.ResumeLimit {
-		upgradeHint = "Upgrade to create more resumes and unlock more templates."
 	}
 
 	features := BuildPlanFeatures(plan)
@@ -56,6 +45,6 @@ func BuildUserInfo(user models.User) (*dto.UserInfo, error) {
 			AIUsed:        usage.AIUsed,
 			PdfExportUsed: usage.PdfExportUsed,
 		},
-		UpgradeHint: upgradeHint,
+		UpgradeHint: "",
 	}, nil
 }

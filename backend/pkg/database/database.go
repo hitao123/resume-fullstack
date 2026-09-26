@@ -96,7 +96,7 @@ func SeedPlans() error {
 			Name:           "免费版",
 			ResumeLimit:    1,
 			AIQuotaMonthly: 3,
-			TemplateLimit:  1,
+			TemplateLimit:  3,
 			PriceMonthly:   0,
 			PriceYearly:    0,
 		},

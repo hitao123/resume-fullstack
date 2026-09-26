@@ -139,7 +139,11 @@ api.interceptors.response.use(
     }
 
     // Handle other errors
-    const payload = readApiErrorPayload(error.response?.data);
+    let data: unknown = error.response?.data;
+    if (data instanceof Blob && data.type.includes('json')) {
+      try { data = JSON.parse(await data.text()); } catch { data = undefined; }
+    }
+    const payload = readApiErrorPayload(data);
     return Promise.reject(toApiClientError({
       message: payload.message || error.message || 'An error occurred',
       code: payload.code || error.code,

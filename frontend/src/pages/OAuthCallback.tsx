@@ -50,7 +50,7 @@ const OAuthCallback = () => {
         setUser(user);
         message.success(t('auth.login.success'));
         // Use replace to prevent going back to callback page
-        navigate('/dashboard', { replace: true });
+        navigate('/', { replace: true });
       } catch (err) {
         console.error('OAuth callback - failed to fetch user info:', err);
         setError('Failed to fetch user info');

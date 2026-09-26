@@ -9,6 +9,7 @@
     "english": "English"
   },
   "nav": {
+    "templates": "Template Center",
     "myResumes": "My Resumes",
     "membership": "Membership"
   },
@@ -57,12 +58,12 @@
     "loginPage": {
       "eyebrow": "Resume Studio Workspace",
       "title": "Sign in to refine your next resume into a truly submission-ready version",
-      "subtitle": "From templates and job-targeted versions to AI enhancement and PDF export — everything is saved in your Resume Studio workspace.",
+      "subtitle": "Edit your content, refine the layout, and export a PDF. Your progress stays in your Resume Studio workspace.",
       "stats": {
         "value1": "1",
         "label1": "Unified workspace",
-        "value2": "3 tiers",
-        "label2": "Growth plans",
+        "value2": "3",
+        "label2": "Templates",
         "value3": "Versions",
         "label3": "Job-targeted resumes"
       },
@@ -71,37 +72,38 @@
       "outcomes": {
         "item1": "Create a submission-ready first draft in 10 minutes",
         "item2": "Duplicate versions for different roles",
-        "item3": "Use AI to polish work and project highlights"
+        "item3": "Refine colors and spacing, then export a clear PDF"
       }
     },
     "registerPage": {
       "eyebrow": "Resume Studio Growth Path",
       "title": "Create an account and turn resume building into a reusable workflow",
-      "subtitle": "Enter your experience once, produce multiple job-targeted versions, and export with AI and templates — turn resume updates from \"hassle\" into \"reuse\".",
+      "subtitle": "Enter your experience once, create versions for different roles, then refine the layout and export.",
       "stats": {
         "value1": "1",
         "label1": "Starter resume",
-        "value2": "Templates + AI",
-        "label2": "Start instantly",
-        "value3": "Upgradeable",
-        "label3": "Unlock more versions"
+        "value2": "3",
+        "label2": "Templates",
+        "value3": "Unlimited",
+        "label3": "Role versions"
       },
       "viewPlans": "View plans first",
       "planTitle": "Plan progression",
       "benefits": {
         "item1": "Start organizing your first master resume right after signing up",
-        "item2": "Try templates, AI optimization, and export immediately",
-        "item3": "Upgrade later to unlock more templates and job-targeted versions"
+        "item2": "Try templates, colors, layout, and export immediately",
+        "item3": "Duplicate role-specific versions freely"
       }
     }
   },
   "landing": {
     "hero": {
-      "title": "Build Professional Resumes with AI, Land Your Dream Job",
-      "subtitle": "Resume Studio is an AI-powered resume workspace that helps you create professional, elegant resumes in minutes, from template selection to content writing with intelligent assistance every step of the way.",
+      "title": "Turn your experience into a clear, professional resume",
+      "subtitle": "Organize your experience, refine templates and layout, and preview the PDF you will submit.",
       "aiWriting": "AI-powered writing, generate professional content in one click",
       "fastCreate": "Create in minutes, switch between multiple templates",
-      "pdfExport": "Export high-quality PDF, ready to submit anytime"
+      "pdfExport": "Export high-quality PDF, ready to submit anytime",
+      "styleEditing": "Adjust templates, colors, and spacing"
     },
     "features": {
       "title": "Core Features",
@@ -120,6 +122,10 @@
       "export": {
         "title": "One-Click PDF Export",
         "desc": "Vector PDF and screenshot export options, perfectly preserving your layout"
+      },
+      "editor": {
+        "title": "Focused editing",
+        "desc": "Organize education, experience, projects, and skills, then control their order and visibility"
       }
     },
     "templates": {
@@ -136,7 +142,7 @@
     "testimonials": {
       "user1": {
         "name": "Li · Fresh Graduate",
-        "text": "AI helped me write a much more professional resume. I started getting way more interview invitations. Highly recommended!"
+        "text": "The templates and live preview made it easier to turn my experience into a clear one-page resume."
       },
       "user2": {
         "name": "Wang · 3yr Developer",
@@ -186,13 +192,13 @@
     "updatedDaysAgo": "Updated {{count}}d ago",
     "defaultVersion": "Default version",
     "nextStepsTitle": "What to do next",
-    "nextStepsHint": "Polish descriptions, switch templates, export a submission-ready PDF",
+    "nextStepsHint": "Refine descriptions and layout, then export a submission-ready PDF",
     "unlimited": "Unlimited",
     "allTemplates": "All templates",
     "templateCount": "{{count}} templates",
     "workspaceName": "Resume Studio Workspace",
     "heroTitle": "Use one workspace to continuously refine resume versions closer to an offer",
-    "heroCopy": "Manage templates, job-targeted versions, AI improvements, and export cadence in one place. It's not just file storage — every change becomes a reusable application asset.",
+    "heroCopy": "Organize experience, manage versions for different roles, refine the layout, and export a PDF ready to submit.",
     "actions": {
       "new": {
         "title": "Create a resume",
@@ -208,13 +214,18 @@
         "title": "Export PDF",
         "description": "Export the latest version, ready to submit or send to recruiters.",
         "cta": "Export"
+      },
+      "layout": {
+        "title": "Refine layout",
+        "description": "Choose a template, color, and spacing while previewing the result.",
+        "cta": "Edit layout"
       }
     },
     "plan": {
       "free": "Free",
       "starter": "Starter",
       "pro": "Pro",
-      "freePoints": "1 resume · 3 AI uses · basic templates",
+      "freePoints": "1 resume · 3 AI uses · 3 templates",
       "starterPoints": "5 resumes · 50 AI uses · HD PDF · custom sections",
       "proPoints": "unlimited resumes · 300 AI uses · JD optimization · multi-language"
     },
@@ -231,13 +242,14 @@
       "resumesCreated": "Resumes created",
       "currentPlan": "Current plan",
       "resumeQuota": "Resume quota",
-      "aiUsage": "AI usage this month"
+      "aiUsage": "AI usage this month",
+      "templates": "Available templates"
     },
     "workspacePanelTitle": "My Resume Versions",
     "workspacePanelSubtitle": "Continuously duplicate, polish, and export versions tailored for your target roles.",
     "newVersionButton": "New version",
     "emptyWorkspaceTitle": "Your workspace has no resume versions yet",
-    "emptyWorkspaceSubtitle": "Create a master version first, then duplicate it for different roles. Finally, use AI and templates to refine everything into submission-ready versions.",
+    "emptyWorkspaceSubtitle": "Create a master version, duplicate it for different roles, then refine the template and layout before export.",
     "createFirstResumeButton": "Create your first resume",
     "viewPricingDiffButton": "View plan differences",
     "upgradeRouteTitle": "Upgrade route",
@@ -246,8 +258,46 @@
     "step1Description": "Prepare a complete master resume first, then duplicate it for role-specific versions.",
     "step2Title": "2. Split versions by role",
     "step2Description": "Different roles need different keywords and project ordering.",
-    "step3Title": "3. Do one last AI polish before export",
-    "step3Description": "Especially achievements and project descriptions — they have the biggest impact on conversion."
+    "step3Title": "3. Preview the layout before export",
+    "step3Description": "Check section order, wrapping, and page breaks before downloading your PDF.",
+    "chipVersions": "{{count}} versions created",
+    "chipStyles": "Templates and layout are fully available",
+    "layoutTip": "Switch templates, theme colors, and spacing in the editor. Preview and PDF share the same styles.",
+    "browseTemplates": "Browse role templates"
+  },
+  "home": {
+    "badge": "Role templates",
+    "title": "Pick a resume written for the role, then make it yours",
+    "subtitle": "Each card is a real A4 render with role-ready wording, sections, and color. Choose one and rewrite it with your own experience.",
+    "startBlank": "Start from blank",
+    "myResumes": "My resumes ({{count}})",
+    "continueEdit": "Continue editing: {{title}}",
+    "countLabel": "{{count}} templates",
+    "previewAction": "Preview",
+    "useAction": "Use this template",
+    "useSuccess": "Resume created from template",
+    "usePartial": "Resume created, but some content was not imported. You can finish it in the editor.",
+    "useFailed": "Could not use template: {{message}}",
+    "previewTitle": "Template preview",
+    "tipsTitle": "Writing tips",
+    "templateInfoTitle": "Template details",
+    "templateLabel": "Template",
+    "colorLabel": "Color",
+    "densityLabel": "Density",
+    "density": {
+      "compact": "Compact",
+      "balanced": "Balanced",
+      "spacious": "Spacious"
+    },
+    "useHint": "This creates a new resume. Sample content can be edited.",
+    "emptyCategory": "No templates in this category",
+    "categories": {
+      "all": "All",
+      "engineering": "Engineering",
+      "ai": "AI & algorithms",
+      "manufacturing": "Manufacturing",
+      "business": "Business"
+    }
   },
   "resumeEditor": {
     "loading": "Loading resume...",
@@ -302,9 +352,9 @@
       "previewOpened": "PDF preview opened",
       "previewFailed": "PDF preview failed. Please try again.",
       "stableSaving": "Changes are still saving. Wait for the save to finish, then generate again.",
-      "stableTemplatePending": "Apply the minimal template before generating its final PDF.",
-      "stableFailed": "Stable PDF generation failed. Please retry.",
-      "stablePreviewTitle": "Stable PDF preview",
+      "stableTemplatePending": "You are previewing an unapplied template. Apply it before exporting a PDF.",
+      "stableFailed": "PDF generation failed. Please retry.",
+      "stablePreviewTitle": "PDF preview",
       "stableStatus": {
         "idle": "not generated",
         "queued": "queued",
@@ -312,6 +362,38 @@
         "ready": "ready",
         "stale": "out of date",
         "failed": "failed"
+      },
+      "stableTag": "PDF: {{status}}",
+      "warnings": {
+        "AVATAR_OMITTED": "Your photo could not be loaded, so this PDF has no photo. Use a publicly reachable HTTPS image (PNG/JPEG/WebP, up to 2 MB)."
+      },
+      "errors": {
+        "QUEUE_FULL": "Many exports are running right now. Please retry shortly.",
+        "POLL_TIMEOUT": "PDF generation timed out. Please retry.",
+        "RENDER_TIMEOUT": "PDF generation timed out. Please retry.",
+        "RENDERER_UNAVAILABLE": "The PDF service is temporarily unavailable. Please retry shortly.",
+        "RENDERER_RESTARTED": "The PDF service restarted. Please export again.",
+        "EXPORT_WORKER_TIMEOUT": "PDF generation stopped unexpectedly. Please retry.",
+        "BROWSER_NOT_INSTALLED": "The PDF service is not ready. Please contact the administrator.",
+        "FONT_LOAD_FAILED": "Fonts required for the PDF failed to load. Please retry shortly.",
+        "UNAUTHORIZED": "The PDF service is misconfigured. Please contact the administrator.",
+        "DOCUMENT_TOO_LARGE": "Your resume exceeds the 30,000 character limit. Shorten it and export again.",
+        "TOO_MANY_ENTRIES": "Your resume exceeds the 300 entry limit. Shorten it and export again.",
+        "LIST_TOO_DEEP": "Lists are nested more than 5 levels deep. Flatten them and export again.",
+        "PAGE_LIMIT_EXCEEDED": "The PDF exceeds the 20 page limit. Shorten your resume and export again.",
+        "HORIZONTAL_OVERFLOW": "Some content is wider than the page. Check for very long links or words.",
+        "PAYLOAD_TOO_LARGE": "Your resume data is too large (usually the photo). Use a smaller photo.",
+        "INVALID_SNAPSHOT": "The resume data is invalid. Refresh the page and retry.",
+        "INVALID_DOCUMENT": "The resume data is invalid. Refresh the page and retry.",
+        "INVALID_PDF": "The generated PDF was invalid. Please retry.",
+        "RENDER_FAILED": "PDF generation failed. Please retry.",
+        "STORAGE_FAILED": "The PDF could not be saved. Please retry shortly.",
+        "EXPORT_FILE_MISSING": "The PDF file is no longer available. Please export again.",
+        "EXPORT_EXPIRED": "The PDF has expired. Please export again.",
+        "EXPORT_NOT_READY": "The PDF is not ready yet. Please retry shortly.",
+        "EXPORT_NOT_FOUND": "This export could not be found. Please export again.",
+        "RESUME_NOT_FOUND": "The resume does not exist or was deleted.",
+        "ERR_NETWORK": "Network connection failed. Check your connection and retry."
       }
     }
   },
@@ -568,9 +650,21 @@
     "templateUpgradeBtn": "Upgrade to unlock",
     "templatePreviewingUnApplied": "Previewing unapplied template",
     "templateBackToCurrent": "Back to current template",
-    "templateMetaModern": ["Two-column layout", "Great for dense content", "Modern look"],
-    "templateMetaClassic": ["Standard business layout", "Works for most roles", "Easy to read"],
-    "templateMetaMinimal": ["Clean whitespace", "Content-first design", "Great for concise resumes"],
+    "templateMetaModern": [
+      "Two-column layout",
+      "Great for dense content",
+      "Modern look"
+    ],
+    "templateMetaClassic": [
+      "Standard business layout",
+      "Works for most roles",
+      "Easy to read"
+    ],
+    "templateMetaMinimal": [
+      "Clean whitespace",
+      "Content-first design",
+      "Great for concise resumes"
+    ],
     "positionVersion": "Job-targeted version",
     "resumeTitleLabel": "Resume title",
     "resumeTitlePlaceholder": "e.g. Frontend Engineer Resume",
@@ -602,13 +696,35 @@
       "languages": "Languages",
       "awards": "Awards",
       "customSections": "Custom sections"
-    }
+    },
+    "themeColor": "Theme color",
+    "themeColorReset": "Reset to default",
+    "themeColorCustom": "Custom color",
+    "themeColorDefaultHint": "Using the template default. All presets are high-contrast for print and screen.",
+    "themeColorHint": "The theme color applies to both the preview and the exported PDF.",
+    "themeColorAdjusted": "The selected color is too light, so it was darkened to {{color}} to keep text readable.",
+    "themePresets": {
+      "navy": "Navy",
+      "graphite": "Graphite",
+      "burgundy": "Burgundy",
+      "forest": "Forest",
+      "teal": "Teal",
+      "indigo": "Indigo",
+      "umber": "Umber"
+    },
+    "layoutDensity": "Layout spacing",
+    "layoutDensityOptions": {
+      "compact": "Compact",
+      "balanced": "Balanced",
+      "spacious": "Spacious"
+    },
+    "layoutDensityHint": "Adjust body size, line height, and section spacing in both preview and PDF."
   },
   "pricing": {
     "loadFailed": "Failed to load plans",
     "badgeText": "Resume Studio Membership",
     "heroTitle": "Choose the right plan and turn your resume-building into a reliable job search system",
-    "heroCopy": "Select the template tier, AI quota, and export capability that matches your application frequency. Upgrades take effect immediately and refresh your account status.",
+    "heroCopy": "Select the AI quota, resume slots, and export capability that matches your application frequency. Upgrades take effect immediately and refresh your account status.",
     "billingMonthly": "Monthly",
     "billingYearly": "Yearly",
     "providerWechat": "WeChat Native",
@@ -674,8 +790,8 @@
     "aiQuotaContent": "Starter includes 50 AI uses/month, Pro includes 300 AI uses/month.",
     "featureUnavailableTitle": "Feature not available on current plan",
     "featureUnavailableContent": "Upgrade to unlock resume duplication, certifications, languages, custom sections, HD export, and more.",
-    "templateUnavailableTitle": "Template limit reached",
-    "templateUnavailableContent": "Starter supports 3–5 templates, Pro supports all templates.",
+    "templateUnavailableTitle": "This template is not on your plan",
+    "templateUnavailableContent": "The current 3 templates are available on every plan. Future templates unlock with Pro.",
     "goMembership": "Go to membership",
     "later": "Maybe later"
   }

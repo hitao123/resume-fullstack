@@ -4,7 +4,7 @@ import { createServer, shutdownRenderer } from '../src/server.mjs';
 
 const longParagraph = '跨页内容 English 中文 mixed text with a deliberately long unbroken-link https://example.com/' + 'path/'.repeat(80) + '。';
 const snapshot = {
-  id: 1, userId: 9, templateId: 3, targetRole: 'Senior Engineer',
+  id: 1, userId: 9, templateId: 3, layoutDensity: 'compact', targetRole: 'Senior Engineer',
   personalInfo: { fullName: '李雷', email: 'li@example.com', linkedin: 'https://linkedin.com/in/lilei', showAvatar: true, avatarDataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLq8QAAAABJRU5ErkJggg==', summary: `<p>${longParagraph}</p><ol><li>first<ul><li>nested item</li></ul></li></ol>` },
   sectionConfig: [{ key: 'workExperiences', visible: true, order: 0 }, { key: 'summary', visible: true, order: 1 }],
   workExperiences: Array.from({ length: 28 }, (_, id) => ({ id, position: `Engineer ${id}`, companyName: 'Example Co', startDate: '2020-01-01', isCurrent: id === 0, displayOrder: id, description: `<p>${longParagraph}</p>` })),

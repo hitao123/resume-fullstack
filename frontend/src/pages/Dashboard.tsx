@@ -13,10 +13,7 @@ import {
   Space,
   message,
   Spin,
-  Progress,
   Tag,
-  Divider,
-  List,
 } from 'antd';
 import {
   PlusOutlined,
@@ -26,19 +23,19 @@ import {
   EllipsisOutlined,
   FileTextOutlined,
   ArrowRightOutlined,
-  ThunderboltOutlined,
+  SkinOutlined,
   StarOutlined,
   ExportOutlined,
   ProfileOutlined,
+  AppstoreOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useResumeStore } from '@/store/resumeStore';
-import { useAuth } from '@/hooks/useAuth';
 import type { MenuProps } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { getErrorMessage } from '@/utils/apiError';
 import { openUpgradePrompt } from '@/utils/planMessages';
-import { TEMPLATE_NAME_KEYS } from '@/utils/constants';
+import { TEMPLATE_NAME_KEYS, TEMPLATE_OPTIONS } from '@/utils/constants';
 import './CommercialPages.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -46,7 +43,6 @@ const { Title, Text, Paragraph } = Typography;
 export const Dashboard = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
-  const { user } = useAuth();
   const {
     resumes,
     isLoading,
@@ -67,11 +63,11 @@ export const Dashboard = () => {
       cta: t('dashboard.actions.new.cta'),
     },
     {
-      key: 'optimize',
-      icon: <ThunderboltOutlined />,
-      title: t('dashboard.actions.optimize.title'),
-      description: t('dashboard.actions.optimize.description'),
-      cta: t('dashboard.actions.optimize.cta'),
+      key: 'layout',
+      icon: <SkinOutlined />,
+      title: t('dashboard.actions.layout.title'),
+      description: t('dashboard.actions.layout.description'),
+      cta: t('dashboard.actions.layout.cta'),
     },
     {
       key: 'export',
@@ -80,12 +76,6 @@ export const Dashboard = () => {
       description: t('dashboard.actions.export.description'),
       cta: t('dashboard.actions.export.cta'),
     },
-  ];
-
-  const planComparisons = [
-    { plan: t('dashboard.plan.free'), points: t('dashboard.plan.freePoints') },
-    { plan: t('dashboard.plan.starter'), points: t('dashboard.plan.starterPoints') },
-    { plan: t('dashboard.plan.pro'), points: t('dashboard.plan.proPoints') },
   ];
 
   useEffect(() => {
@@ -177,14 +167,7 @@ export const Dashboard = () => {
   };
 
   const latestResume = resumes[0];
-  const resumeLimit = user?.plan?.resumeLimit ?? 0;
-  const aiLimit = user?.plan?.aiQuotaMonthly ?? 0;
-  const aiUsed = user?.usage?.aiUsed ?? 0;
-  const remainingResumeCount = resumeLimit === 0 ? t('dashboard.unlimited') : Math.max(resumeLimit - resumes.length, 0);
-  const remainingAiCount = aiLimit === 0 ? t('dashboard.unlimited') : Math.max(aiLimit - aiUsed, 0);
-  const templateSummary = user?.plan?.templateLimit && user.plan.templateLimit >= 99
-    ? t('dashboard.allTemplates')
-    : t('dashboard.templateCount', { count: user?.plan?.templateLimit ?? 1 });
+  const templateSummary = t('dashboard.templateCount', { count: TEMPLATE_OPTIONS.length });
 
   if (isLoading && resumes.length === 0) {
     return (
@@ -202,7 +185,7 @@ export const Dashboard = () => {
             <Space direction="vertical" size={14} style={{ width: '100%' }}>
               <div className="commerce-hero-badge">
                 <StarOutlined />
-                {user?.plan?.name || t('dashboard.workspaceName')}
+                {t('dashboard.workspaceName')}
               </div>
               <Title level={1} className="commerce-hero-title">
                 {t('dashboard.heroTitle')}
@@ -231,15 +214,23 @@ export const Dashboard = () => {
                     {t('dashboard.continueLastEdit')}
                   </Button>
                 )}
+                <Button
+                  size="large"
+                  icon={<AppstoreOutlined />}
+                  onClick={() => navigate('/')}
+                  style={{ minWidth: 160, borderRadius: 10, fontWeight: 600, background: '#ffffff', color: '#44403c', borderColor: '#dbd6cd' }}
+                >
+                  {t('dashboard.browseTemplates')}
+                </Button>
               </Space>
               <div className="commerce-chip-row">
                 <div className="commerce-chip">
                   <ProfileOutlined />
-                  {t('dashboard.chipResumePrefix')} <strong>{remainingResumeCount}</strong> {t('dashboard.chipResumeSuffix')}
+                  {t('dashboard.chipVersions', { count: resumes.length })}
                 </div>
                 <div className="commerce-chip">
-                  <ThunderboltOutlined />
-                  {t('dashboard.chipAiPrefix')} <strong>{remainingAiCount}</strong> {t('dashboard.chipAiSuffix')}
+                  <SkinOutlined />
+                  {t('dashboard.chipStyles')}
                 </div>
                 <div className="commerce-chip">
                   <StarOutlined />
@@ -259,33 +250,14 @@ export const Dashboard = () => {
                 </Col>
                 <Col span={12}>
                   <div className="commerce-metric-card">
-                    <span className="commerce-metric-label">{t('dashboard.metrics.currentPlan')}</span>
+                    <span className="commerce-metric-label">{t('dashboard.metrics.templates')}</span>
                     <div className="commerce-metric-value" style={{ fontSize: 18 }}>
-                      {user?.plan?.name || t('dashboard.plan.free')}
+                      {TEMPLATE_OPTIONS.length}
                     </div>
                   </div>
                 </Col>
                 <Col span={24}>
-                  <div className="commerce-meter">
-                    <div className="commerce-meter-top">
-                      <span className="commerce-meter-label">{t('dashboard.metrics.resumeQuota')}</span>
-                      <span className="commerce-meter-hint">{resumes.length} / {resumeLimit === 0 ? t('dashboard.unlimited') : resumeLimit}</span>
-                    </div>
-                    {resumeLimit > 0 && (
-                      <Progress percent={Math.min(100, Math.round((resumes.length / resumeLimit) * 100))} showInfo={false} strokeColor="#9d6b21" />
-                    )}
-                  </div>
-                </Col>
-                <Col span={24}>
-                  <div className="commerce-meter">
-                    <div className="commerce-meter-top">
-                      <span className="commerce-meter-label">{t('dashboard.metrics.aiUsage')}</span>
-                      <span className="commerce-meter-hint">{aiUsed} / {aiLimit || '-'}</span>
-                    </div>
-                    {aiLimit > 0 && (
-                      <Progress percent={Math.min(100, Math.round((aiUsed / aiLimit) * 100))} showInfo={false} strokeColor="#15803d" />
-                    )}
-                  </div>
+                  <Text>{t('dashboard.layoutTip')}</Text>
                 </Col>
               </Row>
             </Card>
@@ -309,7 +281,7 @@ export const Dashboard = () => {
                   type={item.key === 'new' ? 'primary' : 'default'}
                   onClick={() => {
                     if (item.key === 'new') setCreateModalOpen(true);
-                    if ((item.key === 'optimize' || item.key === 'export') && latestResume) {
+                    if ((item.key === 'layout' || item.key === 'export') && latestResume) {
                       navigate(`/editor/${latestResume.id}`);
                     }
                   }}
@@ -359,15 +331,6 @@ export const Dashboard = () => {
                     <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalOpen(true)}>
                               {t('dashboard.createFirstResumeButton')}
                     </Button>
-                    <Button
-                      onClick={() => Modal.info({
-                        title: t('dashboard.goMembershipTitle'),
-                        content: t('dashboard.goMembershipContent'),
-                        onOk: () => navigate('/pricing'),
-                      })}
-                    >
-                              {t('dashboard.viewPricingDiffButton')}
-                    </Button>
                   </Space>
                 </Empty>
               </div>
@@ -412,7 +375,7 @@ export const Dashboard = () => {
                       <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
                         {formatRelativeTime(resume.updatedAt)}
                       </Text>
-                      <Divider style={{ margin: '12px 0' }} />
+                      {/* <Divider style={{ margin: '12px 0' }} /> */}
                       <Space direction="vertical" size={6} style={{ width: '100%' }} className="resume-card-footer">
                         <Text style={{ color: '#57534e' }}>{t('dashboard.nextStepsTitle')}</Text>
                         <Text type="secondary">{t('dashboard.nextStepsHint')}</Text>
@@ -427,27 +390,6 @@ export const Dashboard = () => {
 
         <Col xs={24} xl={7}>
           <Space direction="vertical" size="large" style={{ width: '100%' }}>
-            <Card className="side-rail-card">
-              <Title level={4} style={{ marginTop: 0 }}>{t('dashboard.upgradeRouteTitle')}</Title>
-              <List
-                dataSource={planComparisons}
-                renderItem={(item) => (
-                  <div className="plan-list-item">
-                    <Text style={{ display: 'block', fontWeight: 700, color: '#1c1917' }}>{item.plan}</Text>
-                    <Text style={{ color: '#78716c', lineHeight: 1.7 }}>{item.points}</Text>
-                  </div>
-                )}
-              />
-              <Button
-                type="primary"
-                block
-                style={{ marginTop: 8, borderRadius: 10 }}
-                onClick={() => navigate('/pricing')}
-              >
-                {t('dashboard.goMembershipTitle')}
-              </Button>
-            </Card>
-
             <Card className="side-rail-card side-rail-card--accent">
               <Title level={4} style={{ marginTop: 0 }}>{t('dashboard.nextStepsPanelTitle')}</Title>
               <Space direction="vertical" size={14} style={{ width: '100%' }}>

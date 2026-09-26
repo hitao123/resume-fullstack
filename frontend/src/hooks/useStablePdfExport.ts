@@ -1,8 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import resumeService, { type ResumeExport } from '@/services/resumeService';
+import { getErrorCode } from '@/utils/apiError';
 
 export type StablePdfStatus = 'idle' | 'queued' | 'rendering' | 'ready' | 'stale' | 'failed';
-export interface StablePdfResult { url?: string; error?: string }
+/** Codes are machine-readable so the UI can localize them; `error` is the untranslated server detail. */
+export interface StablePdfResult { url?: string; error?: string; errorCode?: string; warningCode?: string }
+
+class StablePdfError extends Error {
+  readonly code: string;
+  constructor(code: string, message: string) { super(message); this.code = code; }
+}
 
 const POLL_INTERVAL_MS = 650;
 const POLL_TIMEOUT_MS = 90_000;
@@ -49,22 +56,22 @@ export const useStablePdfExport = () => {
       const deadline = Date.now() + POLL_TIMEOUT_MS;
       while (task.status === 'queued' || task.status === 'rendering') {
         setStatus(task.status);
-        if (Date.now() >= deadline) throw new Error('PDF rendering timed out. Please retry.');
+        if (Date.now() >= deadline) throw new StablePdfError('POLL_TIMEOUT', 'PDF rendering timed out. Please retry.');
         await new Promise((resolve) => window.setTimeout(resolve, POLL_INTERVAL_MS));
         task = await resumeService.getExport(resumeId, task.id);
         if (token !== requestRef.current) return {};
       }
       setExportTask(task);
-      if (task.status !== 'ready') throw new Error(task.errorMessage || 'PDF rendering failed. Please retry.');
+      if (task.status !== 'ready') throw new StablePdfError(task.errorCode || 'RENDER_FAILED', task.errorMessage || 'PDF rendering failed. Please retry.');
       const url = await fetchBlob(task, token);
       if (token === requestRef.current) setStatus('ready');
-      return { url };
+      return { url, warningCode: task.warningCode };
     } catch (cause) {
       if (token !== requestRef.current) return {};
       const detail = cause instanceof Error ? cause.message : String(cause);
       setStatus('failed');
       setError(detail);
-      return { error: detail };
+      return { error: detail, errorCode: getErrorCode(cause) };
     }
   }, [clearBlob, fetchBlob]);
 

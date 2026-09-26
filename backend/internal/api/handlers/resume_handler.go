@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"net/http"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -16,6 +18,8 @@ import (
 )
 
 type ResumeHandler struct{}
+
+var themeColorPattern = regexp.MustCompile(`^#[0-9a-fA-F]{6}$`)
 
 func NewResumeHandler() *ResumeHandler {
 	return &ResumeHandler{}
@@ -126,11 +130,12 @@ func (h *ResumeHandler) CreateResume(c *gin.Context) {
 	}
 
 	resume := models.Resume{
-		UserID:       userID,
-		Title:        req.Title,
-		TemplateID:   templateID,
-		VersionLabel: req.VersionLabel,
-		TargetRole:   req.TargetRole,
+		UserID:        userID,
+		Title:         req.Title,
+		TemplateID:    templateID,
+		LayoutDensity: "balanced",
+		VersionLabel:  req.VersionLabel,
+		TargetRole:    req.TargetRole,
 	}
 
 	if err := database.DB.Create(&resume).Error; err != nil {
@@ -166,6 +171,22 @@ func (h *ResumeHandler) UpdateResume(c *gin.Context) {
 			return
 		}
 		resume.TemplateID = *req.TemplateID
+	}
+	if req.ThemeColor != nil {
+		if *req.ThemeColor != "" && !themeColorPattern.MatchString(*req.ThemeColor) {
+			response.BadRequest(c, "INVALID_THEME_COLOR", "themeColor must be a #rrggbb hex color or empty")
+			return
+		}
+		resume.ThemeColor = strings.ToLower(*req.ThemeColor)
+	}
+	if req.LayoutDensity != nil {
+		switch *req.LayoutDensity {
+		case "compact", "balanced", "spacious":
+			resume.LayoutDensity = *req.LayoutDensity
+		default:
+			response.BadRequest(c, "INVALID_LAYOUT_DENSITY", "layoutDensity must be compact, balanced or spacious")
+			return
+		}
 	}
 	if req.VersionLabel != nil {
 		resume.VersionLabel = *req.VersionLabel
@@ -273,6 +294,8 @@ func (h *ResumeHandler) DuplicateResume(c *gin.Context) {
 		UserID:        userID,
 		Title:         originalResume.Title + " - Copy",
 		TemplateID:    originalResume.TemplateID,
+		ThemeColor:    originalResume.ThemeColor,
+		LayoutDensity: originalResume.LayoutDensity,
 		VersionLabel:  originalResume.VersionLabel,
 		TargetRole:    originalResume.TargetRole,
 		SectionConfig: originalResume.SectionConfig,

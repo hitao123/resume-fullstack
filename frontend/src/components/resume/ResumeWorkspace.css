@@ -6,6 +6,8 @@
 .resume-editor-content {
   padding: 20px;
   overflow: auto;
+  min-width: 0;
+  flex: 1 1 0;
 }
 
 .resume-editor-shell {
@@ -17,7 +19,76 @@
 
 .resume-editor-shell .ant-card-head {
   border-bottom: 1px solid var(--rs-border);
-  padding: 0 24px;
+  padding: 12px 20px;
+  box-shadow: none;
+}
+
+.resume-editor-shell .ant-card-head-wrapper {
+  container-type: inline-size;
+  align-items: center;
+  flex-wrap: wrap;
+  column-gap: 16px;
+  row-gap: 10px;
+}
+
+.resume-editor-shell .ant-card-head-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.resume-editor-shell .ant-card-extra {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  margin-inline-start: auto;
+}
+
+.resume-editor-actions.ant-space {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 100%;
+}
+
+@container (max-width: 700px) {
+  .resume-editor-shell .ant-card-extra {
+    flex-basis: 100%;
+    margin-inline-start: 0;
+  }
+}
+
+.resume-editor-back.ant-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  color: var(--rs-ink);
+  background: var(--rs-surface);
+  border-color: var(--rs-border);
+  box-shadow: none !important;
+}
+
+.resume-editor-back.ant-btn .anticon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: 0;
+  line-height: 0;
+}
+
+.resume-editor-back.ant-btn:not(:disabled):hover {
+  color: var(--rs-ink) !important;
+  border-color: var(--rs-border-strong) !important;
+  background: var(--rs-surface) !important;
+}
+
+.resume-editor-shell .ant-btn,
+.resume-editor-shell .ant-segmented-item,
+.resume-editor-shell .ant-segmented-item-selected {
+  box-shadow: none;
 }
 
 .resume-editor-shell .ant-card-body {
@@ -28,12 +99,22 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
+  flex-wrap: nowrap;
 }
 
 .resume-editor-title {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
+}
+
+.resume-editor-title strong,
+.resume-editor-title span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .resume-editor-title strong {
@@ -99,6 +180,7 @@
   border-left: 1px solid var(--rs-border);
   background: var(--rs-surface-soft) !important;
   max-width: 75vw;
+  min-width: 0;
 }
 
 .resume-preview-toolbar {
@@ -108,8 +190,8 @@
   gap: 12px;
   padding: 14px 18px;
   border-bottom: 1px solid var(--rs-border);
-  background: rgba(255, 255, 255, 0.86);
-  backdrop-filter: blur(12px);
+  background: var(--rs-surface);
+  box-shadow: none;
 }
 
 .resume-preview-toolbar-title {
@@ -132,6 +214,11 @@
   height: calc(100% - 68px);
   overflow: auto;
   padding: 20px;
+}
+
+/* 屏幕预览纸张自带向下投影，会在标题栏正下方压出一圈暗边 */
+.resume-preview-stage .rd {
+  box-shadow: none;
 }
 
 .settings-stack {
@@ -233,7 +320,6 @@
 
 .template-thumb-modern-sidebar {
   padding: 12px 10px;
-  background: linear-gradient(180deg, #8d6630 0%, #b88a47 100%);
 }
 
 .template-thumb-modern-main {
@@ -265,6 +351,40 @@
   border-bottom: 1px solid var(--rs-border);
 }
 
+.theme-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.theme-swatch {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--rs-border);
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.theme-swatch:hover {
+  transform: scale(1.08);
+}
+
+.theme-swatch:focus-visible,
+.theme-swatch--active {
+  outline: none;
+  box-shadow: 0 0 0 2px #1c1917;
+}
+
+.theme-hint {
+  margin-top: 12px;
+  color: #78716c;
+  font-size: 13px;
+}
+
 .template-card-meta {
   display: flex;
   flex-wrap: wrap;
@@ -276,6 +396,31 @@
   padding: 14px 0;
 }
 
+@media (max-width: 1199px) {
+  .resume-editor-layout {
+    flex-direction: column;
+  }
+
+  .resume-preview-handle {
+    display: none;
+  }
+
+  .resume-preview-sider {
+    width: 100% !important;
+    max-width: none !important;
+    flex: none !important;
+    position: static !important;
+    height: min(85vh, 850px);
+    border-left: 0;
+    border-top: 1px solid var(--rs-border);
+  }
+
+  .resume-editor-shell .ant-card-head-wrapper {
+    align-items: center;
+    gap: 10px;
+  }
+}
+
 @media (max-width: 991px) {
   .resume-editor-content {
     padding: 14px;
@@ -285,5 +430,28 @@
   .resume-editor-shell .ant-card-body {
     padding-left: 16px !important;
     padding-right: 16px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .resume-editor-titlebar {
+    flex-wrap: wrap;
+  }
+
+  .resume-editor-title {
+    flex: 1;
+  }
+
+  .resume-editor-status {
+    margin-inline-start: 44px;
+  }
+
+  .resume-preview-stage {
+    padding: 12px;
+  }
+
+  .settings-section-list .ant-list-item {
+    flex-wrap: wrap;
+    gap: 8px;
   }
 }

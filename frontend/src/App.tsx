@@ -5,9 +5,9 @@ import enUS from 'antd/locale/en_US';
 import { useTranslation } from 'react-i18next';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
-import Pricing from '@/pages/Pricing';
 import OAuthCallback from '@/pages/OAuthCallback';
 import Dashboard from '@/pages/Dashboard';
+import TemplateHome from '@/pages/TemplateHome';
 import ResumeEditor from '@/pages/ResumeEditor';
 import MainLayout from '@/components/layout/MainLayout';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -41,6 +41,10 @@ function App() {
           Button: {
             borderRadius: 8,
             controlHeight: 36,
+            // Ant Design 默认是 2px 实心下投影，和页面的轻边框风格冲突
+            primaryShadow: 'none',
+            defaultShadow: 'none',
+            dangerShadow: 'none',
           },
           Menu: {
             itemBorderRadius: 8,
@@ -54,7 +58,7 @@ function App() {
             {/* Public routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/pricing" element={<Navigate to="/dashboard" replace />} />
             <Route path="/oauth/callback" element={<OAuthCallback />} />
 
             {/* Protected routes - 需要登录才能访问 */}
@@ -66,13 +70,13 @@ function App() {
                 </ProtectedRoute>
               }
             >
-              <Route index element={<Navigate to="/dashboard" replace />} />
+              <Route index element={<TemplateHome />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="editor/:id" element={<ResumeEditor />} />
             </Route>
 
             {/* Fallback */}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
       </AntdApp>

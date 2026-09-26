@@ -205,10 +205,6 @@ func (s *ExportService) Create(resumeID, userID uint, locale string) (*models.Re
 		tx.Rollback()
 		return nil, err
 	}
-	if resume.TemplateID != 3 {
-		tx.Rollback()
-		return nil, &RendererError{Code: "MINIMAL_V2_REQUIRED", Message: "minimal-v2 exports require the minimal template."}
-	}
 	if err := tx.Commit().Error; err != nil {
 		return nil, err
 	}
@@ -224,7 +220,7 @@ func (s *ExportService) Create(resumeID, userID uint, locale string) (*models.Re
 		return nil, err
 	}
 	contentHash := fmt.Sprintf("%x", sha256.Sum256(snapshot))
-	cacheKey := fmt.Sprintf("%x", sha256.Sum256([]byte(fmt.Sprintf("%d:%s:minimal-v2:%s:renderer-1", userID, contentHash, locale))))
+	cacheKey := fmt.Sprintf("%x", sha256.Sum256([]byte(fmt.Sprintf("%d:%s:minimal-v2:%s:renderer-2", userID, contentHash, locale))))
 	now := time.Now().UTC()
 	var cached models.ResumeExport
 	if err := database.DB.Where("user_id = ? AND cache_key = ? AND status = ? AND expires_at > ?", userID, cacheKey, exportStatusReady, now).First(&cached).Error; err == nil {
@@ -305,7 +301,7 @@ func (s *ExportService) render(id string) {
 		return
 	}
 	fileHash := fmt.Sprintf("%x", sha256.Sum256(pdfBytes))
-	fileName := fmt.Sprintf("resume-%d-minimal-v2.pdf", task.ResumeID)
+	fileName := fmt.Sprintf("resume-%d.pdf", task.ResumeID)
 	database.DB.Model(&models.ResumeExport{}).Where("id = ? AND status = ?", task.ID, exportStatusRendering).Updates(map[string]interface{}{"status": exportStatusReady, "file_path": path, "file_name": fileName, "file_hash": fileHash, "page_count": pages, "error_code": "", "error_message": ""})
 }
 

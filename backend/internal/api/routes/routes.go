@@ -108,26 +108,19 @@ func SetupRoutes(router *gin.Engine) {
 		resumes.DELETE("/custom-sections/:id", resumeHandler.DeleteCustomSection)
 	}
 
-	// AI handlers (protected)
-	aiHandler := handlers.NewAIHandler()
-	ai := v1.Group("/ai")
-	ai.Use(middleware.AuthMiddleware())
-	{
-		ai.POST("/generate-summary", aiHandler.GenerateSummary)
-		ai.POST("/enhance-description", aiHandler.EnhanceDescription)
-	}
-
-	billingHandler := handlers.NewBillingHandler()
-	billing := v1.Group("/billing")
-	{
-		billing.GET("/plans", billingHandler.GetPlans)
-	}
-
-	billingProtected := v1.Group("/billing")
-	billingProtected.Use(middleware.AuthMiddleware())
-	{
-		billingProtected.GET("/orders", billingHandler.GetOrders)
-		billingProtected.POST("/checkout", billingHandler.Checkout)
-		billingProtected.POST("/orders/:id/pay", billingHandler.PayOrder)
-	}
+	// AI and paid membership are paused. Keep their handlers for later, but do
+	// not register routes while the editor is fully open to every account.
+	// aiHandler := handlers.NewAIHandler()
+	// ai := v1.Group("/ai")
+	// ai.Use(middleware.AuthMiddleware())
+	// ai.POST("/generate-summary", aiHandler.GenerateSummary)
+	// ai.POST("/enhance-description", aiHandler.EnhanceDescription)
+	// billingHandler := handlers.NewBillingHandler()
+	// billing := v1.Group("/billing")
+	// billing.GET("/plans", billingHandler.GetPlans)
+	// billingProtected := v1.Group("/billing")
+	// billingProtected.Use(middleware.AuthMiddleware())
+	// billingProtected.GET("/orders", billingHandler.GetOrders)
+	// billingProtected.POST("/checkout", billingHandler.Checkout)
+	// billingProtected.POST("/orders/:id/pay", billingHandler.PayOrder)
 }

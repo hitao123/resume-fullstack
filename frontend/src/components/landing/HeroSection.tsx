@@ -4,7 +4,7 @@ const HeroSection = () => {
   const { t } = useTranslation();
 
   const highlights = [
-    { icon: '✦', key: 'aiWriting' },
+    { icon: '✦', key: 'styleEditing' },
     { icon: '⚡', key: 'fastCreate' },
     { icon: '📄', key: 'pdfExport' },
   ];

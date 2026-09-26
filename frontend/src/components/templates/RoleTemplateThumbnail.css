@@ -1,0 +1,16 @@
+.role-thumb {
+  aspect-ratio: 210 / 297;
+  overflow: hidden;
+  background: #fff;
+  pointer-events: none;
+  user-select: none;
+}
+
+.role-thumb-stage {
+  width: 100%;
+}
+
+.role-thumb .rd {
+  box-shadow: none;
+  margin: 0;
+}

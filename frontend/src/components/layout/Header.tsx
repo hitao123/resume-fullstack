@@ -1,5 +1,5 @@
-import { Layout as AntLayout, Menu, Dropdown, Avatar, theme, Tag, Space } from 'antd';
-import { UserOutlined, FileTextOutlined, LogoutOutlined, CrownFilled } from '@ant-design/icons';
+import { Layout as AntLayout, Menu, Dropdown, Avatar, theme } from 'antd';
+import { UserOutlined, FileTextOutlined, LogoutOutlined, AppstoreOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import type { MenuProps } from 'antd';
@@ -41,16 +41,16 @@ export const Header = () => {
 
   const menuItems: MenuProps['items'] = [
     {
+      key: '/',
+      icon: <AppstoreOutlined />,
+      label: t('nav.templates'),
+      onClick: () => navigate('/'),
+    },
+    {
       key: '/dashboard',
       icon: <FileTextOutlined />,
       label: t('nav.myResumes'),
       onClick: () => navigate('/dashboard'),
-    },
-    {
-      key: '/pricing',
-      icon: <CrownFilled />,
-      label: t('nav.membership'),
-      onClick: () => navigate('/pricing'),
     },
   ];
 
@@ -63,7 +63,7 @@ export const Header = () => {
       }}
     >
       <div className="left">
-        <div className="brand" onClick={() => navigate('/dashboard')} aria-label={t('nav.myResumes')}>
+        <div className="brand" onClick={() => navigate('/')} aria-label={t('nav.templates')}>
           <img className="brandLogo" src={logoUrl} alt={t('common.appName')} />
           <div className="brandText">{t('common.appName')}</div>
         </div>
@@ -77,22 +77,6 @@ export const Header = () => {
       </div>
 
       <div className="right">
-        {user?.plan && (
-          <Space size="small">
-            <Tag
-              style={{
-                borderRadius: 999,
-                marginInlineEnd: 0,
-                borderColor: user.plan.code === 'FREE' ? '#e9e6e0' : '#e6d7b8',
-                background: user.plan.code === 'FREE' ? '#faf9f6' : '#f5eddc',
-                color: user.plan.code === 'FREE' ? '#78716c' : '#7c5416',
-                fontWeight: 600,
-              }}
-            >
-              {user.plan.name}
-            </Tag>
-          </Space>
-        )}
         <LanguageSwitcher />
         <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
           <Avatar

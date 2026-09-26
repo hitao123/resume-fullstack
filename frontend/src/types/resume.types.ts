@@ -4,6 +4,9 @@ export interface Resume {
   userId: number;
   title: string;
   templateId: number;
+  /** #rrggbb; empty means the template's default accent. */
+  themeColor?: string;
+  layoutDensity?: 'compact' | 'balanced' | 'spacious';
   versionLabel?: string;
   targetRole?: string;
   sectionConfig?: ResumeSectionConfig[];
@@ -140,6 +143,8 @@ export interface CreateResumeRequest {
 export interface UpdateResumeRequest {
   title?: string;
   templateId?: number;
+  themeColor?: string;
+  layoutDensity?: 'compact' | 'balanced' | 'spacious';
   versionLabel?: string;
   targetRole?: string;
   sectionConfig?: ResumeSectionConfig[];

@@ -13,6 +13,8 @@ type UpdateResumeRequest struct {
 	ID            uint                        `json:"id" binding:"required"`
 	Title         *string                     `json:"title" binding:"omitempty,max=255"`
 	TemplateID    *int                        `json:"templateId"`
+	ThemeColor    *string                     `json:"themeColor"`
+	LayoutDensity *string                     `json:"layoutDensity"`
 	VersionLabel  *string                     `json:"versionLabel"`
 	TargetRole    *string                     `json:"targetRole"`
 	SectionConfig *[]ResumeSectionConfigInput `json:"sectionConfig"`

@@ -5,10 +5,6 @@ import type { PersonalInfo } from '@/types/resume.types';
 import resumeService from '@/services/resumeService';
 import { useTranslation } from 'react-i18next';
 import RichTextEditor from '@/components/common/RichTextEditor';
-import AIAssistantButton from '@/components/ai/AIAssistantButton';
-import AIResultPanel from '@/components/ai/AIResultPanel';
-import { useAIAssistant } from '@/hooks/useAIAssistant';
-import { generateSummary } from '@/services/aiService';
 import { resumeSaveCoordinator } from '@/utils/resumeSaveCoordinator';
 
 interface PersonalInfoFormProps {
@@ -23,8 +19,7 @@ export const PersonalInfoForm = ({ data, onChange }: PersonalInfoFormProps) => {
   const inFlightRef = useRef<Promise<void> | null>(null);
   const latestValuesRef = useRef<Partial<PersonalInfo>>({});
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { t, i18n } = useTranslation();
-  const ai = useAIAssistant();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (data) {
@@ -97,22 +92,6 @@ export const PersonalInfoForm = ({ data, onChange }: PersonalInfoFormProps) => {
     saveToBackend(allValues);
   };
 
-  const handleGenerateSummary = () => {
-    if (!id) return;
-    const language = i18n.language.startsWith('zh') ? 'zh' : 'en';
-    ai.startGeneration((callbacks, signal) => {
-      generateSummary(Number(id), language, callbacks, signal);
-    });
-  };
-
-  const handleAcceptSummary = () => {
-    form.setFieldsValue({ summary: ai.content });
-    const allValues = form.getFieldsValue();
-    onChange(allValues);
-    saveToBackend(allValues);
-    ai.reset();
-  };
-
   return (
     <Form
       form={form}
@@ -183,28 +162,13 @@ export const PersonalInfoForm = ({ data, onChange }: PersonalInfoFormProps) => {
       </Form.Item>
 
       <Form.Item
-        label={
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {t('resume.personal.summaryLabel')}
-            <AIAssistantButton
-              onClick={handleGenerateSummary}
-              loading={ai.isGenerating}
-              label={t('ai.generateSummary')}
-            />
-          </div>
-        }
+        label={t('resume.personal.summaryLabel')}
         name="summary"
       >
         <RichTextEditor placeholder={t('resume.personal.summaryPlaceholder')} />
       </Form.Item>
 
-      <AIResultPanel
-        content={ai.content}
-        isGenerating={ai.isGenerating}
-        error={ai.error}
-        onAccept={handleAcceptSummary}
-        onDiscard={ai.reset}
-      />
+      {/* AI summary generation is paused; manual editing remains available. */}
     </Form>
   );
 };

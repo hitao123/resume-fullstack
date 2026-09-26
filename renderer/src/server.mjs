@@ -1,7 +1,7 @@
 import http from 'node:http';
 import { existsSync } from 'node:fs';
 import { chromium } from 'playwright';
-import { minimalCss, normalizeResume } from '@resume-studio/resume-document';
+import { documentHtml, normalizeResume } from '@resume-studio/resume-document';
 
 const PORT = Number(process.env.PORT || 3001);
 const MAX_CONCURRENCY = 2;
@@ -12,17 +12,7 @@ let browser;
 let active = 0;
 const waiting = [];
 
-function escapeHtml(value) { return String(value).replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char])); }
-function renderInline(children) { return children.map((node) => { let text = escapeHtml(node.text).replace(/\n/g, '<br>'); if (node.marks?.includes('bold')) text = `<strong>${text}</strong>`; if (node.marks?.includes('italic')) text = `<em>${text}</em>`; return text; }).join(''); }
-function renderBlocks(nodes) { return nodes.map((node) => node.type === 'paragraph'
-  ? `<p>${renderInline(node.children)}</p>`
-  : `<${node.ordered ? 'ol' : 'ul'}>${node.items.map((item) => `<li>${renderBlocks(item)}</li>`).join('')}</${node.ordered ? 'ol' : 'ul'}>`).join(''); }
-
-export function documentHtml(document) {
-  const contacts = document.header.contacts.map((item) => item.href ? `<a href="${escapeHtml(item.href)}">${escapeHtml(item.value)}</a>` : `<span>${escapeHtml(item.value)}</span>`).join('');
-  const sections = document.sections.map((section) => `<section class="minimal-section"><h2 class="minimal-section-title">${escapeHtml(section.title)}</h2>${section.entries.map((entry) => `<article class="minimal-entry">${entry.heading ? `<div class="minimal-entry-heading">${escapeHtml(entry.heading)}</div>` : ''}${entry.meta ? `<div class="minimal-entry-meta">${escapeHtml(entry.meta)}</div>` : ''}${renderBlocks(entry.nodes)}${entry.links?.length ? `<div class="minimal-entry-meta">${entry.links.map((link) => `<a href="${escapeHtml(link.href)}">${escapeHtml(link.label)}: ${escapeHtml(link.value)}</a>`).join(' · ')}</div>` : ''}</article>`).join('')}</section>`).join('');
-  return `<!doctype html><html lang="${document.locale}"><head><meta charset="utf-8"><style>${minimalCss}</style></head><body><main class="minimal-document"><header class="minimal-header">${document.header.avatar ? `<img class="minimal-avatar" src="${escapeHtml(document.header.avatar.dataUrl)}" alt="">` : ''}${document.header.fullName ? `<h1 class="minimal-name">${escapeHtml(document.header.fullName)}</h1>` : ''}${document.header.targetRole ? `<p class="minimal-role">${escapeHtml(document.header.targetRole)}</p>` : ''}${contacts ? `<div class="minimal-contacts">${contacts}</div>` : ''}</header>${sections}</main><script>window.__RESUME_READY__=false;Promise.all([document.fonts.ready,...Array.from(document.images).map(i=>i.decode())]).then(()=>window.__RESUME_READY__=true)</script></body></html>`;
-}
+export { documentHtml };
 
 async function getBrowser() {
   if (browser?.isConnected()) return browser;
@@ -58,8 +48,8 @@ async function render({ snapshot, locale, templateVersion }) {
     if (!fontLoaded) throw Object.assign(new Error('Required Noto Sans CJK SC font did not load.'), { code: 'FONT_LOAD_FAILED' });
     await page.evaluate(() => {
       const shortEntryHeight = 89 * 96 / 25.4;
-      document.querySelectorAll('.minimal-entry').forEach((entry) => {
-        entry.classList.toggle('minimal-entry-short', entry.getBoundingClientRect().height <= shortEntryHeight);
+      document.querySelectorAll('.rd-entry').forEach((entry) => {
+        entry.classList.toggle('rd-entry-short', entry.getBoundingClientRect().height <= shortEntryHeight);
       });
     });
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);

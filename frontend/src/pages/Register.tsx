@@ -22,12 +22,6 @@ export const Register = () => {
     t('auth.registerPage.benefits.item3'),
   ];
 
-  const plans = [
-    { name: t('dashboard.plan.free'), detail: t('dashboard.plan.freePoints') },
-    { name: t('dashboard.plan.starter'), detail: t('dashboard.plan.starterPoints') },
-    { name: t('dashboard.plan.pro'), detail: t('dashboard.plan.proPoints') },
-  ];
-
   const onFinish = async (values: {
     email: string;
     password: string;
@@ -189,11 +183,6 @@ export const Register = () => {
               </Link>
             </Text>
           </div>
-          <div style={{ textAlign: 'center', marginBottom: 8 }}>
-            <Link to="/pricing" style={{ color: '#9d6b21', fontWeight: 700 }}>
-              {t('auth.registerPage.viewPlans')}
-            </Link>
-          </div>
         </Form>
 
         <SocialLoginButtons />
@@ -210,19 +199,6 @@ export const Register = () => {
         ))}
       </Row>
 
-      <Card className="auth-plan-card" bordered={false}>
-        <Title level={4} style={{ color: '#1c1917', marginTop: 0, marginBottom: 14 }}>
-          {t('auth.registerPage.planTitle')}
-        </Title>
-        <Space direction="vertical" size={12} style={{ width: '100%' }}>
-          {plans.map((item) => (
-            <div key={item.name} className="auth-plan-row">
-              <Text style={{ display: 'block', color: '#1c1917', fontWeight: 600 }}>{item.name}</Text>
-              <Text style={{ color: '#78716c', textAlign: 'right' }}>{item.detail}</Text>
-            </div>
-          ))}
-        </Space>
-      </Card>
     </LandingLayout>
   );
 };
